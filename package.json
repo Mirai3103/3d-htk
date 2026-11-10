@@ -1,0 +1,22 @@
+{
+  "name": "thcs-htk-3d-campus",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "check": "eslint . && vite build"
+  },
+  "devDependencies": {
+    "eslint": "9",
+    "globals": "^17.14.0",
+    "vite": "^8.3.6",
+    "vite-plugin-singlefile": "^2.3.4"
+  },
+  "dependencies": {
+    "three": "0.186.0"
+  }
+}

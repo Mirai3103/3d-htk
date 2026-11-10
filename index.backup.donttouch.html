@@ -1,0 +1,4629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#10251b" />
+<title>THCS Huynh Thuc Khang - 3D Campus</title>
+<style>
+  :root {
+    --ink: #10231a;
+    --forest: #15392a;
+    --forest-deep: #0b2118;
+    --cream: #f7f0dd;
+    --cream-soft: #efe4ca;
+    --gold: #d8aa50;
+    --gold-bright: #f1c96b;
+    --red: #b73428;
+    --glass: rgba(9, 22, 17, 0.72);
+    --glass-strong: rgba(8, 19, 14, 0.88);
+    --line: rgba(247, 240, 221, 0.18);
+    --shadow: 0 24px 70px rgba(3, 12, 8, 0.34);
+    --radius: 22px;
+    --panel-width: 372px;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--forest-deep);
+    color: var(--cream);
+    font-family: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    position: relative;
+    overscroll-behavior: none;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 3px;
+  }
+
+  #app {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    isolation: isolate;
+  }
+
+  #stage {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(circle at 50% 20%, #a8d6ea 0%, #76bedf 34%, #2e6b94 100%);
+  }
+
+  #stage canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    cursor: grab;
+  }
+
+  #stage canvas:active { cursor: grabbing; }
+
+  .edge-shade {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(3, 14, 10, 0.44) 0%, rgba(3, 14, 10, 0.08) 18%, transparent 35%),
+      linear-gradient(0deg, rgba(3, 14, 10, 0.24) 0%, transparent 26%),
+      radial-gradient(130% 100% at 50% 44%, transparent 48%, rgba(4, 12, 9, 0.24) 100%);
+  }
+
+  .brand {
+    position: absolute;
+    z-index: 10;
+    top: max(22px, env(safe-area-inset-top));
+    left: max(24px, env(safe-area-inset-left));
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    pointer-events: none;
+    filter: drop-shadow(0 3px 16px rgba(5, 18, 12, 0.52));
+    animation: rise-in 0.9s 0.25s both cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .crest {
+    position: relative;
+    flex: 0 0 auto;
+    width: 48px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    border-radius: 15px 15px 18px 18px;
+    background:
+      linear-gradient(150deg, rgba(255, 237, 190, 0.98), rgba(221, 170, 72, 0.96));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55), 0 8px 24px rgba(6, 19, 13, 0.34);
+    color: #793427;
+  }
+
+  .crest::after {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border: 1px solid rgba(105, 50, 30, 0.28);
+    border-radius: 11px 11px 14px 14px;
+  }
+
+  .crest svg {
+    position: relative;
+    z-index: 1;
+    width: 30px;
+    height: 34px;
+  }
+
+  .brand-copy { padding-top: 2px; }
+
+  .eyebrow {
+    margin: 0 0 5px;
+    color: #f1dba2;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .brand h1 {
+    margin: 0;
+    color: #fff9ea;
+    font-family: "Avenir Next Condensed", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(18px, 1.7vw, 24px);
+    font-weight: 800;
+    letter-spacing: 0.015em;
+    line-height: 1.05;
+    text-transform: uppercase;
+    text-shadow: 0 2px 22px rgba(5, 19, 13, 0.4);
+  }
+
+  .brand h1 .title-dash {
+    color: rgba(255, 247, 226, 0.4);
+    font-weight: 500;
+    padding: 0 0.2em;
+  }
+
+  .brand h1 .title-mode {
+    color: var(--gold-bright);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  .brand-sub {
+    margin: 6px 0 0;
+    color: rgba(255, 247, 228, 0.75);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-shadow: 0 1px 12px rgba(5, 19, 13, 0.48);
+  }
+
+  .top-controls {
+    position: absolute;
+    z-index: 12;
+    top: max(20px, env(safe-area-inset-top));
+    right: max(22px, env(safe-area-inset-right));
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 9px;
+    animation: rise-in 0.9s 0.35s both cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .weather-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px 7px 14px;
+    border: 1px solid rgba(255, 247, 229, 0.16);
+    border-radius: 16px;
+    background: rgba(10, 25, 19, 0.68);
+    box-shadow: 0 10px 32px rgba(4, 14, 10, 0.24);
+    backdrop-filter: blur(18px) saturate(130%);
+    -webkit-backdrop-filter: blur(18px) saturate(130%);
+  }
+
+  .control-kicker {
+    padding-right: 3px;
+    color: rgba(255, 246, 225, 0.48);
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.19em;
+    text-transform: uppercase;
+  }
+
+  .weather-options {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.055);
+  }
+
+  .weather-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: rgba(255, 248, 231, 0.66);
+    font-size: 10.5px;
+    font-weight: 650;
+    letter-spacing: 0.025em;
+    cursor: pointer;
+    transition: background 0.28s ease, color 0.28s ease, transform 0.2s ease, box-shadow 0.28s ease;
+  }
+
+  .weather-btn svg {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    opacity: 0.88;
+  }
+
+  .weather-btn:hover {
+    color: #fff8e7;
+    background: rgba(255, 255, 255, 0.09);
+  }
+
+  .weather-btn[aria-pressed="true"] {
+    color: #28321c;
+    background: linear-gradient(145deg, #f3e5bc, #dfbc70);
+    box-shadow: 0 2px 10px rgba(243, 210, 135, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .weather-btn[aria-pressed="true"] svg { opacity: 1; }
+
+  .utility-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .utility-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 32px;
+    padding: 0 11px;
+    border: 1px solid rgba(255, 247, 229, 0.14);
+    border-radius: 10px;
+    background: rgba(10, 25, 19, 0.54);
+    color: rgba(255, 247, 229, 0.7);
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: 0.055em;
+    cursor: pointer;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition: color 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+  }
+
+  .utility-btn svg { width: 14px; height: 14px; }
+
+  .utility-btn:hover {
+    color: #fff8e7;
+    background: rgba(29, 53, 41, 0.72);
+    border-color: rgba(255, 247, 229, 0.25);
+  }
+
+  .utility-btn[aria-pressed="true"] {
+    color: #f3d797;
+    border-color: rgba(247, 212, 133, 0.26);
+    background: rgba(41, 61, 44, 0.64);
+  }
+
+  .labels-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    pointer-events: none;
+    overflow: hidden;
+    transition: opacity 0.3s ease;
+  }
+
+  .labels-layer.is-hidden { opacity: 0; visibility: hidden; display: none; }
+  .labels-layer.is-hidden .building-label { pointer-events: none; }
+
+  .building-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    max-width: 190px;
+    padding: 6px 10px 6px 8px;
+    border: 1px solid rgba(252, 237, 197, 0.22);
+    border-radius: 999px;
+    background: rgba(10, 24, 18, 0.7);
+    color: #f8eed3;
+    box-shadow: 0 5px 16px rgba(3, 14, 9, 0.24);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-size: 9.5px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    pointer-events: auto;
+    transform: translate(-50%, -100%);
+    transition: opacity 0.18s ease, background 0.22s ease, border-color 0.22s ease, transform 0.18s ease;
+    will-change: transform, opacity;
+  }
+
+  .building-label::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--gold-bright);
+    box-shadow: 0 0 0 3px rgba(241, 201, 107, 0.12);
+  }
+
+  .building-label:hover,
+  .building-label.is-hovered {
+    background: rgba(28, 47, 31, 0.92);
+    border-color: rgba(252, 218, 143, 0.56);
+    transform: translate(-50%, calc(-100% - 3px));
+  }
+
+  .building-label.is-floating-away {
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+
+  .info-panel {
+    position: absolute;
+    z-index: 20;
+    top: 102px;
+    right: max(24px, env(safe-area-inset-right));
+    width: min(var(--panel-width), calc(100vw - 40px));
+    max-height: calc(100dvh - 128px);
+    display: flex;
+    flex-direction: column;
+    padding: 25px 25px 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius);
+    background:
+      linear-gradient(155deg, rgba(255, 252, 243, 0.985), rgba(244, 235, 214, 0.97));
+    color: var(--ink);
+    box-shadow: var(--shadow);
+    transform: translateX(calc(100% + 38px)) scale(0.985);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform 0.55s cubic-bezier(0.22, 1, 0.32, 1),
+      opacity 0.34s ease;
+  }
+
+  .info-panel.is-open {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .info-panel::after {
+    content: "";
+    position: absolute;
+    right: -74px;
+    bottom: -74px;
+    width: 210px;
+    height: 210px;
+    border: 1px solid rgba(110, 88, 44, 0.13);
+    border-radius: 50%;
+    box-shadow: 0 0 0 22px rgba(110, 88, 44, 0.035), 0 0 0 48px rgba(110, 88, 44, 0.025);
+    pointer-events: none;
+  }
+
+  .panel-topline {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+  }
+
+  .panel-index {
+    color: #a17938;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .panel-kind {
+    padding: 4px 8px;
+    border: 1px solid rgba(58, 77, 50, 0.16);
+    border-radius: 999px;
+    color: #5f6f4e;
+    background: rgba(70, 93, 58, 0.06);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .panel-close {
+    width: 31px;
+    height: 31px;
+    margin-left: auto;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(38, 50, 34, 0.13);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.42);
+    color: #3d4b35;
+    cursor: pointer;
+    transition: transform 0.24s ease, background 0.24s ease;
+  }
+
+  .panel-close:hover {
+    transform: rotate(90deg);
+    background: rgba(255, 255, 255, 0.82);
+  }
+
+  .panel-close svg { width: 13px; height: 13px; }
+
+  .panel-body {
+    position: relative;
+    z-index: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(66, 83, 49, 0.24) transparent;
+  }
+
+  .panel-body::-webkit-scrollbar { width: 4px; }
+  .panel-body::-webkit-scrollbar-thumb {
+    border-radius: 99px;
+    background: rgba(66, 83, 49, 0.22);
+  }
+
+  .panel-name {
+    margin: 14px 0 7px;
+    max-width: 295px;
+    color: #1b2b20;
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-size: clamp(27px, 2.4vw, 34px);
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 1.03;
+  }
+
+  .panel-sub {
+    margin: 0;
+    color: #7a7e69;
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: 0.09em;
+    line-height: 1.6;
+    text-transform: uppercase;
+  }
+
+  .panel-rule {
+    height: 1px;
+    margin: 20px 0 18px;
+    background: linear-gradient(90deg, rgba(55, 66, 42, 0.18), rgba(55, 66, 42, 0.03));
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .stat-card {
+    min-width: 0;
+    padding: 13px 14px 12px;
+    border: 1px solid rgba(39, 57, 36, 0.08);
+    border-radius: 14px;
+    background:
+      linear-gradient(160deg, rgba(255, 255, 255, 0.64), rgba(226, 216, 190, 0.28));
+  }
+
+  .stat-label {
+    display: block;
+    margin-bottom: 8px;
+    color: #929276;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .stat-value {
+    display: block;
+    color: #273826;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 23px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .stat-value .stat-unit {
+    color: #7a7b61;
+    font-family: "Avenir Next", "Segoe UI", ui-sans-serif, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .panel-function {
+    margin-top: 23px;
+  }
+
+  .panel-function h3 {
+    margin: 0 0 8px;
+    color: #8c8b70;
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .panel-function p {
+    margin: 0;
+    color: #505c49;
+    font-size: 12.5px;
+    line-height: 1.68;
+  }
+
+  .panel-note {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 20px 0 10px;
+    color: #929278;
+    font-size: 9px;
+    letter-spacing: 0.055em;
+  }
+
+  .panel-note::before {
+    content: "";
+    width: 16px;
+    height: 1px;
+    background: #c1a15d;
+  }
+
+  .back-button {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-height: 43px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0 15px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--forest);
+    color: #f8f0dc;
+    font-size: 10.5px;
+    font-weight: 750;
+    letter-spacing: 0.07em;
+    cursor: pointer;
+    transition: background 0.22s ease, transform 0.22s ease;
+  }
+
+  .back-button svg { width: 15px; height: 15px; }
+  .back-button:hover { background: #1f4b36; }
+  .back-button:active { transform: scale(0.992); }
+
+  .hint {
+    position: absolute;
+    z-index: 8;
+    left: max(24px, env(safe-area-inset-left));
+    bottom: max(22px, env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 13px 10px 11px;
+    border: 1px solid rgba(255, 247, 224, 0.12);
+    border-radius: 12px;
+    background: rgba(8, 21, 15, 0.55);
+    color: rgba(255, 248, 231, 0.64);
+    box-shadow: 0 8px 30px rgba(4, 14, 9, 0.14);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 9.5px;
+    letter-spacing: 0.035em;
+    line-height: 1.5;
+    pointer-events: none;
+    animation: rise-in 0.9s 0.6s both cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .hint-icon {
+    display: grid;
+    place-items: center;
+    width: 25px;
+    height: 25px;
+    flex: 0 0 auto;
+    border: 1px solid rgba(255, 247, 224, 0.16);
+    border-radius: 8px;
+    color: #e1c888;
+  }
+
+  .hint-icon svg { width: 14px; height: 14px; }
+  .hint strong { color: rgba(255, 245, 219, 0.88); font-weight: 700; }
+  .hint .hint-mobile { display: none; }
+
+  .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background:
+      radial-gradient(circle at 50% 32%, rgba(43, 81, 59, 0.75), transparent 47%),
+      linear-gradient(150deg, #122a1f 0%, #081810 100%);
+    transition: opacity 0.7s ease, visibility 0.7s ease;
+  }
+
+  .loader.is-done {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .loader-card {
+    width: min(400px, 100%);
+    text-align: center;
+  }
+
+  .loader-emblem {
+    position: relative;
+    width: 64px;
+    height: 71px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 22px;
+    border: 1px solid rgba(246, 216, 151, 0.4);
+    border-radius: 18px 18px 23px 23px;
+    color: #f2d494;
+    background: rgba(234, 201, 130, 0.08);
+    box-shadow: 0 0 0 8px rgba(241, 201, 107, 0.025);
+  }
+
+  .loader-emblem svg { width: 34px; height: 38px; }
+
+  .loader-kicker {
+    margin: 0 0 9px;
+    color: rgba(239, 211, 154, 0.58);
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .loader h2 {
+    margin: 0;
+    color: #fcf4e2;
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-size: clamp(30px, 5vw, 40px);
+    font-weight: 400;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+  }
+
+  .loader-status {
+    margin: 13px 0 24px;
+    color: rgba(249, 241, 220, 0.52);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+  }
+
+  .loader-bar {
+    position: relative;
+    width: 150px;
+    height: 2px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 99px;
+    background: rgba(248, 238, 215, 0.13);
+  }
+
+  .loader-bar::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 45%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, transparent, #e1b865, transparent);
+    animation: loader-sweep 1.35s infinite ease-in-out;
+  }
+
+  .loader-fallback {
+    margin: 18px 0 0;
+    color: #dcaa9b;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @keyframes rise-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes loader-sweep {
+    from { transform: translateX(-110%); }
+    to { transform: translateX(330%); }
+  }
+
+  @media (max-width: 1120px) {
+    .weather-card { padding-left: 8px; }
+    .control-kicker { display: none; }
+  }
+
+  @media (max-width: 900px) {
+    :root { --panel-width: 340px; }
+    .brand h1 { font-size: 17px; }
+    .brand-sub { font-size: 9px; }
+    .info-panel { top: 92px; right: 16px; }
+  }
+
+  @media (max-width: 720px) {
+    .brand {
+      top: max(14px, env(safe-area-inset-top));
+      left: max(14px, env(safe-area-inset-left));
+      gap: 9px;
+    }
+
+    .crest { width: 38px; height: 44px; border-radius: 12px; }
+    .crest svg { width: 23px; height: 27px; }
+    .crest::after { inset: 4px; border-radius: 9px 9px 11px 11px; }
+    .eyebrow { font-size: 7px; margin-bottom: 4px; letter-spacing: 0.16em; }
+    .brand h1 { max-width: 150px; font-size: 13px; letter-spacing: 0.01em; line-height: 1.16; }
+    .brand h1 .title-dash { display: none; }
+    .brand h1 .title-mode { display: block; margin-top: 3px; font-size: 8.5px; letter-spacing: 0.12em; }
+    .brand-sub { display: none; }
+
+    .top-controls {
+      top: max(12px, env(safe-area-inset-top));
+      right: max(12px, env(safe-area-inset-right));
+      gap: 6px;
+    }
+
+    .weather-card {
+      padding: 4px;
+      border-radius: 13px;
+    }
+
+    .weather-options { gap: 1px; }
+    .weather-btn {
+      width: 33px;
+      height: 33px;
+      justify-content: center;
+      padding: 0;
+      border-radius: 9px;
+    }
+    .weather-btn svg { width: 15px; height: 15px; }
+    .weather-btn span { display: none; }
+
+    .utility-btn {
+      height: 30px;
+      padding: 0 9px;
+      font-size: 9px;
+    }
+    .utility-btn span { display: none; }
+    .utility-btn svg { width: 15px; height: 15px; }
+
+    .info-panel {
+      top: auto;
+      left: 10px;
+      right: 10px;
+      bottom: max(10px, env(safe-area-inset-bottom));
+      width: auto;
+      max-height: min(58dvh, 520px);
+      padding: 20px 20px 16px;
+      border-radius: 20px;
+      transform: translateY(calc(100% + 26px)) scale(0.99);
+    }
+
+    .info-panel.is-open { transform: translateY(0) scale(1); }
+
+    .panel-name { font-size: 27px; margin-top: 12px; }
+    .panel-rule { margin: 15px 0 14px; }
+    .panel-function { margin-top: 17px; }
+    .stat-value { font-size: 21px; }
+    .back-button { min-height: 41px; }
+
+    .hint {
+      left: 12px;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      padding: 7px 10px 7px 8px;
+      font-size: 8.5px;
+      border-radius: 10px;
+    }
+    .hint-icon { width: 22px; height: 22px; }
+    .hint .hint-desktop { display: none; }
+    .hint .hint-mobile { display: inline; }
+
+
+    .building-label {
+      max-width: 145px;
+      padding: 5px 8px 5px 7px;
+      font-size: 8.5px;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .brand h1 { max-width: 125px; font-size: 12px; }
+    .weather-btn { width: 31px; height: 31px; }
+    .utility-btn { height: 29px; }
+  }
+
+  @media (max-width: 350px) {
+    .brand { gap: 7px; left: 10px; }
+    .crest { width: 32px; height: 38px; }
+    .brand h1 { max-width: 104px; font-size: 11px; }
+    .brand .eyebrow { display: none; }
+    .top-controls { right: 8px; }
+    .weather-btn { width: 28px; height: 30px; }
+    .weather-options { gap: 0; }
+    .utility-btn { height: 28px; padding: 0 7px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage" aria-label="Interactive 3D model of Trường THCS Huỳnh Thúc Kháng"></div>
+  <div class="edge-shade" aria-hidden="true"></div>
+  <div id="labels" class="labels-layer" aria-label="Building labels"></div>
+
+  <header class="brand">
+    <div class="crest" aria-hidden="true">
+      <svg viewBox="0 0 30 34" fill="none">
+        <path d="M15 1.8 27 6.3v10.2c0 7.1-4.8 12.6-12 15.7-7.2-3.1-12-8.6-12-15.7V6.3L15 1.8Z" stroke="currentColor" stroke-width="1.3" opacity=".74"/>
+        <path d="M7.1 16.8c2.7-1.2 5.4-1.2 7.9.2 2.5-1.4 5.2-1.4 7.9-.2v6c-2.7-1.1-5.4-1.1-7.9.4-2.5-1.5-5.2-1.5-7.9-.4v-6Z" fill="currentColor" opacity=".78"/>
+        <path d="m15 5.4.95 2.72 2.88.07-2.3 1.73.81 2.77L15 11.05l-2.34 1.64.81-2.77-2.3-1.73 2.88-.07L15 5.4Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="brand-copy">
+      <p class="eyebrow">Nghĩa Hành · Quảng Ngãi</p>
+      <h1>THCS Huỳnh Thúc Kháng <span class="title-dash">-</span><span class="title-mode">3D Campus</span></h1>
+      <p class="brand-sub">An interactive portrait of a Vietnamese school day</p>
+    </div>
+  </header>
+
+  <div class="top-controls">
+    <section class="weather-card" aria-label="Weather and lighting">
+      <span class="control-kicker">Atmosphere</span>
+      <div class="weather-options" role="group" aria-label="Weather mode">
+        <button class="weather-btn" type="button" data-weather="sunny" aria-pressed="true" title="Sunny">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.7"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.55 1.55M17.85 17.85l1.55 1.55M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.55-1.55M17.85 6.15l1.55-1.55"/>
+          </svg><span>Sunny</span>
+        </button>
+        <button class="weather-btn" type="button" data-weather="cloudy" aria-pressed="false" title="Cloudy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6.3 18.2h11a3.4 3.4 0 0 0 .3-6.78A5.25 5.25 0 0 0 7.4 10.7a3.8 3.8 0 0 0-1.1 7.5Z"/>
+          </svg><span>Cloudy</span>
+        </button>
+        <button class="weather-btn" type="button" data-weather="rain" aria-pressed="false" title="Rain">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6.4 15.8h11.1a3.35 3.35 0 0 0 .3-6.68A5.2 5.2 0 0 0 7.5 8.3a3.75 3.75 0 0 0-1.1 7.5Z"/><path d="M8.1 19.1 7.2 21M12.2 19.1 11.3 21M16.3 19.1 15.4 21"/>
+          </svg><span>Rain</span>
+        </button>
+        <button class="weather-btn" type="button" data-weather="night" aria-pressed="false" title="Night">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.2 15.1A8.4 8.4 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"/>
+          </svg><span>Night</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="utility-row">
+      <button class="utility-btn" type="button" id="labels-toggle" aria-pressed="true" title="Show or hide building labels">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2.7 12s3.4-5.2 9.3-5.2 9.3 5.2 9.3 5.2-3.4 5.2-9.3 5.2S2.7 12 2.7 12Z"/><circle cx="12" cy="12" r="2.4"/>
+        </svg><span>Labels</span>
+      </button>
+      <button class="utility-btn" type="button" id="overview-btn" title="Return to campus overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 9.2 12 3l8 6.2V20a1 1 0 0 1-1 1h-4.3v-6H9.3v6H5a1 1 0 0 1-1-1V9.2Z"/>
+        </svg><span>Overview</span>
+      </button>
+    </div>
+  </div>
+
+  <aside class="info-panel" id="info-panel" aria-hidden="true" aria-labelledby="panel-name" aria-live="polite" inert>
+    <div class="panel-topline">
+      <span class="panel-index" id="panel-index">01 / 07</span>
+      <span class="panel-kind">Campus building</span>
+      <button class="panel-close" id="panel-close" type="button" aria-label="Close details and return to overview">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m3.5 3.5 9 9M12.5 3.5l-9 9"/></svg>
+      </button>
+    </div>
+    <div class="panel-body">
+      <h2 class="panel-name" id="panel-name">Administration Block</h2>
+      <p class="panel-sub" id="panel-sub">Landmark · Back of campus</p>
+      <div class="panel-rule"></div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-label">Floor area</span>
+          <span class="stat-value" id="panel-area">720 <span class="stat-unit">m²</span></span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Storeys</span>
+          <span class="stat-value" id="panel-levels">3</span>
+        </div>
+      </div>
+      <section class="panel-function">
+        <h3>Function</h3>
+        <p id="panel-description">Principal's office, staff room, library and meeting rooms.</p>
+      </section>
+      <p class="panel-note">Drag, orbit and zoom around the campus</p>
+    </div>
+    <button class="back-button" id="panel-back" type="button">
+      <span>Return to campus overview</span>
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h11M9.6 4.5 14 9l-4.4 4.5"/></svg>
+    </button>
+  </aside>
+
+  <div class="hint" aria-hidden="true">
+    <span class="hint-icon">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+        <rect x="4.2" y="2.8" width="11.6" height="14.4" rx="5.8"/><path d="M10 5.8v3.1"/><path d="M10 11.1h.01"/>
+      </svg>
+    </span>
+    <span><strong>Drag</strong> to orbit <span class="hint-desktop">· Scroll to zoom · Right-drag to pan</span><span class="hint-mobile">· Pinch to zoom</span><br>Select any building to explore it</span>
+  </div>
+
+  <div class="loader" id="loader" role="status" aria-live="polite">
+    <div class="loader-card">
+      <div class="loader-emblem" aria-hidden="true">
+        <svg viewBox="0 0 30 34" fill="none">
+          <path d="M15 1.8 27 6.3v10.2c0 7.1-4.8 12.6-12 15.7-7.2-3.1-12-8.6-12-15.7V6.3L15 1.8Z" stroke="currentColor" stroke-width="1.1" opacity=".72"/>
+          <path d="M7.1 16.8c2.7-1.2 5.4-1.2 7.9.2 2.5-1.4 5.2-1.4 7.9-.2v6c-2.7-1.1-5.4-1.1-7.9.4-2.5-1.5-5.2-1.5-7.9-.4v-6Z" fill="currentColor" opacity=".78"/>
+          <path d="m15 5.4.95 2.72 2.88.07-2.3 1.73.81 2.77L15 11.05l-2.34 1.64.81-2.77-2.3-1.73 2.88-.07L15 5.4Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <p class="loader-kicker">Chợ Chữa · Nghĩa Hành</p>
+      <h2>Huỳnh Thúc Kháng</h2>
+      <p class="loader-status" id="loader-status">Loading the campus…</p>
+      <div class="loader-bar" aria-hidden="true"></div>
+      <noscript><p class="loader-fallback">This interactive 3D campus needs JavaScript enabled.</p></noscript>
+      <p class="loader-fallback" id="loader-fallback" hidden></p>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"
+  }
+}
+</script>
+
+<script>
+  window.__campusBooted = false;
+  window.addEventListener('error', function (event) {
+    if (window.__campusBooted) return;
+    var loader = document.getElementById('loader');
+    var status = document.getElementById('loader-status');
+    var fallback = document.getElementById('loader-fallback');
+    if (!loader || loader.classList.contains('is-done')) return;
+    if (status) status.textContent = 'The 3D scene could not start.';
+    if (fallback) {
+      fallback.hidden = false;
+      fallback.textContent = 'Please check your connection to the Three.js CDN and that WebGL is enabled in this browser.';
+    }
+    if (event && event.message) console.error(event.message);
+  }, true);
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+  import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
+  import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+  import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+
+  /* ---------------------------------------------------------------------
+     THCS Huỳnh Thúc Kháng — procedural low-poly campus
+     Coordinates: metres. +X east/right, +Z street/front, -Z back, +Y up.
+     The school occupies x[-50, 50], z[-30, 30].
+     --------------------------------------------------------------------- */
+
+  const TAU = Math.PI * 2;
+  const HALF_PI = Math.PI / 2;
+  const ROOT = document.documentElement;
+  const loader = document.getElementById('loader');
+  const loaderStatus = document.getElementById('loader-status');
+  const labelsLayer = document.getElementById('labels');
+  const infoPanel = document.getElementById('info-panel');
+  const panelIndex = document.getElementById('panel-index');
+  const panelName = document.getElementById('panel-name');
+  const panelSub = document.getElementById('panel-sub');
+  const panelArea = document.getElementById('panel-area');
+  const panelLevels = document.getElementById('panel-levels');
+  const panelDescription = document.getElementById('panel-description');
+  const labelsToggle = document.getElementById('labels-toggle');
+  const overviewBtn = document.getElementById('overview-btn');
+  const panelClose = document.getElementById('panel-close');
+  const panelBack = document.getElementById('panel-back');
+
+  const stageEl = document.getElementById('stage');
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    powerPreference: 'high-performance',
+    preserveDrawingBuffer: false,
+  });
+  function targetPixelRatio() {
+    const cap = window.innerWidth < 760 ? 1.35 : 1.5;
+    return Math.min(window.devicePixelRatio || 1, cap);
+  }
+  renderer.setPixelRatio(targetPixelRatio());
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.02;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.autoUpdate = false;
+  stageEl.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0xc8dfe8, 130, 430);
+  const camera = new THREE.PerspectiveCamera(43, window.innerWidth / window.innerHeight, 0.35, 900);
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.065;
+  controls.screenSpacePanning = false;
+  controls.minDistance = 7;
+  controls.maxDistance = 390;
+  controls.minPolarAngle = 0.12;
+  controls.maxPolarAngle = Math.PI / 2 - 0.035;
+  controls.rotateSpeed = 0.68;
+  controls.zoomSpeed = 0.9;
+  controls.panSpeed = 0.8;
+  controls.zoomToCursor = true;
+
+  const raycaster = new THREE.Raycaster();
+  const pointerNdc = new THREE.Vector2();
+  const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+  const clock = new THREE.Timer();
+  clock.connect(document);
+
+  /* ---------------------------------------------------------------------
+     Canvas-generated textures. No external imagery is used.
+     --------------------------------------------------------------------- */
+
+  function makeCanvas(w, h, draw) {
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    draw(ctx, w, h);
+    return canvas;
+  }
+
+  function canvasTexture(canvas, repeatX = 1, repeatY = 1, srgb = true) {
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(repeatX, repeatY);
+    texture.anisotropy = Math.min(8, maxAnisotropy);
+    texture.needsUpdate = true;
+    return texture;
+  }
+
+  function rgba(r, g, b, a = 1) { return `rgba(${r | 0},${g | 0},${b | 0},${a})`; }
+
+  function seededRandom(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a |= 0;
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function drawStar(ctx, cx, cy, outer, inner, points = 5) {
+    ctx.beginPath();
+    for (let i = 0; i < points * 2; i++) {
+      const r = i % 2 === 0 ? outer : inner;
+      const a = -Math.PI / 2 + (i * Math.PI) / points;
+      const x = cx + Math.cos(a) * r;
+      const y = cy + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  }
+
+  const stuccoCanvas = makeCanvas(256, 256, (ctx, w, h) => {
+    ctx.fillStyle = '#fbf8ee';
+    ctx.fillRect(0, 0, w, h);
+    const rng = seededRandom(11);
+    for (let i = 0; i < 3800; i++) {
+      const x = rng() * w;
+      const y = rng() * h;
+      const alpha = rng() * 0.04;
+      ctx.fillStyle = rng() > 0.5 ? rgba(112, 94, 65, alpha) : rgba(255, 255, 255, alpha * 1.5);
+      ctx.fillRect(x, y, 1 + rng() * 1.4, 1 + rng() * 1.2);
+    }
+    ctx.globalAlpha = 0.025;
+    ctx.strokeStyle = '#5b533e';
+    for (let y = 12; y < h; y += 36) {
+      ctx.beginPath();
+      ctx.moveTo(0, y + rng() * 8);
+      ctx.lineTo(w, y + rng() * 8);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  });
+  const stuccoTex = canvasTexture(stuccoCanvas, 2, 2);
+
+  const brickCanvas = makeCanvas(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#b9bbb0';
+    ctx.fillRect(0, 0, w, h);
+    const rng = seededRandom(37);
+    const cols = 8;
+    const rows = 8;
+    const bw = w / cols;
+    const bh = h / rows;
+    const tones = [
+      [182, 91, 78], [196, 105, 91], [170, 78, 69], [204, 116, 99],
+      [190, 98, 82], [179, 86, 73], [199, 111, 95], [169, 81, 74],
+    ];
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const tone = tones[(x * 3 + y * 5 + Math.floor(rng() * 8)) % tones.length];
+        const jitter = (rng() - 0.5) * 12;
+        ctx.fillStyle = rgba(tone[0] + jitter, tone[1] + jitter, tone[2] + jitter);
+        ctx.fillRect(x * bw + 1.5, y * bh + 1.5, bw - 3, bh - 3);
+        ctx.globalAlpha = 0.12;
+        ctx.fillStyle = '#fff3d9';
+        ctx.fillRect(x * bw + 3, y * bh + 3, bw - 6, 1.1);
+        ctx.fillStyle = '#4b2b26';
+        ctx.fillRect(x * bw + 3, y * bh + bh - 5, bw - 6, 1);
+        ctx.globalAlpha = 1;
+        for (let k = 0; k < 9; k++) {
+          ctx.globalAlpha = rng() * 0.08;
+          ctx.fillStyle = rng() > 0.5 ? '#3e221e' : '#ffd4b7';
+          ctx.fillRect(x * bw + 4 + rng() * (bw - 9), y * bh + 4 + rng() * (bh - 9), 1.5, 1.5);
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
+    ctx.globalAlpha = 0.04;
+    ctx.fillStyle = '#33211b';
+    for (let i = 0; i < 1500; i++) {
+      ctx.fillRect(rng() * w, rng() * h, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+  });
+  const brickTex = canvasTexture(brickCanvas, 15, 11);
+  const laneBrickTex = canvasTexture(brickCanvas, 2.2, 12);
+  laneBrickTex.needsUpdate = true;
+
+  const grassCanvas = makeCanvas(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#7d9b58';
+    ctx.fillRect(0, 0, w, h);
+    const rng = seededRandom(83);
+    for (let i = 0; i < 9000; i++) {
+      const x = rng() * w;
+      const y = rng() * h;
+      const v = rng();
+      ctx.globalAlpha = 0.08 + rng() * 0.16;
+      ctx.fillStyle = v > 0.58 ? '#b9c77a' : v > 0.24 ? '#52733b' : '#8eaa65';
+      ctx.fillRect(x, y, 1.2, 2 + rng() * 3);
+      ctx.fillRect(x + 1.4, y + rng() * 2, 1, 1.4 + rng() * 2);
+    }
+    ctx.globalAlpha = 1;
+  });
+  const grassTex = canvasTexture(grassCanvas, 44, 32);
+
+  const asphaltCanvas = makeCanvas(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#535552';
+    ctx.fillRect(0, 0, w, h);
+    const rng = seededRandom(51);
+    for (let i = 0; i < 9000; i++) {
+      const c = 55 + rng() * 65;
+      ctx.globalAlpha = 0.12 + rng() * 0.25;
+      ctx.fillStyle = rgba(c, c, c - 2);
+      const r = rng() * 1.9 + 0.4;
+      ctx.beginPath();
+      ctx.arc(rng() * w, rng() * h, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 0.07;
+    ctx.strokeStyle = '#1d211f';
+    for (let i = 0; i < 12; i++) {
+      ctx.beginPath();
+      ctx.moveTo(rng() * w, rng() * h);
+      ctx.lineTo(rng() * w, rng() * h);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  });
+  const asphaltTex = canvasTexture(asphaltCanvas, 24, 2.2);
+  const backRoadTex = canvasTexture(asphaltCanvas, 20, 1.5);
+  backRoadTex.needsUpdate = true;
+
+  const concreteCanvas = makeCanvas(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#c8c1b2';
+    ctx.fillRect(0, 0, w, h);
+    const rng = seededRandom(91);
+    for (let i = 0; i < 4200; i++) {
+      ctx.globalAlpha = 0.04 + rng() * 0.08;
+      const c = rng() > 0.55 ? 255 : 92;
+      ctx.fillStyle = rgba(c, c - 2, c - 7);
+      ctx.fillRect(rng() * w, rng() * h, 1 + rng() * 2, 1 + rng() * 2);
+    }
+    ctx.globalAlpha = 0.16;
+    ctx.strokeStyle = '#8e897b';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+    for (let x = 128; x < w; x += 128) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    for (let y = 170; y < h; y += 170) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  });
+  const concreteTex = canvasTexture(concreteCanvas, 9, 7);
+  const forecourtTex = canvasTexture(concreteCanvas, 4, 2);
+  forecourtTex.needsUpdate = true;
+
+  const courtCanvas = makeCanvas(640, 800, (ctx, w, h) => {
+    ctx.fillStyle = '#858a85';
+    ctx.fillRect(0, 0, w, h);
+    const rng = seededRandom(23);
+    for (let i = 0; i < 6500; i++) {
+      const c = rng() > 0.45 ? 70 + rng() * 70 : 145 + rng() * 40;
+      ctx.globalAlpha = 0.16 + rng() * 0.08;
+      ctx.fillStyle = rgba(c, c + 2, c);
+      ctx.fillRect(rng() * w, rng() * h, 1 + rng() * 2, 1 + rng() * 2);
+    }
+    ctx.globalAlpha = 1;
+    ctx.translate(w / 2, h / 2);
+    ctx.strokeStyle = 'rgba(249, 245, 225, 0.58)';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(-w * 0.41, -h * 0.42, w * 0.82, h * 0.84);
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-w * 0.41, 0);
+    ctx.lineTo(w * 0.41, 0);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, 0, w * 0.075, 0, TAU);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(249, 245, 225, 0.36)';
+    ctx.beginPath();
+    ctx.arc(-w * 0.33, 0, w * 0.095, -HALF_PI, HALF_PI);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(w * 0.33, 0, w * 0.095, HALF_PI, -HALF_PI);
+    ctx.stroke();
+  });
+  const courtTex = canvasTexture(courtCanvas, 1, 1);
+
+  const corrugationCanvas = makeCanvas(256, 128, (ctx, w, h) => {
+    ctx.fillStyle = '#d9d9d4';
+    ctx.fillRect(0, 0, w, h);
+    for (let x = 0; x < w; x += 8) {
+      const g = ctx.createLinearGradient(x, 0, x + 8, 0);
+      g.addColorStop(0, 'rgba(255,255,248,0.22)');
+      g.addColorStop(0.45, 'rgba(0,0,0,0.06)');
+      g.addColorStop(0.58, 'rgba(0,0,0,0.14)');
+      g.addColorStop(1, 'rgba(255,255,255,0.19)');
+      ctx.fillStyle = g;
+      ctx.fillRect(x, 0, 8, h);
+    }
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = '#222';
+    for (let y = 18; y < h; y += 31) ctx.fillRect(0, y, w, 1);
+    ctx.globalAlpha = 1;
+  });
+  const corrugationTex = canvasTexture(corrugationCanvas, 1, 1);
+
+  const tileRoofCanvas = makeCanvas(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#a8412f';
+    ctx.fillRect(0, 0, w, h);
+    const rows = 10;
+    const cols = 14;
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const shade = (x + y) % 3 === 0 ? 0.93 : 1;
+        ctx.fillStyle = `rgb(${Math.round(169 * shade)},${Math.round(68 * shade)},${Math.round(48 * shade)})`;
+        ctx.fillRect(x * (w / cols), y * (h / rows), w / cols, h / rows);
+      }
+      ctx.strokeStyle = 'rgba(66, 23, 18, 0.26)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, y * (h / rows));
+      ctx.lineTo(w, y * (h / rows));
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(255, 208, 162, 0.14)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, y * (h / rows) + 3);
+      ctx.lineTo(w, y * (h / rows) + 3);
+      ctx.stroke();
+    }
+    for (let x = 0; x < cols; x++) {
+      ctx.strokeStyle = 'rgba(70, 24, 19, 0.18)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x * (w / cols), 0);
+      ctx.lineTo(x * (w / cols), h);
+      ctx.stroke();
+    }
+  });
+  const tileRoofTex = canvasTexture(tileRoofCanvas, 4, 3);
+
+  function signTexture(draw, w = 1024, h = 288) {
+    const c = makeCanvas(w, h, draw);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = Math.min(8, maxAnisotropy);
+    t.needsUpdate = true;
+    return t;
+  }
+
+  function fitText(ctx, text, maxWidth, startSize, fontFamily, weight = 700) {
+    let size = startSize;
+    do {
+      ctx.font = `${weight} ${size}px ${fontFamily}`;
+      if (ctx.measureText(text).width <= maxWidth) break;
+      size -= 2;
+    } while (size > 10);
+    return size;
+  }
+
+  const gateSignTex = signTexture((ctx, w, h) => {
+    const grad = ctx.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, '#f8efd3');
+    grad.addColorStop(1, '#ead6a9');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#c3a05e';
+    ctx.lineWidth = 7;
+    ctx.strokeRect(9, 9, w - 18, h - 18);
+    ctx.fillStyle = '#23304a';
+    ctx.textAlign = 'center';
+    ctx.font = '700 23px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('ỦY BAN NHÂN DÂN HUYỆN NGHĨA HÀNH', w / 2, 53);
+    const mainText = 'TRƯỜNG THCS HUỲNH THÚC KHÁNG';
+    const mainSize = fitText(ctx, mainText, w - 90, 62, '"Segoe UI", Arial, sans-serif', 900);
+    ctx.font = `900 ${mainSize}px "Segoe UI", Arial, sans-serif`;
+    ctx.fillText(mainText, w / 2, 143);
+    ctx.strokeStyle = '#b8944d';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(230, 171);
+    ctx.lineTo(w - 230, 171);
+    ctx.stroke();
+    ctx.fillStyle = '#4c4a3d';
+    ctx.font = '500 23px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('PHÙ VINH TÂY · TT CHỢ CHỮA · NGHĨA HÀNH', w / 2, 218);
+    ctx.fillStyle = '#a77a2e';
+    drawStar(ctx, 91, 218, 9, 3.8);
+    ctx.fill();
+    drawStar(ctx, w - 91, 218, 9, 3.8);
+    ctx.fill();
+  });
+
+  const gateSignSmallTex = signTexture((ctx, w, h) => {
+    ctx.fillStyle = '#f4e7c8';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#b7914d';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(8, 8, w - 16, h - 16);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#2b3a49';
+    ctx.font = '800 52px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('TRƯỜNG THCS', w / 2, 120);
+    ctx.font = '900 66px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('HUỲNH THÚC KHÁNG', w / 2, 205);
+    ctx.font = '500 24px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#6f684f';
+    ctx.fillText('NĂM HỌC 2026 – 2027', w / 2, 252);
+  });
+
+  const adminSignTex = signTexture((ctx, w, h) => {
+    const g = ctx.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, '#173d55');
+    g.addColorStop(1, '#0c2c3d');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#d9b873';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(7, 7, w - 14, h - 14);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fbf2dc';
+    ctx.font = '800 72px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('TRƯỜNG THCS HUỲNH THÚC KHÁNG', w / 2, h * 0.59);
+    ctx.fillStyle = '#d9bd7f';
+    ctx.font = '600 22px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('TIÊN HỌC LỄ · HẬU HỌC VĂN', w / 2, h * 0.82);
+  }, 2048, 250);
+
+  const bannerTex = signTexture((ctx, w, h) => {
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, '#173f69');
+    bg.addColorStop(1, '#0d2e50');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#d8b361';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(7, 7, w - 14, h - 14);
+    ctx.fillStyle = '#f4dd9d';
+    ctx.textAlign = 'center';
+    ctx.font = '800 55px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('TIÊN HỌC LỄ  ·  HẬU HỌC VĂN', w / 2, h * 0.66);
+    ctx.textAlign = 'left';
+    ctx.font = '600 20px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = 'rgba(242, 222, 160, 0.58)';
+    ctx.fillText('THCS HUỲNH THÚC KHÁNG', 38, h * 0.72);
+    ctx.textAlign = 'right';
+    ctx.fillText('NGHĨA HÀNH · QUẢNG NGÃI', w - 38, h * 0.72);
+  }, 2048, 128);
+
+  const stageBackdropTex = signTexture((ctx, w, h) => {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#a82b22');
+    g.addColorStop(1, '#7d1515');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(244, 204, 102, 0.7)';
+    ctx.lineWidth = 9;
+    ctx.strokeRect(18, 18, w - 36, h - 36);
+    ctx.strokeStyle = 'rgba(244, 204, 102, 0.24)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(36, 36, w - 72, h - 72);
+    ctx.fillStyle = '#f0cb72';
+    drawStar(ctx, w / 2, 145, 43, 17);
+    ctx.fill();
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fff3d9';
+    ctx.font = '900 59px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('TRƯỜNG THCS HUỲNH THÚC KHÁNG', w / 2, 275);
+    ctx.fillStyle = '#f2d595';
+    ctx.font = '600 32px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('NGÀY HỘI KHAI GIẢNG', w / 2, 340);
+  }, 1024, 410);
+
+  const bustPlaqueTex = signTexture((ctx, w, h) => {
+    ctx.fillStyle = '#d7cbb3';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#8d7d5e';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(7, 7, w - 14, h - 14);
+    ctx.fillStyle = '#5b523f';
+    ctx.textAlign = 'center';
+    ctx.font = '700 33px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('CHỦ TỊCH', w / 2, h * 0.44);
+    ctx.font = '700 29px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('HỒ CHÍ MINH', w / 2, h * 0.67);
+  }, 420, 260);
+
+  const flagCanvas = makeCanvas(512, 320, (ctx, w, h) => {
+    ctx.fillStyle = '#cf251e';
+    ctx.fillRect(0, 0, w, h);
+    const g = ctx.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, 'rgba(255, 160, 95, 0.2)');
+    g.addColorStop(0.45, 'rgba(255, 255, 255, 0.035)');
+    g.addColorStop(1, 'rgba(80, 0, 0, 0.18)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#f1c733';
+    drawStar(ctx, w / 2, h / 2, 93, 36);
+    ctx.fill();
+  });
+  const flagTex = new THREE.CanvasTexture(flagCanvas);
+  flagTex.colorSpace = THREE.SRGBColorSpace;
+  flagTex.anisotropy = Math.min(8, maxAnisotropy);
+
+  function makeEnvironmentTexture(top, horizon, ground, sunColor) {
+    const canvas = makeCanvas(512, 256, (ctx, w, h) => {
+      const g = ctx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, top);
+      g.addColorStop(0.47, horizon);
+      g.addColorStop(0.54, horizon);
+      g.addColorStop(1, ground);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+      const sun = ctx.createRadialGradient(w * 0.76, h * 0.27, 0, w * 0.76, h * 0.27, 75);
+      sun.addColorStop(0, sunColor);
+      sun.addColorStop(0.16, sunColor.replace('rgb', 'rgba').replace(')', ',0.62)'));
+      sun.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = sun;
+      ctx.fillRect(0, 0, w, h);
+      const cloud = ctx.createRadialGradient(w * 0.25, h * 0.32, 3, w * 0.25, h * 0.32, 120);
+      cloud.addColorStop(0, 'rgba(255,255,255,0.22)');
+      cloud.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = cloud;
+      ctx.fillRect(0, 0, w, h);
+    });
+    const t = new THREE.CanvasTexture(canvas);
+    t.mapping = THREE.EquirectangularReflectionMapping;
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.needsUpdate = true;
+    return t;
+  }
+
+  function makeGlowTexture(warm = true) {
+    const canvas = makeCanvas(128, 128, (ctx, w, h) => {
+      const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+      if (warm) {
+        g.addColorStop(0, 'rgba(255, 247, 207, 1)');
+        g.addColorStop(0.16, 'rgba(255, 215, 136, 0.92)');
+        g.addColorStop(0.44, 'rgba(255, 183, 84, 0.3)');
+        g.addColorStop(1, 'rgba(255, 170, 70, 0)');
+      } else {
+        g.addColorStop(0, 'rgba(236, 245, 255, 1)');
+        g.addColorStop(0.15, 'rgba(197, 220, 244, 0.85)');
+        g.addColorStop(0.5, 'rgba(156, 193, 229, 0.18)');
+        g.addColorStop(1, 'rgba(130, 170, 215, 0)');
+      }
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+    });
+    const t = new THREE.CanvasTexture(canvas);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.needsUpdate = true;
+    return t;
+  }
+
+  const glowTex = makeGlowTexture(true);
+
+  function makeMoonTexture() {
+    const canvas = makeCanvas(256, 256, (ctx, w, h) => {
+      const halo = ctx.createRadialGradient(128, 128, 40, 128, 128, 124);
+      halo.addColorStop(0, 'rgba(248, 244, 220, 0.2)');
+      halo.addColorStop(0.42, 'rgba(238, 239, 228, 0.09)');
+      halo.addColorStop(1, 'rgba(230, 238, 246, 0)');
+      ctx.fillStyle = halo;
+      ctx.fillRect(0, 0, w, h);
+      const disc = ctx.createRadialGradient(113, 110, 5, 128, 128, 52);
+      disc.addColorStop(0, '#fffdf0');
+      disc.addColorStop(0.55, '#f6f0d9');
+      disc.addColorStop(0.88, '#e6dec6');
+      disc.addColorStop(1, '#d4ccb5');
+      ctx.beginPath();
+      ctx.arc(128, 128, 46, 0, TAU);
+      ctx.fillStyle = disc;
+      ctx.fill();
+      const craters = [
+        [108, 110, 8, 0.11], [143, 121, 11, 0.09], [121, 151, 7, 0.1],
+        [150, 149, 5, 0.08], [98, 139, 5, 0.07], [132, 96, 4, 0.08],
+      ];
+      for (const [x, y, r, alpha] of craters) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, TAU);
+        ctx.fillStyle = `rgba(119, 122, 115, ${alpha})`;
+        ctx.fill();
+      }
+      ctx.beginPath();
+      ctx.arc(128, 128, 46, 0, TAU);
+      ctx.strokeStyle = 'rgba(255, 250, 231, 0.38)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
+    const t = new THREE.CanvasTexture(canvas);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.needsUpdate = true;
+    return t;
+  }
+
+  const moonTex = makeMoonTexture();
+
+  const ENV_TEXTURES = {
+    sunny: makeEnvironmentTexture('#4b9bdc', '#d8edf5', '#6c7a57', 'rgb(255,244,204)'),
+    cloudy: makeEnvironmentTexture('#8e9aa4', '#d5d9da', '#6b7167', 'rgb(242,245,244)'),
+    rain: makeEnvironmentTexture('#46545d', '#829097', '#4d5652', 'rgb(192,208,214)'),
+    night: makeEnvironmentTexture('#050b18', '#1e2e47', '#14160f', 'rgb(179,199,237)'),
+  };
+
+  /* ---------------------------------------------------------------------
+     Materials
+     --------------------------------------------------------------------- */
+
+  const MATS = new Map();
+  const SIGN_MATERIALS = [];
+  const GLOW_MATERIALS = [];
+
+  function addMaterial(key, material, options = {}) {
+    material.envMapIntensity = options.envMapIntensity ?? 0.38;
+    MATS.set(key, {
+      material,
+      castShadow: options.castShadow ?? true,
+      receiveShadow: options.receiveShadow ?? true,
+    });
+    return material;
+  }
+
+  function std(key, params, options) {
+    return addMaterial(key, new THREE.MeshStandardMaterial(params), options);
+  }
+
+  const M = {};
+
+  std('wall', {
+    color: 0xedc24f, map: stuccoTex, roughness: 0.84, metalness: 0.0,
+  });
+  std('wallWarm', {
+    color: 0xf2c95d, map: stuccoTex, roughness: 0.86,
+  });
+  std('wallPale', {
+    color: 0xf1d98a, map: stuccoTex, roughness: 0.87,
+  });
+  std('cream', {
+    color: 0xf1e3c0, map: stuccoTex, roughness: 0.82,
+  });
+  std('creamDim', {
+    color: 0xd8c393, map: stuccoTex, roughness: 0.88,
+  });
+  std('trim', {
+    color: 0xfbf5e6, map: stuccoTex, roughness: 0.67,
+  });
+  std('trimSoft', {
+    color: 0xe8e0ca, map: stuccoTex, roughness: 0.8,
+  });
+  std('stoneBase', {
+    color: 0x4e514a, roughness: 0.95,
+  });
+  std('stone', {
+    color: 0xb5af9e, roughness: 0.9,
+  });
+  std('stoneLight', {
+    color: 0xd5cebc, roughness: 0.88,
+  });
+  std('concrete', {
+    color: 0xffffff, map: concreteTex, roughness: 0.9,
+  });
+  std('court', {
+    color: 0xffffff, map: courtTex, roughness: 0.88, metalness: 0.02,
+  }, { castShadow: false });
+  std('brick', {
+    color: 0xffffff, map: brickTex, roughness: 0.88,
+  }, { castShadow: false });
+  std('brickLane', {
+    color: 0xf0ddcf, map: laneBrickTex, roughness: 0.9,
+  }, { castShadow: false });
+  std('grass', {
+    color: 0xffffff, map: grassTex, roughness: 1.0,
+  }, { castShadow: false });
+  std('asphalt', {
+    color: 0xffffff, map: asphaltTex, roughness: 0.92,
+  }, { castShadow: false });
+  std('asphaltBack', {
+    color: 0xffffff, map: backRoadTex, roughness: 0.94,
+  }, { castShadow: false });
+  std('roadMark', {
+    color: 0xe9e4cf, roughness: 0.7,
+  }, { castShadow: false });
+  std('plinth', {
+    color: 0xb9b09c, roughness: 0.9,
+  });
+  std('recess', {
+    color: 0x222c2e, roughness: 0.9,
+  });
+  std('roofGreen', {
+    color: 0x54765d, map: corrugationTex, roughness: 0.6, metalness: 0.16, side: THREE.DoubleSide,
+  });
+  std('roofGreenDark', {
+    color: 0x3b5b4b, map: corrugationTex, roughness: 0.55, metalness: 0.15, side: THREE.DoubleSide,
+  });
+  std('roofPale', {
+    color: 0xd7c785, map: corrugationTex, roughness: 0.72, metalness: 0.05, side: THREE.DoubleSide,
+  });
+  std('roofMaroon', {
+    color: 0x692d2a, map: corrugationTex, roughness: 0.66, metalness: 0.08, side: THREE.DoubleSide,
+  });
+  std('roofGrey', {
+    color: 0x858b87, map: corrugationTex, roughness: 0.74, metalness: 0.08, side: THREE.DoubleSide,
+  });
+  std('roofTile', {
+    color: 0xffffff, map: tileRoofTex, roughness: 0.76, metalness: 0.02, side: THREE.DoubleSide,
+  });
+  std('roofBlue', {
+    color: 0x44637a, map: corrugationTex, roughness: 0.66, metalness: 0.08, side: THREE.DoubleSide,
+  });
+  std('roofRed', {
+    color: 0x913d31, map: corrugationTex, roughness: 0.72, side: THREE.DoubleSide,
+  });
+  std('roofTeal', {
+    color: 0x3d6e67, map: corrugationTex, roughness: 0.7, side: THREE.DoubleSide,
+  });
+  std('ridge', {
+    color: 0x3f5748, roughness: 0.6, metalness: 0.1,
+  });
+  std('ridgePale', {
+    color: 0xb2a367, roughness: 0.72,
+  });
+  std('ridgeMaroon', {
+    color: 0x4f2522, roughness: 0.68,
+  });
+  std('ridgeTile', {
+    color: 0x883726, roughness: 0.75,
+  });
+  std('ironGreen', {
+    color: 0x244d39, roughness: 0.5, metalness: 0.3,
+  });
+  std('ironGreenDark', {
+    color: 0x183a2b, roughness: 0.48, metalness: 0.35,
+  });
+  std('metalDark', {
+    color: 0x29302d, roughness: 0.45, metalness: 0.45,
+  });
+  std('metalLight', {
+    color: 0xc9c5b6, roughness: 0.32, metalness: 0.62,
+  });
+  std('brass', {
+    color: 0xc49c4f, roughness: 0.3, metalness: 0.8,
+  });
+  std('gold', {
+    color: 0xd9b15d, roughness: 0.52, metalness: 0.32,
+  });
+  std('orange', {
+    color: 0xd98a39, roughness: 0.5, metalness: 0.1,
+  });
+  std('red', {
+    color: 0xa82820, roughness: 0.75,
+  });
+  std('redDark', {
+    color: 0x7a1d18, roughness: 0.8,
+  });
+  std('stageRed', {
+    color: 0xa62b22, roughness: 0.8,
+  });
+  std('doorWood', {
+    color: 0x7a4c2d, roughness: 0.62,
+  });
+  std('doorTeal', {
+    color: 0x355f5e, roughness: 0.58,
+  });
+  std('doorBlue', {
+    color: 0x385a7b, roughness: 0.6,
+  });
+  std('wood', {
+    color: 0x6f4e32, roughness: 0.8,
+  });
+  std('trunk', {
+    color: 0x5b4631, roughness: 0.96,
+  });
+  std('trunkLight', {
+    color: 0x796149, roughness: 0.95,
+  });
+  std('leafDeep', {
+    color: 0x2f572f, roughness: 0.95, flatShading: true,
+  });
+  std('leaf', {
+    color: 0x47763a, roughness: 0.95, flatShading: true,
+  });
+  std('leafLight', {
+    color: 0x648b40, roughness: 0.95, flatShading: true,
+  });
+  std('leafWarm', {
+    color: 0x789546, roughness: 0.95, flatShading: true,
+  });
+  std('palmLeaf', {
+    color: 0x40723f, roughness: 0.9, side: THREE.DoubleSide, flatShading: true,
+  });
+  std('mulch', {
+    color: 0x5a4835, roughness: 1,
+  });
+  std('flowerPink', {
+    color: 0xd97c91, roughness: 0.8, flatShading: true,
+  });
+  std('flowerYellow', {
+    color: 0xe1bc57, roughness: 0.8, flatShading: true,
+  });
+  std('flowerRed', {
+    color: 0xc44b43, roughness: 0.8, flatShading: true,
+  });
+  std('flowerWhite', {
+    color: 0xeee7d7, roughness: 0.8, flatShading: true,
+  });
+  std('shrub', {
+    color: 0x4e743d, roughness: 0.96, flatShading: true,
+  });
+  std('shrubLight', {
+    color: 0x6a8b4b, roughness: 0.96, flatShading: true,
+  });
+  std('terracotta', {
+    color: 0xa85e43, roughness: 0.86,
+  });
+  std('ceramicBlue', {
+    color: 0x567d8a, roughness: 0.7,
+  });
+  std('lampMetal', {
+    color: 0x26342a, roughness: 0.4, metalness: 0.5,
+  });
+  std('lampGlass', {
+    color: 0xffe3ae, roughness: 0.42, emissive: 0xffb64f, emissiveIntensity: 0,
+  }, { castShadow: false });
+  std('windowDark', {
+    color: 0x27444f, roughness: 0.18, metalness: 0.28,
+    emissive: 0x000000, envMapIntensity: 1.3,
+  }, { castShadow: false, receiveShadow: false });
+  std('windowLit', {
+    color: 0x2b4650, roughness: 0.2, metalness: 0.24,
+    emissive: 0xffbb68, emissiveIntensity: 0, envMapIntensity: 1.2,
+  }, { castShadow: false, receiveShadow: false });
+  std('skin', {
+    color: 0xb67c58, roughness: 0.82,
+  });
+  std('hair', {
+    color: 0x231c17, roughness: 0.95,
+  });
+  std('uniformWhite', {
+    color: 0xece8dc, roughness: 0.84,
+  });
+  std('uniformBlue', {
+    color: 0x273f62, roughness: 0.82,
+  });
+  std('scarf', {
+    color: 0xb72923, roughness: 0.8,
+  });
+  std('strawHat', {
+    color: 0xe2d4ae, roughness: 0.92, side: THREE.DoubleSide,
+  });
+  std('courtLine', {
+    color: 0xf4edda, roughness: 0.7, transparent: true, opacity: 0.68,
+  }, { castShadow: false });
+  std('bronze', {
+    color: 0x4e4331, roughness: 0.38, metalness: 0.65,
+  });
+  std('bicycleRack', {
+    color: 0x666f6c, roughness: 0.45, metalness: 0.5,
+  });
+  std('puddle', {
+    color: 0x7c8e95, roughness: 0.04, metalness: 0.4, transparent: true, opacity: 0,
+    envMapIntensity: 1.9, depthWrite: false,
+  }, { castShadow: false, receiveShadow: false });
+
+  function addSignMaterial(key, texture, options = {}) {
+    const material = new THREE.MeshStandardMaterial({
+      map: texture,
+      emissiveMap: texture,
+      emissive: 0xffffff,
+      emissiveIntensity: options.emissiveIntensity ?? 0,
+      roughness: 0.86,
+      metalness: 0.0,
+      toneMapped: true,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1,
+    });
+    material.envMapIntensity = 0.25;
+    MATS.set(key, { material, castShadow: false, receiveShadow: false });
+    SIGN_MATERIALS.push(material);
+    return material;
+  }
+
+  addSignMaterial('signGate', gateSignTex);
+  addSignMaterial('signGateSmall', gateSignSmallTex);
+  addSignMaterial('signAdmin', adminSignTex);
+  addSignMaterial('signBanner', bannerTex);
+  addSignMaterial('signStageBackdrop', stageBackdropTex);
+  addSignMaterial('signPlaque', bustPlaqueTex);
+
+  M.wall = MATS.get('wall').material;
+  M.windowLit = MATS.get('windowLit').material;
+  M.windowDark = MATS.get('windowDark').material;
+  M.lampGlass = MATS.get('lampGlass').material;
+  M.brick = MATS.get('brick').material;
+  M.brickLane = MATS.get('brickLane').material;
+  M.court = MATS.get('court').material;
+  M.concrete = MATS.get('concrete').material;
+  M.asphalt = MATS.get('asphalt').material;
+  M.asphaltBack = MATS.get('asphaltBack').material;
+  M.grass = MATS.get('grass').material;
+  M.puddle = MATS.get('puddle').material;
+
+  const wetMaterials = [
+    {
+      material: M.brick,
+      baseColor: new THREE.Color(0xffffff), wetColor: new THREE.Color(0xa48b84),
+      dryRoughness: 0.88, wetRoughness: 0.3, dryMetalness: 0, wetMetalness: 0.08,
+    },
+    {
+      material: M.brickLane,
+      baseColor: new THREE.Color(0xf0ddcf), wetColor: new THREE.Color(0x8e7d78),
+      dryRoughness: 0.9, wetRoughness: 0.33, dryMetalness: 0, wetMetalness: 0.07,
+    },
+    {
+      material: M.court,
+      baseColor: new THREE.Color(0xffffff), wetColor: new THREE.Color(0x98a2a4),
+      dryRoughness: 0.88, wetRoughness: 0.24, dryMetalness: 0.02, wetMetalness: 0.16,
+    },
+    {
+      material: M.concrete,
+      baseColor: new THREE.Color(0xffffff), wetColor: new THREE.Color(0xa8afb0),
+      dryRoughness: 0.9, wetRoughness: 0.34, dryMetalness: 0, wetMetalness: 0.08,
+    },
+    {
+      material: M.asphalt,
+      baseColor: new THREE.Color(0xffffff), wetColor: new THREE.Color(0x909da0),
+      dryRoughness: 0.92, wetRoughness: 0.28, dryMetalness: 0, wetMetalness: 0.1,
+    },
+    {
+      material: M.asphaltBack,
+      baseColor: new THREE.Color(0xffffff), wetColor: new THREE.Color(0x909da0),
+      dryRoughness: 0.94, wetRoughness: 0.33, dryMetalness: 0, wetMetalness: 0.08,
+    },
+    {
+      material: M.grass,
+      baseColor: new THREE.Color(0xffffff), wetColor: new THREE.Color(0xb8c0ac),
+      dryRoughness: 1.0, wetRoughness: 0.78, dryMetalness: 0, wetMetalness: 0.02,
+    },
+  ];
+
+  /* ---------------------------------------------------------------------
+     Static geometry batching. All scenery sharing a material is merged into
+     one mesh after construction, keeping the draw call count very low.
+     --------------------------------------------------------------------- */
+
+  const batchMap = new Map();
+  const UNIT = {
+    box: new THREE.BoxGeometry(1, 1, 1),
+    plane: new THREE.PlaneGeometry(1, 1),
+    cylinder: new THREE.CylinderGeometry(1, 1, 1, 10),
+    cylinderFine: new THREE.CylinderGeometry(1, 1, 1, 14),
+    cone: new THREE.ConeGeometry(1, 1, 9),
+    blob: new THREE.IcosahedronGeometry(1, 1),
+    blobLow: new THREE.IcosahedronGeometry(1, 0),
+    sphere: new THREE.SphereGeometry(1, 12, 8),
+    torus: new THREE.TorusGeometry(1, 0.08, 6, 24),
+    ring: new THREE.TorusGeometry(1, 0.12, 6, 28),
+    circle: new THREE.CircleGeometry(1, 20),
+  };
+
+  function ensureBatch(key) {
+    let batch = batchMap.get(key);
+    if (!batch) {
+      const def = MATS.get(key);
+      if (!def) throw new Error(`Unknown material batch: ${key}`);
+      batch = { key, def, geometries: [] };
+      batchMap.set(key, batch);
+    }
+    return batch;
+  }
+
+  const scratchVector = new THREE.Vector3();
+  const scratchQuat = new THREE.Quaternion();
+  const scratchScale = new THREE.Vector3();
+  const scratchEuler = new THREE.Euler();
+  const scratchMatrix = new THREE.Matrix4();
+
+  function commitGeometry(key, baseGeometry, worldMatrix) {
+    let geometry = baseGeometry.clone();
+    geometry.applyMatrix4(worldMatrix);
+    if (geometry.index) geometry = geometry.toNonIndexed();
+    if (!geometry.getAttribute('normal')) geometry.computeVertexNormals();
+    if (!geometry.getAttribute('uv')) {
+      const count = geometry.getAttribute('position').count;
+      geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(count * 2), 2));
+    }
+    // All merged inputs must expose the same attributes.
+    for (const name of Object.keys(geometry.attributes)) {
+      if (name !== 'position' && name !== 'normal' && name !== 'uv') {
+        geometry.deleteAttribute(name);
+      }
+    }
+    ensureBatch(key).geometries.push(geometry);
+  }
+
+  class Builder {
+    constructor(cx = 0, cz = 0, yaw = 0) {
+      this.base = new THREE.Matrix4()
+        .makeTranslation(cx, 0, cz)
+        .multiply(new THREE.Matrix4().makeRotationY(yaw));
+    }
+
+    _matrix(x, y, z, rx, ry, rz, sx, sy, sz) {
+      scratchVector.set(x, y, z);
+      scratchEuler.set(rx, ry, rz, 'YXZ');
+      scratchQuat.setFromEuler(scratchEuler);
+      scratchScale.set(sx, sy, sz);
+      scratchMatrix.compose(scratchVector, scratchQuat, scratchScale);
+      return new THREE.Matrix4().multiplyMatrices(this.base, scratchMatrix);
+    }
+
+    geometry(key, geometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) {
+      commitGeometry(key, geometry, this._matrix(x, y, z, rx, ry, rz, sx, sy, sz));
+      return this;
+    }
+
+    box(key, w, h, d, x, y, z, rx = 0, ry = 0, rz = 0) {
+      return this.geometry(key, UNIT.box, x, y, z, rx, ry, rz, w, h, d);
+    }
+
+    plane(key, w, h, x, y, z, rx = 0, ry = 0, rz = 0) {
+      return this.geometry(key, UNIT.plane, x, y, z, rx, ry, rz, w, h, 1);
+    }
+
+    cylinder(key, radius, height, x, y, z, rx = 0, ry = 0, rz = 0) {
+      return this.geometry(key, UNIT.cylinder, x, y, z, rx, ry, rz, radius, height, radius);
+    }
+
+    cylinderFine(key, radius, height, x, y, z, rx = 0, ry = 0, rz = 0) {
+      return this.geometry(key, UNIT.cylinderFine, x, y, z, rx, ry, rz, radius, height, radius);
+    }
+
+    cone(key, radius, height, x, y, z, rx = 0, ry = 0, rz = 0) {
+      return this.geometry(key, UNIT.cone, x, y, z, rx, ry, rz, radius, height, radius);
+    }
+
+    blob(key, radius, x, y, z, sx = 1, sy = 1, sz = 1, ry = 0) {
+      return this.geometry(key, UNIT.blob, x, y, z, 0, ry, 0, radius * sx, radius * sy, radius * sz);
+    }
+
+    sphere(key, radius, x, y, z, sx = 1, sy = 1, sz = 1) {
+      return this.geometry(key, UNIT.sphere, x, y, z, 0, 0, 0, radius * sx, radius * sy, radius * sz);
+    }
+
+    cylinderBetween(key, x1, y1, z1, x2, y2, z2, radius) {
+      const start = new THREE.Vector3(x1, y1, z1);
+      const end = new THREE.Vector3(x2, y2, z2);
+      const dir = end.clone().sub(start);
+      const length = dir.length();
+      const mid = start.clone().add(end).multiplyScalar(0.5);
+      const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+      scratchMatrix.compose(mid, q, new THREE.Vector3(radius, length, radius));
+      const world = new THREE.Matrix4().multiplyMatrices(this.base, scratchMatrix);
+      commitGeometry(key, UNIT.cylinderFine, world);
+      return this;
+    }
+  }
+
+  const siteBuilder = new Builder(0, 0, 0);
+
+  function flushBatches() {
+    for (const batch of batchMap.values()) {
+      if (!batch.geometries.length) continue;
+      const merged = mergeGeometries(batch.geometries, false);
+      if (!merged) {
+        console.warn('Could not merge batch', batch.key);
+        continue;
+      }
+      const mesh = new THREE.Mesh(merged, batch.def.material);
+      mesh.name = `batch-${batch.key}`;
+      mesh.castShadow = batch.def.castShadow;
+      mesh.receiveShadow = batch.def.receiveShadow;
+      mesh.matrixAutoUpdate = false;
+      mesh.updateMatrix();
+      scene.add(mesh);
+      for (const geometry of batch.geometries) geometry.dispose();
+      batch.geometries.length = 0;
+    }
+    batchMap.clear();
+  }
+
+  /* ---------------------------------------------------------------------
+     Sky, weather lights and rain
+     --------------------------------------------------------------------- */
+
+  const skyGroup = new THREE.Group();
+  skyGroup.name = 'sky-group';
+  scene.add(skyGroup);
+
+  const skyUniforms = {
+    uTop: { value: new THREE.Color('#2e75c9') },
+    uHorizon: { value: new THREE.Color('#d7ecf8') },
+    uGround: { value: new THREE.Color('#b8c7be') },
+    uSunColor: { value: new THREE.Color('#fff4d6') },
+    uCloudLight: { value: new THREE.Color('#ffffff') },
+    uCloudDark: { value: new THREE.Color('#bccbd3') },
+    uSunDir: { value: new THREE.Vector3(0.46, 0.68, 0.57).normalize() },
+    uCloud: { value: 0.22 },
+    uNight: { value: 0 },
+    uTime: { value: 0 },
+  };
+
+  const skyMaterial = new THREE.ShaderMaterial({
+    uniforms: skyUniforms,
+    side: THREE.BackSide,
+    depthWrite: false,
+    depthTest: true,
+    fog: false,
+    toneMapped: false,
+    vertexShader: `
+      varying vec3 vDir;
+      void main() {
+        vDir = normalize(position);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uTop;
+      uniform vec3 uHorizon;
+      uniform vec3 uGround;
+      uniform vec3 uSunColor;
+      uniform vec3 uCloudLight;
+      uniform vec3 uCloudDark;
+      uniform vec3 uSunDir;
+      uniform float uCloud;
+      uniform float uNight;
+      uniform float uTime;
+      varying vec3 vDir;
+
+      float hash21(vec2 p) {
+        p = fract(p * vec2(123.34, 456.21));
+        p += dot(p, p + 45.32);
+        return fract(p.x * p.y);
+      }
+
+      float vnoise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        return mix(
+          mix(hash21(i), hash21(i + vec2(1.0, 0.0)), u.x),
+          mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), u.x),
+          u.y
+        );
+      }
+
+      float fbm(vec2 p) {
+        float v = 0.0;
+        float a = 0.54;
+        mat2 rot = mat2(0.82, 0.57, -0.57, 0.82);
+        for (int i = 0; i < 4; i++) {
+          v += a * vnoise(p);
+          p = rot * p * 2.06 + 9.1;
+          a *= 0.49;
+        }
+        return v;
+      }
+
+      void main() {
+        vec3 d = normalize(vDir);
+        float y = clamp(d.y, -0.2, 1.0);
+        vec3 sky = mix(uHorizon, uTop, pow(clamp(y, 0.0, 1.0), 0.45));
+        sky = mix(sky, uGround, smoothstep(0.0, -0.22, d.y));
+
+        float sunDot = max(dot(d, normalize(uSunDir)), 0.0);
+        float sunDisc = smoothstep(0.99964, 0.99988, sunDot);
+        float sunGlow = pow(sunDot, 14.0);
+        float sunLift = (sunDisc * 1.7 + sunGlow * 0.16) * (1.0 - uCloud * 0.88) * (1.0 - uNight * 0.8);
+        sky += uSunColor * sunLift;
+
+        vec2 cloudUv = d.xz / (abs(d.y) + 0.28);
+        cloudUv = cloudUv * 1.18 + vec2(uTime * 0.0022, uTime * 0.0008);
+        float broad = fbm(cloudUv * 1.2 + 2.8);
+        float detail = vnoise(cloudUv * 3.6 - 6.2);
+        float cloudNoise = broad * 0.75 + detail * 0.25;
+        float threshold = mix(0.72, 0.36, uCloud);
+        float cloudMask = smoothstep(threshold, threshold + 0.19, cloudNoise);
+        float horizonFade = smoothstep(0.015, 0.17, d.y);
+        cloudMask *= horizonFade * (0.38 + uCloud * 0.98) * smoothstep(0.015, 0.42, uCloud);
+        vec3 cloudColor = mix(uCloudDark, uCloudLight, smoothstep(0.28, 0.78, detail + broad * 0.32 + (1.0 - uCloud) * 0.08));
+        sky = mix(sky, cloudColor, clamp(cloudMask, 0.0, 1.0) * 0.8);
+
+        float haze = smoothstep(0.2, 0.0, abs(d.y)) * 0.12;
+        sky = mix(sky, uHorizon, haze);
+
+        gl_FragColor = vec4(sky, 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+
+  const skyDome = new THREE.Mesh(new THREE.SphereGeometry(360, 40, 24), skyMaterial);
+  skyDome.renderOrder = 900;
+  skyDome.frustumCulled = false;
+  skyGroup.add(skyDome);
+
+  const starRng = seededRandom(402);
+  const starCount = 680;
+  const starPositions = new Float32Array(starCount * 3);
+  for (let i = 0; i < starCount; i++) {
+    const azimuth = starRng() * TAU;
+    const elevation = Math.asin(0.08 + starRng() * 0.9);
+    const r = 338;
+    starPositions[i * 3] = Math.cos(azimuth) * Math.cos(elevation) * r;
+    starPositions[i * 3 + 1] = Math.sin(elevation) * r;
+    starPositions[i * 3 + 2] = Math.sin(azimuth) * Math.cos(elevation) * r;
+  }
+  const starGeometry = new THREE.BufferGeometry();
+  starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+  const starMaterial = new THREE.PointsMaterial({
+    color: 0xf5ecd9, size: 1.45, sizeAttenuation: false, transparent: true,
+    opacity: 0, depthWrite: false, fog: false,
+  });
+  const stars = new THREE.Points(starGeometry, starMaterial);
+  stars.renderOrder = -900;
+  stars.frustumCulled = false;
+  skyGroup.add(stars);
+
+  const moonMaterial = new THREE.SpriteMaterial({
+    map: moonTex, color: 0xfff9e7, transparent: true, opacity: 0,
+    depthWrite: false, depthTest: true, fog: false,
+    blending: THREE.NormalBlending,
+  });
+  const moon = new THREE.Sprite(moonMaterial);
+  moon.position.set(-142, 45, -282);
+  moon.scale.set(14, 14, 1);
+  moon.renderOrder = -850;
+  skyGroup.add(moon);
+
+  const ambient = new THREE.AmbientLight(0xffffff, 0.15);
+  scene.add(ambient);
+
+  const hemi = new THREE.HemisphereLight(0xb9ddff, 0x8b7e58, 1.12);
+  hemi.position.set(0, 60, 0);
+  scene.add(hemi);
+
+  const sun = new THREE.DirectionalLight(0xfff2dd, 3.15);
+  sun.position.set(64, 92, 58);
+  sun.target.position.set(0, 0, 0);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.left = -77;
+  sun.shadow.camera.right = 77;
+  sun.shadow.camera.top = 74;
+  sun.shadow.camera.bottom = -74;
+  sun.shadow.camera.near = 10;
+  sun.shadow.camera.far = 230;
+  sun.shadow.bias = -0.00022;
+  sun.shadow.normalBias = 0.035;
+  sun.shadow.radius = 3.6;
+  sun.shadow.intensity = 0.8;
+  sun.shadow.camera.updateProjectionMatrix();
+  scene.add(sun);
+  scene.add(sun.target);
+
+  const courtyardFill = new THREE.DirectionalLight(0xffe6c1, 0.18);
+  courtyardFill.position.set(-30, 24, 40);
+  courtyardFill.target.position.set(0, 0, 0);
+  scene.add(courtyardFill);
+  scene.add(courtyardFill.target);
+
+  const lampLights = [];
+  const lampGlows = [];
+
+  function makeLampGlow(position) {
+    const material = new THREE.SpriteMaterial({
+      map: glowTex, color: 0xffd799, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+      fog: false,
+    });
+    const sprite = new THREE.Sprite(material);
+    sprite.position.copy(position);
+    sprite.scale.set(4.4, 4.4, 1);
+    sprite.visible = true;
+    scene.add(sprite);
+    GLOW_MATERIALS.push(material);
+    lampGlows.push(material);
+    return sprite;
+  }
+
+  // Rain is a single GPU-animated points cloud, clipped to a tall volume.
+  const rainCount = 3600;
+  const rainPositions = new Float32Array(rainCount * 3);
+  const rainSpeeds = new Float32Array(rainCount);
+  const rainRng = seededRandom(717);
+  for (let i = 0; i < rainCount; i++) {
+    rainPositions[i * 3] = (rainRng() - 0.5) * 154;
+    rainPositions[i * 3 + 1] = rainRng() * 44;
+    rainPositions[i * 3 + 2] = (rainRng() - 0.5) * 118;
+    rainSpeeds[i] = 13 + rainRng() * 12;
+  }
+  const rainGeometry = new THREE.BufferGeometry();
+  rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+  rainGeometry.setAttribute('aSpeed', new THREE.BufferAttribute(rainSpeeds, 1));
+  const rainUniforms = {
+    uTime: { value: 0 },
+    uOpacity: { value: 0 },
+    uColor: { value: new THREE.Color('#d5e6ef') },
+  };
+  const rainMaterial = new THREE.ShaderMaterial({
+    uniforms: rainUniforms,
+    transparent: true,
+    depthWrite: false,
+    fog: false,
+    vertexShader: `
+      attribute float aSpeed;
+      uniform float uTime;
+      varying float vDepthFade;
+      void main() {
+        vec3 p = position;
+        p.y = mod(position.y - uTime * aSpeed, 44.0);
+        p.y += 0.35;
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        gl_PointSize = clamp(680.0 / max(-mv.z, 1.0), 2.0, 15.0);
+        gl_Position = projectionMatrix * mv;
+        vDepthFade = smoothstep(190.0, 20.0, -mv.z);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uOpacity;
+      varying float vDepthFade;
+      void main() {
+        vec2 p = gl_PointCoord - 0.5;
+        float x = smoothstep(0.12, 0.025, abs(p.x));
+        float y = smoothstep(0.5, 0.32, abs(p.y));
+        float alpha = x * y * uOpacity * (0.35 + vDepthFade * 0.65);
+        if (alpha < 0.01) discard;
+        gl_FragColor = vec4(uColor, alpha);
+      }
+    `,
+  });
+  const rain = new THREE.Points(rainGeometry, rainMaterial);
+  rain.visible = false;
+  rain.frustumCulled = false;
+  rain.renderOrder = 20;
+  scene.add(rain);
+
+  /* ---------------------------------------------------------------------
+     Weather definitions and interpolation
+     --------------------------------------------------------------------- */
+
+  const WEATHERS = {
+    sunny: {
+      label: 'Sunny',
+      skyTop: '#0c5fc9', skyHorizon: '#b9e3f8', skyGround: '#b9cbc1',
+      cloudLight: '#fffdf6', cloudDark: '#b9cbd5',
+      sunColor: '#fff4d5', sunIntensity: 3.35,
+      hemiSky: '#b9ddff', hemiGround: '#8b7e58', hemiIntensity: 1.02,
+      ambientColor: '#f7f0da', ambientIntensity: 0.13,
+      fogColor: '#c7dfea', fogNear: 135, fogFar: 445,
+      cloud: 0.06, night: 0, rain: 0, wet: 0, lamps: 0, windows: 0,
+      exposure: 1.02, shadow: 0.8, envIntensity: 0.48, stars: 0,
+      sunVisible: 1,
+      env: 'sunny',
+    },
+    cloudy: {
+      label: 'Cloudy',
+      skyTop: '#7e8e9a', skyHorizon: '#cbd3d5', skyGround: '#aab0aa',
+      cloudLight: '#eef0ed', cloudDark: '#9faab0',
+      sunColor: '#dce5e8', sunIntensity: 0.06,
+      hemiSky: '#c4d0d4', hemiGround: '#60675d', hemiIntensity: 1.4,
+      ambientColor: '#c7d1d4', ambientIntensity: 0.36,
+      fogColor: '#aeb9bc', fogNear: 64, fogFar: 310,
+      cloud: 0.95, night: 0, rain: 0, wet: 0, lamps: 0, windows: 0,
+      exposure: 0.82, shadow: 0.015, envIntensity: 0.24, stars: 0,
+      sunVisible: 0.1,
+      env: 'cloudy',
+    },
+    rain: {
+      label: 'Rain',
+      skyTop: '#26343d', skyHorizon: '#6f7e85', skyGround: '#596663',
+      cloudLight: '#9eafb7', cloudDark: '#424f56',
+      sunColor: '#a6b8c2', sunIntensity: 0.22,
+      hemiSky: '#879ba4', hemiGround: '#46504a', hemiIntensity: 0.78,
+      ambientColor: '#8f9fa5', ambientIntensity: 0.17,
+      fogColor: '#6d7b80', fogNear: 22, fogFar: 165,
+      cloud: 1, night: 0.03, rain: 1, wet: 1, lamps: 0.08, windows: 0,
+      exposure: 0.84, shadow: 0.12, envIntensity: 0.26, stars: 0,
+      sunVisible: 0,
+      env: 'rain',
+    },
+    night: {
+      label: 'Night',
+      skyTop: '#020713', skyHorizon: '#0e1a2c', skyGround: '#05090d',
+      cloudLight: '#1e2b3e', cloudDark: '#070d15',
+      sunColor: '#8ba5dc', sunIntensity: 0.3,
+      hemiSky: '#2b4368', hemiGround: '#0d120e', hemiIntensity: 0.22,
+      ambientColor: '#1b2e4b', ambientIntensity: 0.06,
+      fogColor: '#06101c', fogNear: 44, fogFar: 230,
+      cloud: 0.38, night: 1, rain: 0, wet: 0.12, lamps: 1, windows: 1,
+      exposure: 0.86, shadow: 0.38, envIntensity: 0.09, stars: 0.9,
+      sunVisible: 0,
+      env: 'night',
+    },
+  };
+
+  const COLOR_KEYS = [
+    'skyTop', 'skyHorizon', 'skyGround', 'cloudLight', 'cloudDark', 'sunColor',
+    'hemiSky', 'hemiGround', 'ambientColor', 'fogColor',
+  ];
+  const NUM_KEYS = [
+    'sunIntensity', 'hemiIntensity', 'ambientIntensity', 'fogNear', 'fogFar',
+    'cloud', 'night', 'rain', 'wet', 'lamps', 'windows', 'exposure', 'shadow',
+    'envIntensity', 'stars', 'sunVisible',
+  ];
+
+  function buildWeatherRuntime(name) {
+    const source = WEATHERS[name];
+    const runtime = { name, label: source.label, env: source.env };
+    for (const key of COLOR_KEYS) runtime[key] = new THREE.Color(source[key]);
+    for (const key of NUM_KEYS) runtime[key] = source[key];
+    return runtime;
+  }
+
+  let targetWeather = buildWeatherRuntime('sunny');
+  const currentWeather = buildWeatherRuntime('sunny');
+  let weatherName = 'sunny';
+
+  scene.environment = ENV_TEXTURES.sunny;
+  scene.environmentIntensity = currentWeather.envIntensity;
+  scene.background = new THREE.Color(currentWeather.fogColor);
+
+  function setWeather(name) {
+    if (!WEATHERS[name] || weatherName === name) return;
+    weatherName = name;
+    targetWeather = buildWeatherRuntime(name);
+    scene.environment = ENV_TEXTURES[targetWeather.env];
+    document.querySelectorAll('.weather-btn').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.weather === name));
+    });
+    ROOT.dataset.weather = name;
+  }
+
+  ROOT.dataset.weather = 'sunny';
+
+  function damp(current, target, lambda, dt) {
+    return target + (current - target) * Math.exp(-lambda * dt);
+  }
+
+  function updateWeather(dt) {
+    const k = 1 - Math.exp(-2.2 * dt);
+    for (const key of COLOR_KEYS) currentWeather[key].lerp(targetWeather[key], k);
+    for (const key of NUM_KEYS) {
+      currentWeather[key] = damp(currentWeather[key], targetWeather[key], 2.2, dt);
+    }
+
+    ambient.color.copy(currentWeather.ambientColor);
+    ambient.intensity = currentWeather.ambientIntensity;
+    hemi.color.copy(currentWeather.hemiSky);
+    hemi.groundColor.copy(currentWeather.hemiGround);
+    hemi.intensity = currentWeather.hemiIntensity;
+    sun.color.copy(currentWeather.sunColor);
+    sun.intensity = currentWeather.sunIntensity;
+    sun.shadow.intensity = currentWeather.shadow;
+    courtyardFill.intensity = 0.06 + currentWeather.sunIntensity * 0.045;
+    courtyardFill.color.copy(currentWeather.sunColor);
+
+    if (scene.fog) {
+      scene.fog.color.copy(currentWeather.fogColor);
+      scene.fog.near = currentWeather.fogNear;
+      scene.fog.far = currentWeather.fogFar;
+    }
+    scene.background.copy(currentWeather.fogColor);
+    renderer.toneMappingExposure = currentWeather.exposure;
+    scene.environmentIntensity = currentWeather.envIntensity;
+
+    skyUniforms.uTop.value.copy(currentWeather.skyTop);
+    skyUniforms.uHorizon.value.copy(currentWeather.skyHorizon);
+    skyUniforms.uGround.value.copy(currentWeather.skyGround);
+    skyUniforms.uSunColor.value.copy(currentWeather.sunColor);
+    skyUniforms.uCloudLight.value.copy(currentWeather.cloudLight);
+    skyUniforms.uCloudDark.value.copy(currentWeather.cloudDark);
+    skyUniforms.uCloud.value = currentWeather.cloud;
+    skyUniforms.uNight.value = currentWeather.night;
+
+    starMaterial.opacity = currentWeather.stars * 0.95;
+    stars.visible = currentWeather.stars > 0.01;
+    moonMaterial.opacity = currentWeather.night * 0.88;
+    moon.visible = currentWeather.night > 0.02;
+
+    M.windowLit.emissiveIntensity = currentWeather.windows * 3.1;
+    M.windowDark.emissiveIntensity = 0;
+    M.lampGlass.emissiveIntensity = 0.16 + currentWeather.lamps * 3.2;
+    for (const material of SIGN_MATERIALS) {
+      material.emissiveIntensity = currentWeather.night * 0.52;
+    }
+    for (const glow of lampGlows) glow.opacity = currentWeather.lamps * 0.92 * (1 - currentWeather.night * 0.06);
+    for (const warningLamp of lampLights) warningLamp.intensity = currentWeather.lamps * 100;
+    for (const puddle of puddleMeshes) {
+      puddle.visible = currentWeather.wet > 0.08;
+    }
+    M.puddle.opacity = currentWeather.wet * 0.58;
+
+    for (const entry of wetMaterials) {
+      entry.material.color.copy(entry.baseColor).lerp(entry.wetColor, currentWeather.wet);
+      entry.material.roughness = THREE.MathUtils.lerp(entry.dryRoughness, entry.wetRoughness, currentWeather.wet);
+      entry.material.metalness = THREE.MathUtils.lerp(entry.dryMetalness, entry.wetMetalness, currentWeather.wet);
+    }
+
+    rainUniforms.uOpacity.value = currentWeather.rain * 0.92;
+    rainUniforms.uTime.value = clock.getElapsed();
+    rain.visible = currentWeather.rain > 0.012;
+  }
+
+  /* ---------------------------------------------------------------------
+     Scene content begins here. Buildings and landscape are added below.
+     --------------------------------------------------------------------- */
+
+  const puddleMeshes = [];
+
+  /* ---------------------------------------------------------------------
+     Campus directory, camera framing and interaction
+     --------------------------------------------------------------------- */
+
+  const BUILDINGS = {
+    admin: {
+      name: 'Administration Block',
+      short: 'Administration',
+      kind: 'Landmark',
+      sub: 'Landmark · Back of campus',
+      area: 720,
+      storeys: 3,
+      description: 'The school’s civic heart: principal’s office, staff room, library and meeting rooms.',
+      bounds: { x: -12, z: -22.1, w: 21.7, h: 14.5, d: 17.2, base: 0 },
+      label: new THREE.Vector3(-12, 18.4, -23.2),
+      view: { position: [6.0, 17.5, 3.5], target: [-12, 5.0, -22.0] },
+    },
+    back: {
+      name: 'Back Classroom Block',
+      short: 'Back Classrooms',
+      kind: 'Teaching',
+      sub: 'Teaching block · North edge',
+      area: 684,
+      storeys: 2,
+      description: 'General classrooms arranged along an open, naturally ventilated corridor.',
+      bounds: { x: 17, z: -24.4, w: 39.4, h: 10.5, d: 11.7, base: 0 },
+      label: new THREE.Vector3(17, 14.2, -24.5),
+      view: { position: [28.5, 16.0, 8.0], target: [16.5, 4.0, -24.0] },
+    },
+    right: {
+      name: 'Right Classroom Wing',
+      short: 'Right Wing',
+      kind: 'Teaching',
+      sub: 'Classroom wing · East side',
+      area: 648,
+      storeys: 2,
+      description: 'A long classroom wing overlooking the courtyard, with the bicycle shed on its outer side.',
+      bounds: { x: 42, z: -2, w: 10.5, h: 10.3, d: 37.6, base: 0 },
+      label: new THREE.Vector3(42, 14.2, -2.2),
+      view: { position: [19.0, 15.2, 8.0], target: [42, 4.0, -2.0] },
+    },
+    innerLeft: {
+      name: 'Inner Left Wing',
+      short: 'Inner Left Wing',
+      kind: 'Teaching',
+      sub: 'Classroom wing · West side',
+      area: 576,
+      storeys: 2,
+      description: 'Classrooms and subject rooms forming the western edge of the central courtyard.',
+      bounds: { x: -28.1, z: -3, w: 12.7, h: 10.2, d: 33.3, base: 0 },
+      label: new THREE.Vector3(-29, 14.2, -3.2),
+      view: { position: [-8.5, 14.0, 25.0], target: [-29, 3.6, -3.5] },
+    },
+    outerLeft: {
+      name: 'Outer Left Wing',
+      short: 'Outer Left Wing',
+      kind: 'Teaching',
+      sub: 'Classroom wing · West perimeter',
+      area: 720,
+      storeys: 2,
+      description: 'Classrooms, science labs and a computer room along the quiet outer edge of the site.',
+      bounds: { x: -44, z: -3, w: 10.5, h: 10.2, d: 41.3, base: 0 },
+      label: new THREE.Vector3(-44, 14.2, -3.2),
+      view: { position: [-12.0, 25.0, 28.0], target: [-43.0, 4.0, -4.0] },
+    },
+    stage: {
+      name: 'Ceremony Stage',
+      short: 'Ceremony Stage',
+      kind: 'Gathering',
+      sub: 'Open-air pavilion · Central courtyard',
+      area: 40,
+      storeys: 1,
+      storeysLabel: 'open-air',
+      description: 'The focus for flag ceremonies, assemblies, welcomes and school events.',
+      bounds: { x: 3, z: -14.7, w: 10.7, h: 6.4, d: 11.7, base: 0 },
+      label: new THREE.Vector3(3, 9.0, -15.0),
+      view: { position: [15.5, 12.2, 5.5], target: [2.6, 2.8, -15.2] },
+    },
+    gate: {
+      name: 'Main Gate',
+      short: 'Main Gate',
+      kind: 'Entrance',
+      sub: 'Entrance · Front boundary',
+      area: null,
+      storeys: null,
+      description: 'The formal school entrance, pedestrian side gate, guard room and the threshold to the red-brick courtyard.',
+      bounds: { x: -1.3, z: 28.9, w: 19.8, h: 7.3, d: 6.3, base: 0 },
+      label: new THREE.Vector3(0, 9.5, 30.3),
+      view: { position: [7.5, 8.2, 43.5], target: [0, 3.5, 29.4] },
+    },
+  };
+
+  const BUILDING_ORDER = ['admin', 'back', 'right', 'innerLeft', 'outerLeft', 'stage', 'gate'];
+  const BUILDING_TOTAL = BUILDING_ORDER.length;
+  const panelKind = infoPanel.querySelector('.panel-kind');
+
+  let selectedBuilding = null;
+  let hoveredBuilding = null;
+  let isFlying = false;
+  let cameraFlight = null;
+  let hoverOutline = null;
+  let outlineLines = null;
+  let flagMesh = null;
+  let flagBasePositions = null;
+  let labelsVisible = true;
+  let pointerDown = null;
+  const activePointers = new Set();
+
+  const labelElements = new Map();
+  const labelSizes = new Map();
+  const pickables = [];
+  let labelNameMode = null;
+  const overviewDirection = new THREE.Vector3(0.17, 0.70, 0.69).normalize();
+  const overviewTarget = new THREE.Vector3(0, 2.0, -2.0);
+  let outlineLineMaterial = null;
+  let lastOverviewDistance = 122;
+
+  function updateResponsiveFov() {
+    const aspect = Math.max(0.3, window.innerWidth / Math.max(1, window.innerHeight));
+    const nextFov = aspect < 0.8 ? 55 : aspect < 1.15 ? 48 : 43;
+    if (camera.fov !== nextFov) {
+      camera.fov = nextFov;
+      camera.updateProjectionMatrix();
+    }
+  }
+
+  function viewportOverview() {
+    updateResponsiveFov();
+    const aspect = Math.max(0.3, window.innerWidth / Math.max(1, window.innerHeight));
+    const vFov = THREE.MathUtils.degToRad(camera.fov);
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
+    const overviewWidth = aspect < 0.8 ? 112 : 122;
+    const distanceForWidth = (overviewWidth * 0.5) / Math.tan(hFov / 2);
+    const distanceForHeight = (80 * 0.5) / Math.tan(vFov / 2);
+    const distance = Math.max(distanceForWidth, distanceForHeight) * 1.055;
+    lastOverviewDistance = distance;
+    const target = overviewTarget.clone();
+    const position = target.clone().addScaledVector(overviewDirection, distance);
+    return { position, target };
+  }
+
+  function setInitialView() {
+    const view = viewportOverview();
+    camera.position.copy(view.position);
+    controls.target.copy(view.target);
+    controls.maxDistance = Math.max(390, lastOverviewDistance * 1.35);
+    camera.lookAt(controls.target);
+    controls.update(0.0001);
+  }
+
+  setInitialView();
+
+  function findBuildingAtEvent(event) {
+    if (!pickables.length) return null;
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointerNdc.set(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1,
+    );
+    raycaster.setFromCamera(pointerNdc, camera);
+    raycaster.far = 900;
+    const hits = raycaster.intersectObjects(pickables, false);
+    return hits.length ? hits[0].object.userData.buildingId : null;
+  }
+
+  function setHoveredBuilding(id, fromLabel = false) {
+    const next = id && BUILDINGS[id] ? id : null;
+    if (hoveredBuilding === next) {
+      if (!fromLabel && next && labelElements.has(next)) labelElements.get(next).classList.add('is-hovered');
+      return;
+    }
+    if (hoveredBuilding && labelElements.has(hoveredBuilding)) {
+      labelElements.get(hoveredBuilding).classList.remove('is-hovered');
+    }
+    hoveredBuilding = next;
+    if (hoveredBuilding && labelElements.has(hoveredBuilding)) {
+      labelElements.get(hoveredBuilding).classList.add('is-hovered');
+    }
+    renderer.domElement.style.cursor = hoveredBuilding ? 'pointer' : 'grab';
+    refreshOutline();
+  }
+
+  function refreshOutline() {
+    if (!hoverOutline) return;
+    const active = hoveredBuilding;
+    if (!active) {
+      hoverOutline.visible = false;
+      return;
+    }
+    const data = BUILDINGS[active];
+    const bounds = data.bounds;
+    hoverOutline.visible = true;
+    hoverOutline.position.set(bounds.x, bounds.base + bounds.h / 2 + 0.15, bounds.z);
+    hoverOutline.scale.set(bounds.w + 0.45, bounds.h + 0.3, bounds.d + 0.45);
+    outlineLines.material.color.setHex(0xffd273);
+    outlineLines.material.linewidth = 2.25;
+  }
+
+  function createHoverOutline() {
+    const box = new THREE.BoxGeometry(1, 1, 1);
+    let edges = new THREE.EdgesGeometry(box);
+    if (edges.index) edges = edges.toNonIndexed();
+    const points = Array.from(edges.attributes.position.array);
+    const lineGeometry = new LineSegmentsGeometry().setPositions(points);
+    outlineLineMaterial = new LineMaterial({
+      color: 0xffce68,
+      linewidth: 2.2,
+      transparent: true,
+      opacity: 0.95,
+      depthWrite: false,
+      depthTest: true,
+      resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
+    });
+    outlineLines = new LineSegments2(lineGeometry, outlineLineMaterial);
+    outlineLines.renderOrder = 40;
+    hoverOutline = new THREE.Group();
+    hoverOutline.add(outlineLines);
+    hoverOutline.visible = false;
+    hoverOutline.matrixAutoUpdate = true;
+    scene.add(hoverOutline);
+  }
+
+  function createPickProxies() {
+    const material = new THREE.MeshBasicMaterial({ visible: false });
+    for (const id of BUILDING_ORDER) {
+      const data = BUILDINGS[id];
+      const b = data.bounds;
+      const proxy = new THREE.Mesh(new THREE.BoxGeometry(b.w, b.h, b.d), material);
+      proxy.position.set(b.x, b.base + b.h / 2, b.z);
+      proxy.userData.buildingId = id;
+      proxy.frustumCulled = false;
+      scene.add(proxy);
+      pickables.push(proxy);
+    }
+  }
+
+  function measureLabels() {
+    for (const [id, button] of labelElements) {
+      const rect = button.getBoundingClientRect();
+      if (rect.width > 0) {
+        labelSizes.set(id, { w: rect.width, h: rect.height || 24 });
+      }
+    }
+  }
+
+  function applyLabelNames() {
+    const compact = window.innerWidth < 720;
+    const mode = compact ? 'compact' : 'full';
+    if (mode === labelNameMode) return;
+    labelNameMode = mode;
+    for (const [id, button] of labelElements) {
+      button.textContent = compact ? BUILDINGS[id].short : BUILDINGS[id].name;
+    }
+    requestAnimationFrame(measureLabels);
+  }
+
+  function createLabels() {
+    for (const id of BUILDING_ORDER) {
+      const data = BUILDINGS[id];
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'building-label';
+      button.dataset.building = id;
+      button.textContent = data.name;
+      button.setAttribute('aria-label', `View ${data.name}`);
+      button.addEventListener('click', () => selectBuilding(id));
+      button.addEventListener('pointerenter', (event) => {
+        if (event.pointerType === 'mouse') setHoveredBuilding(id, true);
+      });
+      button.addEventListener('pointerleave', (event) => {
+        if (event.pointerType === 'mouse' && hoveredBuilding === id) setHoveredBuilding(null, true);
+      });
+      labelsLayer.appendChild(button);
+      labelElements.set(id, button);
+    }
+    labelNameMode = 'full';
+    applyLabelNames();
+    measureLabels();
+  }
+
+  function updateLabels() {
+    if (!labelElements.size) return;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const perspectivePoint = new THREE.Vector3();
+    const items = [];
+    for (const id of BUILDING_ORDER) {
+      const button = labelElements.get(id);
+      if (!button) continue;
+      perspectivePoint.copy(BUILDINGS[id].label).project(camera);
+      const isVisible =
+        labelsVisible &&
+        perspectivePoint.z > -1 &&
+        perspectivePoint.z < 1 &&
+        perspectivePoint.x > -1.02 &&
+        perspectivePoint.x < 1.02 &&
+        perspectivePoint.y > -1.06 &&
+        perspectivePoint.y < 1.02;
+      button.classList.toggle('is-floating-away', !isVisible);
+      if (!isVisible) continue;
+      const x = (perspectivePoint.x * 0.5 + 0.5) * w;
+      const y = (-perspectivePoint.y * 0.5 + 0.5) * h;
+      const size = labelSizes.get(id) || { w: 140, h: 24 };
+      items.push({ id, button, x, y, w: size.w, h: size.h });
+    }
+
+    // On portrait screens the labels can share the same small band of sky.
+    // Resolve overlaps by stacking them downward while keeping the pins near
+    // their buildings.
+    if (w < 900) {
+      items.sort((a, b) => a.y - b.y);
+      const placed = [];
+      for (const item of items) {
+        let finalY = item.y;
+        for (let attempt = 0; attempt < 10; attempt++) {
+          let conflict = null;
+          for (const other of placed) {
+            const horizontal = Math.abs(other.x - item.x) < (other.w + item.w) * 0.5 + 5;
+            const vertical = !(finalY <= other.y - other.h - 3 || finalY - item.h >= other.y + 3);
+            if (horizontal && vertical) { conflict = other; break; }
+          }
+          if (!conflict) break;
+          finalY = conflict.y + 4 + item.h;
+        }
+        if (finalY > h - 12) finalY = item.y;
+        item.finalY = finalY;
+        placed.push({ x: item.x, y: finalY, w: item.w, h: item.h });
+      }
+    }
+
+    for (const item of items) {
+      const y = item.finalY ?? item.y;
+      item.button.style.transform = `translate3d(${item.x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -100%)`;
+    }
+  }
+
+  function selectBuilding(id) {
+    const data = BUILDINGS[id];
+    if (!data) return;
+    setHoveredBuilding(null);
+    selectedBuilding = id;
+    panelKind.textContent = data.kind;
+    panelIndex.textContent = `${String(BUILDING_ORDER.indexOf(id) + 1).padStart(2, '0')} / ${String(BUILDING_TOTAL).padStart(2, '0')}`;
+    panelName.textContent = data.name;
+    panelSub.textContent = data.sub;
+    if (data.area == null) {
+      panelArea.textContent = '—';
+    } else {
+      panelArea.innerHTML = `${data.area} <span class="stat-unit">m²</span>`;
+    }
+    if (data.storeys == null) {
+      panelLevels.textContent = '—';
+    } else {
+      const unit = data.storeysLabel || (data.storeys === 1 ? 'storey' : 'storeys');
+      panelLevels.innerHTML = `${data.storeys} <span class="stat-unit">${unit}</span>`;
+    }
+    panelDescription.textContent = data.description;
+    infoPanel.inert = false;
+    infoPanel.setAttribute('aria-hidden', 'false');
+    infoPanel.classList.add('is-open');
+    refreshOutline();
+    flyToBuilding(data);
+  }
+
+  function closePanel({ fly = true } = {}) {
+    if (!selectedBuilding && !infoPanel.classList.contains('is-open')) {
+      if (fly) flyToOverview();
+      return;
+    }
+    selectedBuilding = null;
+    infoPanel.classList.remove('is-open');
+    infoPanel.inert = true;
+    infoPanel.setAttribute('aria-hidden', 'true');
+    refreshOutline();
+    if (fly) flyToOverview();
+  }
+
+  function flyToOverview() {
+    const view = viewportOverview();
+    startCameraFlight(view.position, view.target, 1.45);
+  }
+
+  function flyToBuilding(data) {
+    const mobile = window.innerWidth < 760;
+    const originalTarget = new THREE.Vector3(...data.view.target);
+    const basePosition = new THREE.Vector3(...data.view.position);
+    let target = originalTarget;
+    let position = basePosition;
+    if (mobile) {
+      const mobileScales = { 'Administration Block': 2.05, 'Back Classroom Block': 2.35, 'Right Classroom Wing': 1.92, 'Inner Left Wing': 2.08, 'Outer Left Wing': 2.2, 'Ceremony Stage': 1.45, 'Main Gate': 1.18 };
+      const direction = basePosition.clone().sub(originalTarget);
+      target = originalTarget.clone();
+      target.y = Math.min(target.y, 1.35);
+      position = target.clone().addScaledVector(direction, mobileScales[data.name] || 1.9);
+    }
+    startCameraFlight(position, target, 1.35);
+  }
+
+  function startCameraFlight(toPosition, toTarget, duration = 1.35) {
+    isFlying = true;
+    controls.enabled = false;
+    cameraFlight = {
+      fromPosition: camera.position.clone(),
+      fromTarget: controls.target.clone(),
+      toPosition: toPosition.clone(),
+      toTarget: toTarget.clone(),
+      started: performance.now(),
+      duration: duration * 1000,
+    };
+  }
+
+  function updateCameraFlight() {
+    if (!cameraFlight) return;
+    const now = performance.now();
+    const linear = THREE.MathUtils.clamp((now - cameraFlight.started) / cameraFlight.duration, 0, 1);
+    const eased = linear < 0.5
+      ? 4 * linear * linear * linear
+      : 1 - Math.pow(-2 * linear + 2, 3) / 2;
+    camera.position.lerpVectors(cameraFlight.fromPosition, cameraFlight.toPosition, eased);
+    controls.target.lerpVectors(cameraFlight.fromTarget, cameraFlight.toTarget, eased);
+    camera.lookAt(controls.target);
+    if (linear >= 1) {
+      cameraFlight = null;
+      isFlying = false;
+      controls.enabled = true;
+      controls.update(0.001);
+    }
+  }
+
+  function constrainCamera() {
+    if (camera.position.y < 1.4) camera.position.y = 1.4;
+    if (controls.target.y < 0.1) controls.target.y = 0.1;
+    if (!Number.isFinite(camera.position.x) || !Number.isFinite(camera.position.z)) {
+      setInitialView();
+    }
+  }
+
+  // Pointer picking is deliberately separated from OrbitControls: a short,
+  // stationary pointer gesture counts as a click, a drag does not.
+  renderer.domElement.addEventListener('pointerdown', (event) => {
+    activePointers.add(event.pointerId);
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (activePointers.size > 1) {
+      pointerDown = null;
+      return;
+    }
+    pointerDown = {
+      x: event.clientX,
+      y: event.clientY,
+      time: performance.now(),
+      pointerId: event.pointerId,
+    };
+  });
+
+  renderer.domElement.addEventListener('pointermove', (event) => {
+    if (event.pointerType !== 'mouse') return;
+    if (pointerDown && pointerDown.pointerId === event.pointerId) return;
+    if (event.buttons !== 0) {
+      if (hoveredBuilding) setHoveredBuilding(null);
+      return;
+    }
+    const id = findBuildingAtEvent(event);
+    setHoveredBuilding(id);
+  });
+
+  renderer.domElement.addEventListener('pointerup', (event) => {
+    activePointers.delete(event.pointerId);
+    if (!pointerDown || pointerDown.pointerId !== event.pointerId) {
+      pointerDown = null;
+      return;
+    }
+    const dx = event.clientX - pointerDown.x;
+    const dy = event.clientY - pointerDown.y;
+    const distance = Math.hypot(dx, dy);
+    const elapsed = performance.now() - pointerDown.time;
+    const wasPrimary = event.pointerType !== 'mouse' || event.button === 0;
+    pointerDown = null;
+    if (wasPrimary && distance < 7 && elapsed < 900 && activePointers.size === 0) {
+      const id = findBuildingAtEvent(event);
+      if (id) selectBuilding(id);
+    }
+  });
+
+  renderer.domElement.addEventListener('pointercancel', (event) => {
+    activePointers.delete(event.pointerId);
+    pointerDown = null;
+  });
+
+  renderer.domElement.addEventListener('pointerleave', () => {
+    activePointers.clear();
+    pointerDown = null;
+    if (hoveredBuilding) setHoveredBuilding(null);
+  });
+
+  renderer.domElement.addEventListener('contextmenu', (event) => event.preventDefault());
+
+  labelsToggle.addEventListener('click', () => {
+    labelsVisible = !labelsVisible;
+    labelsToggle.setAttribute('aria-pressed', String(labelsVisible));
+    labelsLayer.classList.toggle('is-hidden', !labelsVisible);
+    for (const button of labelElements.values()) button.tabIndex = labelsVisible ? 0 : -1;
+    if (labelsVisible) requestAnimationFrame(measureLabels);
+    if (!labelsVisible) setHoveredBuilding(null);
+  });
+
+  overviewBtn.addEventListener('click', () => {
+    closePanel({ fly: true });
+  });
+
+  panelClose.addEventListener('click', () => closePanel({ fly: true }));
+  panelBack.addEventListener('click', () => closePanel({ fly: true }));
+
+  document.querySelectorAll('.weather-btn').forEach((button) => {
+    button.addEventListener('click', () => setWeather(button.dataset.weather));
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      if (infoPanel.classList.contains('is-open')) closePanel({ fly: true });
+      else setHoveredBuilding(null);
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    function targetPixelRatio() {
+    const cap = window.innerWidth < 760 ? 1.35 : 1.5;
+    return Math.min(window.devicePixelRatio || 1, cap);
+  }
+  renderer.setPixelRatio(targetPixelRatio());
+    renderer.setSize(width, height);
+    camera.aspect = width / Math.max(1, height);
+    updateResponsiveFov();
+    camera.updateProjectionMatrix();
+    controls.maxDistance = Math.max(390, viewportOverview().position.distanceTo(overviewTarget) * 1.35);
+    if (outlineLineMaterial) outlineLineMaterial.resolution.set(width, height);
+    applyLabelNames();
+    measureLabels();
+    updateLabels();
+  });
+
+  window.addEventListener('blur', () => {
+    activePointers.clear();
+    pointerDown = null;
+    setHoveredBuilding(null);
+  });
+
+  function createPuddles() {
+    const puddles = [
+      [-16.5, 21.5, 3.8, 1.3, 0.35],
+      [-3.5, 18.5, 2.2, 0.9, -0.2],
+      [8.5, 22.0, 3.2, 1.1, 0.8],
+      [27.8, 18.5, 2.6, 1.3, -0.6],
+      [31.8, 6.5, 1.8, 2.4, 0.25],
+      [-17.3, -7.5, 2.4, 1.0, -0.9],
+      [15.0, 8.5, 2.8, 1.05, 0.1],
+    ];
+    for (const [x, z, sx, sz, rotation] of puddles) {
+      const mesh = new THREE.Mesh(new THREE.CircleGeometry(1, 22), M.puddle);
+      mesh.rotation.x = -HALF_PI;
+      mesh.rotation.z = rotation;
+      mesh.scale.set(sx, sz, 1);
+      mesh.position.set(x, 0.057, z);
+      mesh.visible = false;
+      mesh.renderOrder = 4;
+      scene.add(mesh);
+      puddleMeshes.push(mesh);
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+     Detail-building helpers
+     --------------------------------------------------------------------- */
+
+  const UP = new THREE.Vector3(0, 1, 0);
+
+  function ensureBuildMaterials() {
+    if (!MATS.has('fabricAwning')) {
+      std('fabricAwning', {
+        color: 0x173a2c, roughness: 0.97, metalness: 0.0, side: THREE.DoubleSide,
+      });
+    }
+    if (!MATS.has('roofShed')) {
+      std('roofShed', {
+        color: 0x858b87, map: corrugationTex, roughness: 0.8, metalness: 0.05,
+        side: THREE.DoubleSide,
+      });
+    }
+    if (!MATS.has('timber')) {
+      std('timber', { color: 0x6a4a2e, roughness: 0.9 });
+    }
+  }
+
+  function addArchedWindow(b, x, yBase, zFace, width, height, lit = true) {
+    const radius = width / 2;
+    const straight = Math.max(0.2, height - radius);
+    const shape = new THREE.Shape();
+    shape.moveTo(-radius, 0);
+    shape.lineTo(radius, 0);
+    shape.lineTo(radius, straight);
+    shape.absarc(0, straight, radius, 0, Math.PI, false);
+    shape.lineTo(-radius, 0);
+    shape.closePath();
+    const glassGeo = new THREE.ShapeGeometry(shape, 22);
+    b.geometry(lit ? 'windowLit' : 'windowDark', glassGeo, x, yBase, zFace + 0.036);
+
+    const frameZ = zFace + 0.088;
+    const archRing = new THREE.RingGeometry(radius + 0.095, radius + 0.27, 30, 1, 0, Math.PI);
+    b.geometry('trim', archRing, x, yBase + straight, frameZ);
+    b.box('trim', 0.24, straight + 0.16, 0.1, x - radius - 0.13, yBase + straight / 2, frameZ);
+    b.box('trim', 0.24, straight + 0.16, 0.1, x + radius + 0.13, yBase + straight / 2, frameZ);
+    b.box('trim', width + 0.58, 0.13, 0.16, x, yBase - 0.08, frameZ);
+    b.box('trim', width + 0.38, 0.08, 0.1, x, yBase + straight + radius + 0.22, frameZ);
+    b.box('trim', 0.055, height - 0.14, 0.055, x, yBase + (height - 0.14) / 2 + 0.04, frameZ + 0.015);
+    b.box('trim', width - 0.1, 0.05, 0.055, x, yBase + straight, frameZ + 0.015);
+    b.box('brass', 0.22, 0.24, 0.16, x, yBase + straight + radius + 0.34, frameZ - 0.02);
+    // A shallow recess darkens the edges of the big opening.
+    const recess = new THREE.Shape();
+    recess.moveTo(-radius - 0.18, -0.1);
+    recess.lineTo(radius + 0.18, -0.1);
+    recess.lineTo(radius + 0.18, straight);
+    recess.absarc(0, straight, radius + 0.18, 0, Math.PI, false);
+    recess.lineTo(-radius - 0.18, -0.1);
+    b.geometry('recess', new THREE.ShapeGeometry(recess, 20), x, yBase, zFace + 0.008);
+  }
+
+  function addWindowZ(b, x, yBottom, zFace, width, height, lit = true) {
+    const glassZ = zFace + 0.04;
+    b.box('recess', width + 0.18, height + 0.18, 0.045, x, yBottom + height / 2, zFace + 0.011);
+    b.plane(lit ? 'windowLit' : 'windowDark', width, height, x, yBottom + height / 2, glassZ);
+    const frameZ = zFace + 0.085;
+    b.box('trim', 0.085, height + 0.24, 0.1, x - width / 2 - 0.045, yBottom + height / 2, frameZ);
+    b.box('trim', 0.085, height + 0.24, 0.1, x + width / 2 + 0.045, yBottom + height / 2, frameZ);
+    b.box('trim', width + 0.18, 0.095, 0.1, x, yBottom + height + 0.06, frameZ);
+    b.box('trim', width + 0.31, 0.095, 0.23, x, yBottom - 0.07, zFace + 0.11);
+    b.box('trim', 0.045, height - 0.03, 0.06, x, yBottom + height / 2, frameZ + 0.018);
+    b.box('trim', width - 0.02, 0.04, 0.06, x, yBottom + height * 0.57, frameZ + 0.018);
+  }
+
+  function addWindowX(b, xFace, yBottom, zCenter, width, height, outward = 1, lit = true) {
+    const ry = outward > 0 ? HALF_PI : -HALF_PI;
+    b.box('recess', 0.045, height + 0.18, width + 0.18, xFace + outward * 0.011, yBottom + height / 2, zCenter);
+    b.plane(lit ? 'windowLit' : 'windowDark', width, height, xFace + outward * 0.04, yBottom + height / 2, zCenter, 0, ry, 0);
+    const frameX = xFace + outward * 0.085;
+    b.box('trim', 0.1, height + 0.24, 0.085, frameX, yBottom + height / 2, zCenter - width / 2 - 0.045);
+    b.box('trim', 0.1, height + 0.24, 0.085, frameX, yBottom + height / 2, zCenter + width / 2 + 0.045);
+    b.box('trim', 0.1, 0.095, width + 0.18, frameX, yBottom + height + 0.06, zCenter);
+    b.box('trim', 0.23, 0.095, width + 0.31, xFace + outward * 0.11, yBottom - 0.07, zCenter);
+    b.box('trim', 0.06, height - 0.03, 0.045, frameX + outward * 0.018, yBottom + height / 2, zCenter);
+    b.box('trim', 0.06, 0.04, width - 0.02, frameX + outward * 0.018, yBottom + height * 0.57, zCenter);
+  }
+
+  function addDoorZ(b, x, yBase, zFace, width = 1.05, height = 2.25, doorKey = 'doorWood') {
+    b.box('recess', width + 0.2, height + 0.2, 0.045, x, yBase + height / 2, zFace + 0.011);
+    b.box(doorKey, width, height, 0.075, x, yBase + height / 2, zFace + 0.062);
+    b.box('trim', 0.1, height + 0.18, 0.1, x - width / 2 - 0.05, yBase + height / 2, zFace + 0.075);
+    b.box('trim', 0.1, height + 0.18, 0.1, x + width / 2 + 0.05, yBase + height / 2, zFace + 0.075);
+    b.box('trim', width + 0.2, 0.11, 0.1, x, yBase + height + 0.04, zFace + 0.075);
+    b.box('stoneLight', width + 0.27, 0.075, 0.25, x, yBase + 0.035, zFace + 0.105);
+    b.box('trimSoft', width * 0.66, height * 0.27, 0.018, x, yBase + height * 0.3, zFace + 0.108);
+    b.box('trimSoft', width * 0.66, height * 0.33, 0.018, x, yBase + height * 0.7, zFace + 0.108);
+    b.sphere('brass', 0.045, x + width * 0.33, yBase + height * 0.47, zFace + 0.125, 1, 1.4, 0.55);
+    b.box('trimSoft', width * 0.47, 0.17, 0.018, x, yBase + height * 0.84, zFace + 0.109);
+  }
+
+  function addDoorX(b, xFace, yBase, zCenter, width = 1.05, height = 2.25, outward = 1, doorKey = 'doorWood') {
+    const ry = outward > 0 ? HALF_PI : -HALF_PI;
+    b.box('recess', 0.045, height + 0.2, width + 0.2, xFace + outward * 0.011, yBase + height / 2, zCenter);
+    b.box(doorKey, 0.075, height, width, xFace + outward * 0.062, yBase + height / 2, zCenter);
+    b.box('trim', 0.1, height + 0.18, 0.1, xFace + outward * 0.075, yBase + height / 2, zCenter - width / 2 - 0.05);
+    b.box('trim', 0.1, height + 0.18, 0.1, xFace + outward * 0.075, yBase + height / 2, zCenter + width / 2 + 0.05);
+    b.box('trim', 0.1, 0.11, width + 0.2, xFace + outward * 0.075, yBase + height + 0.04, zCenter);
+    b.box('stoneLight', 0.25, 0.075, width + 0.27, xFace + outward * 0.105, yBase + 0.035, zCenter);
+    b.sphere('brass', 0.045, xFace + outward * 0.128, yBase + height * 0.47, zCenter - width * 0.3, 0.55, 1.4, 1);
+    b.box('trimSoft', 0.018, height * 0.3, width * 0.64, xFace + outward * 0.11, yBase + height * 0.29, zCenter);
+  }
+
+  function addRailingX(b, x1, x2, yBase, z, gaps = []) {
+    if (x2 <= x1) return;
+    const ranges = [];
+    let cursor = x1;
+    const sortedGaps = gaps.slice().sort((a, b) => a[0] - b[0]);
+    for (const [ga, gb] of sortedGaps) {
+      if (gb <= cursor) continue;
+      if (ga > cursor) ranges.push([cursor, Math.min(ga, x2)]);
+      cursor = Math.max(cursor, gb);
+      if (cursor >= x2) break;
+    }
+    if (cursor < x2) ranges.push([cursor, x2]);
+
+    for (const [start, end] of ranges) {
+      const length = end - start;
+      if (length < 0.14) continue;
+      b.box('trim', length, 0.055, 0.065, (start + end) / 2, yBase + 0.98, z);
+      b.box('trim', length, 0.04, 0.05, (start + end) / 2, yBase + 0.12, z);
+      b.box('trim', 0.085, 1.04, 0.085, start, yBase + 0.52, z);
+      b.box('trim', 0.085, 1.04, 0.085, end, yBase + 0.52, z);
+      const spacing = 0.67;
+      const count = Math.max(1, Math.round((length - 0.18) / spacing));
+      for (let i = 1; i < count; i++) {
+        const x = start + (i / count) * length;
+        b.box('trim', 0.025, 0.84, 0.025, x, yBase + 0.55, z);
+      }
+      if (length > 2.8) {
+        const posts = Math.floor(length / 2.8);
+        for (let i = 1; i <= posts; i++) {
+          const x = start + (i / (posts + 1)) * length;
+          b.box('trim', 0.055, 1.02, 0.055, x, yBase + 0.51, z);
+        }
+      }
+    }
+  }
+
+  function addGableTriangle(b, xFace, yBase, zCenter, depth, rise) {
+    const positions = [];
+    const uvs = [];
+    const normalOrder = (flip) => {
+      if (!flip) {
+        positions.push(xFace, yBase, zCenter - depth / 2, xFace, yBase + rise, zCenter, xFace, yBase, zCenter + depth / 2);
+      } else {
+        positions.push(xFace, yBase, zCenter - depth / 2, xFace, yBase, zCenter + depth / 2, xFace, yBase + rise, zCenter);
+      }
+      for (let i = 0; i < 3; i++) uvs.push(0, 0);
+    };
+    normalOrder(false);
+    normalOrder(true);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geometry.computeVertexNormals();
+    b.geometry(b.__gableKey || 'wall', geometry);
+  }
+
+  function addGableRoofX(b, cx, baseY, cz, width, depth, rise, overhang, roofKey, ridgeKey, gableKey = 'wall') {
+    const span = depth + overhang * 2;
+    const run = width + overhang * 2;
+    const slope = Math.sqrt((span * 0.5) ** 2 + rise * rise);
+    const angle = Math.atan2(rise, span * 0.5);
+    b.box(roofKey, run, 0.18, slope, cx, baseY + rise / 2 + 0.055, cz + span / 4, angle, 0, 0);
+    b.box(roofKey, run, 0.18, slope, cx, baseY + rise / 2 + 0.055, cz - span / 4, -angle, 0, 0);
+    b.box('trim', run + 0.08, 0.18, 0.12, cx, baseY + 0.02, cz + span / 2);
+    b.box('trim', run + 0.08, 0.18, 0.12, cx, baseY + 0.02, cz - span / 2);
+    b.box(ridgeKey, run + 0.22, 0.2, 0.3, cx, baseY + rise + 0.12, cz);
+    b.box('trim', 0.18, 0.22, slope + 0.16, cx - width / 2 - 0.015, baseY + rise / 2 + 0.07, cz + span / 4, angle, 0, 0);
+    b.box('trim', 0.18, 0.22, slope + 0.16, cx + width / 2 + 0.015, baseY + rise / 2 + 0.07, cz + span / 4, angle, 0, 0);
+    b.box('trim', 0.18, 0.22, slope + 0.16, cx - width / 2 - 0.015, baseY + rise / 2 + 0.07, cz - span / 4, -angle, 0, 0);
+    b.box('trim', 0.18, 0.22, slope + 0.16, cx + width / 2 + 0.015, baseY + rise / 2 + 0.07, cz - span / 4, -angle, 0, 0);
+    const oldWall = b.__gableKey;
+    b.__gableKey = gableKey;
+    addGableTriangle(b, cx - width / 2 + 0.012, baseY, cz, depth, rise);
+    addGableTriangle(b, cx + width / 2 - 0.012, baseY, cz, depth, rise);
+    b.__gableKey = oldWall;
+  }
+
+  function addHipRoof(b, cx, baseY, cz, width, depth, rise, overhang, roofKey, ridgeKey) {
+    const hw = width / 2 + overhang;
+    const hd = depth / 2 + overhang;
+    const ridgeHalf = Math.max(0.18, (width - depth) / 2 + overhang * 0.45);
+    const SW = [cx - hw, baseY, cz + hd];
+    const SE = [cx + hw, baseY, cz + hd];
+    const NE = [cx + hw, baseY, cz - hd];
+    const NW = [cx - hw, baseY, cz - hd];
+    const RW = [cx - ridgeHalf, baseY + rise, cz];
+    const RE = [cx + ridgeHalf, baseY + rise, cz];
+    const positions = [];
+    const uvs = [];
+    const face = (a, bb, c) => {
+      positions.push(...a, ...bb, ...c);
+      uvs.push(a[0] * 0.21, a[2] * 0.21, bb[0] * 0.21, bb[2] * 0.21, c[0] * 0.21, c[2] * 0.21);
+    };
+    face(SW, SE, RE);
+    face(SW, RE, RW);
+    face(NE, NW, RW);
+    face(NE, RW, RE);
+    face(SE, NE, RE);
+    face(NW, SW, RW);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geometry.computeVertexNormals();
+    b.geometry(roofKey, geometry);
+
+    b.box('trim', width + overhang * 2 + 0.1, 0.18, 0.12, cx, baseY + 0.015, cz + hd);
+    b.box('trim', width + overhang * 2 + 0.1, 0.18, 0.12, cx, baseY + 0.015, cz - hd);
+    b.box('trim', 0.12, 0.18, depth + overhang * 2, cx - hw, baseY + 0.015, cz);
+    b.box('trim', 0.12, 0.18, depth + overhang * 2, cx + hw, baseY + 0.015, cz);
+    b.box(ridgeKey, ridgeHalf * 2 + 0.38, 0.2, 0.3, cx, baseY + rise + 0.11, cz);
+  }
+
+  function makeSaggingAwningGeometry(width, depth, sag = 0.32, segmentsX = 12, segmentsZ = 7) {
+    const positions = [];
+    const uvs = [];
+    const indices = [];
+    for (let iz = 0; iz <= segmentsZ; iz++) {
+      for (let ix = 0; ix <= segmentsX; ix++) {
+        const u = ix / segmentsX;
+        const v = iz / segmentsZ;
+        const x = (u - 0.5) * width;
+        const z = (v - 0.5) * depth;
+        const edgeLift = 0.06 * (Math.cos(u * Math.PI) + Math.cos(v * Math.PI));
+        const y = -sag * Math.sin(u * Math.PI) * Math.sin(v * Math.PI) + edgeLift;
+        positions.push(x, y, z);
+        uvs.push(u * 3, v * 2);
+      }
+    }
+    for (let iz = 0; iz < segmentsZ; iz++) {
+      for (let ix = 0; ix < segmentsX; ix++) {
+        const a = iz * (segmentsX + 1) + ix;
+        const b = a + 1;
+        const c = a + segmentsX + 1;
+        const d = c + 1;
+        indices.push(a, c, b, b, c, d);
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    return geometry;
+  }
+
+  function addOrientedCone(b, key, bx, by, bz, dx, dy, dz, length, width, depthScale = 0.33) {
+    const dir = new THREE.Vector3(dx, dy, dz).normalize();
+    const q = new THREE.Quaternion().setFromUnitVectors(UP, dir);
+    const center = new THREE.Vector3(bx, by, bz).addScaledVector(dir, length / 2);
+    const matrix = new THREE.Matrix4().compose(
+      center,
+      q,
+      new THREE.Vector3(width, length, width * depthScale),
+    );
+    const world = new THREE.Matrix4().multiplyMatrices(b.base, matrix);
+    commitGeometry(key, UNIT.cone, world);
+  }
+
+  function addPalm(b, x, z, height = 5.0, spread = 2.4, trunkOffset = 0) {
+    const rng = seededRandom(127 + Math.round(x * 17 + z * 31));
+    const trunkHeight = height * (0.63 + rng() * 0.06);
+    const leanX = (rng() - 0.5) * 0.55;
+    const leanZ = (rng() - 0.5) * 0.55;
+    b.cylinderBetween('trunkLight', x, trunkOffset, z, x + leanX, trunkOffset + trunkHeight, z + leanZ, 0.15);
+    const topX = x + leanX;
+    const topZ = z + leanZ;
+    const topY = trunkOffset + trunkHeight;
+    b.blob('leafDeep', 0.38, topX, topY, topZ, 1, 0.7, 1);
+    const tiers = [
+      { count: 8, tilt: -0.24, length: spread, width: 0.42, phase: 0.25 },
+      { count: 7, tilt: -0.04, length: spread * 0.78, width: 0.35, phase: 0.7 },
+    ];
+    for (const tier of tiers) {
+      for (let i = 0; i < tier.count; i++) {
+        const angle = (i / tier.count) * TAU + tier.phase;
+        const dirX = Math.cos(angle) * 0.86;
+        const dirZ = Math.sin(angle) * 0.86;
+        addOrientedCone(
+          b, 'palmLeaf',
+          topX + dirX * 0.12, topY + 0.06, topZ + dirZ * 0.12,
+          dirX, tier.tilt, dirZ,
+          tier.length * (0.86 + rng() * 0.2), tier.width, 0.18,
+        );
+      }
+    }
+  }
+
+  function addTree(b, x, z, height, radius, seed, options = {}) {
+    const rng = seededRandom(seed);
+    const trunkHeight = height * (options.large ? 0.42 : 0.38);
+    const trunkRadius = options.large ? 0.62 : Math.max(0.22, radius * 0.075);
+    b.cylinderBetween('trunk', x, 0, z, x + (rng() - 0.5) * 0.35, trunkHeight, z + (rng() - 0.5) * 0.35, trunkRadius);
+    b.cylinder('trunkLight', trunkRadius * 0.84, trunkHeight * 0.36, x, 0.18, z);
+    const crownY = height - radius * 0.42;
+    const branches = options.large ? 6 : 3;
+    for (let i = 0; i < branches; i++) {
+      const angle = (i / branches) * TAU + rng() * 0.8;
+      const bx = Math.cos(angle) * radius * (0.25 + rng() * 0.2);
+      const bz = Math.sin(angle) * radius * (0.25 + rng() * 0.2);
+      const by = crownY - radius * 0.2;
+      b.cylinderBetween('trunk', x + (rng() - 0.5) * 0.2, trunkHeight * 0.72, z + (rng() - 0.5) * 0.2, x + bx, by, z + bz, trunkRadius * 0.34);
+    }
+    const palette = options.large
+      ? ['leafDeep', 'leaf', 'leafLight']
+      : ['leaf', 'leafLight', 'leafWarm'];
+    // Cluster radii and offsets are normalised to the canopy radius.
+    const blobs = options.large
+      ? [
+          [0, 0, 0, 0.46, 1.08, 0.88, 1.08],
+          [-0.52, 0.08, 0.15, 0.34, 1.05, 0.9, 1.0],
+          [0.5, 0.12, -0.12, 0.35, 1.02, 0.86, 1.04],
+          [-0.25, 0.16, 0.48, 0.31, 1.05, 0.84, 0.98],
+          [0.27, -0.04, -0.46, 0.33, 1.0, 0.8, 1.0],
+          [-0.48, -0.12, -0.3, 0.28, 0.95, 0.78, 0.9],
+          [0.48, -0.15, 0.27, 0.3, 1.0, 0.78, 0.92],
+          [-0.05, 0.22, -0.36, 0.3, 0.98, 0.8, 0.9],
+          [0.08, 0.06, 0.36, 0.3, 1.0, 0.82, 0.94],
+        ]
+      : [
+          [0, 0, 0, 0.48, 1.05, 0.88, 1.05],
+          [-0.48, 0.03, 0.16, 0.35, 1.0, 0.82, 0.94],
+          [0.44, 0.08, -0.2, 0.36, 1.0, 0.82, 0.96],
+          [0.12, 0.2, 0.42, 0.32, 0.95, 0.8, 0.9],
+          [-0.12, 0.04, -0.42, 0.31, 0.92, 0.78, 0.9],
+        ];
+    for (let i = 0; i < blobs.length; i++) {
+      const [ox, oy, oz, br, bx, by, bz] = blobs[i];
+      const key = palette[(i + (seed % 2)) % palette.length];
+      b.blob(
+        key,
+        br * radius,
+        x + ox * radius,
+        crownY + oy * radius,
+        z + oz * radius,
+        bx,
+        by,
+        bz,
+        rng() * TAU,
+      );
+    }
+    // A soft patch of low shrub keeps the trunk from looking isolated.
+    for (let i = 0; i < 3; i++) {
+      const a = rng() * TAU;
+      const rr = radius * (0.22 + rng() * 0.2);
+      b.blob('shrub', 0.4 + rng() * 0.28, x + Math.cos(a) * rr, 0.22, z + Math.sin(a) * rr, 1, 0.7, 1);
+    }
+  }
+
+  function addPottedPlant(b, x, z, scale = 1, kind = 'bonsai', seed = 3) {
+    const rng = seededRandom(seed + Math.round(x * 11 + z * 3));
+    const potRadius = (kind === 'palm' ? 0.34 : 0.28) * scale;
+    b.cylinder('terracotta', potRadius, 0.5 * scale, x, 0.25 * scale, z);
+    b.cylinder('terracotta', potRadius * 1.08, 0.08 * scale, x, 0.49 * scale, z);
+    b.cylinder('mulch', potRadius * 0.86, 0.025 * scale, x, 0.54 * scale, z);
+    if (kind === 'palm') {
+      addPalmAt(b, x, z, 2.05 * scale + 0.35, 1.25 * scale, 0.55 * scale);
+      return;
+    }
+    const lean = (rng() - 0.5) * 0.2;
+    b.cylinderBetween('trunk', x, 0.5 * scale, z, x + lean, 1.3 * scale, z + (rng() - 0.5) * 0.18, 0.055 * scale);
+    b.cylinderBetween('trunk', x + lean, 1.12 * scale, z, x + lean + 0.3 * scale, 1.48 * scale, z + 0.1 * scale, 0.035 * scale);
+    b.blob('leafDeep', 0.42 * scale, x + lean + 0.23 * scale, 1.55 * scale, z + 0.1 * scale, 1.2, 0.72, 1.05);
+    b.blob('leaf', 0.32 * scale, x + lean - 0.27 * scale, 1.38 * scale, z - 0.06 * scale, 1.0, 0.68, 0.9);
+    b.blob('leafLight', 0.25 * scale, x + lean + 0.05 * scale, 1.75 * scale, z - 0.15 * scale, 0.9, 0.75, 0.85);
+    for (let i = 0; i < 6; i++) {
+      const a = rng() * TAU;
+      const rr = 0.48 * scale;
+      const flowerKey = ['flowerPink', 'flowerWhite', 'flowerYellow'][i % 3];
+      b.sphere(flowerKey, 0.045 * scale, x + Math.cos(a) * rr, 0.53 * scale, z + Math.sin(a) * rr);
+    }
+  }
+
+  function addPalmAt(b, x, z, height, spread, trunkOffset) {
+    // A small wrapper so palms in pots start above the rim.
+    const rng = seededRandom(127 + Math.round(x * 17 + z * 31));
+    const trunkHeight = height * 0.72;
+    b.cylinderBetween('trunkLight', x, trunkOffset, z, x + (rng() - 0.5) * 0.1, trunkOffset + trunkHeight, z + (rng() - 0.5) * 0.1, 0.06);
+    const topY = trunkOffset + trunkHeight;
+    b.blob('leafDeep', 0.18, x, topY, z, 1, 0.8, 1);
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * TAU;
+      addOrientedCone(b, 'palmLeaf', x, topY, z, Math.cos(angle) * 0.9, -0.14, Math.sin(angle) * 0.9, spread, 0.2, 0.17);
+    }
+  }
+
+  function addFlowerCluster(b, x, z, radius, seed = 1) {
+    const rng = seededRandom(seed * 89 + Math.round(x * 13));
+    const colors = ['flowerPink', 'flowerWhite', 'flowerYellow', 'flowerRed'];
+    for (let i = 0; i < 18; i++) {
+      const a = rng() * TAU;
+      const r = Math.sqrt(rng()) * radius;
+      b.sphere(colors[i % colors.length], 0.1 + rng() * 0.06, x + Math.cos(a) * r, 0.14 + rng() * 0.22, z + Math.sin(a) * r, 1, 0.8, 1);
+    }
+  }
+
+  function addBench(b, x, z, yaw) {
+    const bb = new Builder(x, z, yaw);
+    bb.box('stone', 2.3, 0.18, 0.56, 0, 0.58, 0);
+    bb.box('stone', 0.2, 0.46, 0.42, -0.82, 0.28, 0);
+    bb.box('stone', 0.2, 0.46, 0.42, 0.82, 0.28, 0);
+    bb.box('stone', 2.05, 0.06, 0.08, 0, 0.74, -0.24);
+  }
+
+  function addStudent(b, x, z, yaw, seed = 1, seated = false) {
+    const bb = new Builder(x, z, yaw);
+    const skirt = seed % 3 === 0;
+    const bodyBottom = seated ? 0.56 : 0.08;
+    const legHeight = seated ? 0.38 : 0.58;
+    bb.box('uniformBlue', 0.28, legHeight, 0.2, 0, bodyBottom + legHeight / 2, 0);
+    if (seated) {
+      bb.box('skin', 0.1, 0.1, 0.28, -0.08, 0.46, 0.24);
+      bb.box('skin', 0.1, 0.1, 0.28, 0.08, 0.46, 0.24);
+    } else {
+      bb.box('uniformWhite', 0.33, 0.42, 0.22, 0, 0.88, 0);
+      bb.box('uniformBlue', 0.27, 0.22, 0.19, 0, 0.64, 0);
+    }
+    if (seated) {
+      bb.box('uniformWhite', 0.33, 0.44, 0.22, 0, 0.76, 0);
+      bb.box('uniformBlue', 0.28, 0.18, 0.2, 0, 0.49, 0);
+    }
+    bb.sphere('skin', 0.115, 0, 1.18, 0, 1, 1.18, 1);
+    bb.sphere('hair', 0.12, 0, 1.255, -0.018, 1.0, 0.7, 1.04);
+    if (seated) bb.sphere('hair', 0.12, 0, 1.14, -0.06, 1.02, 0.62, 0.88);
+    // Red neckerchief, white cap, and a simple satchel.
+    bb.box('scarf', 0.21, 0.055, 0.03, 0, 1.01, 0.115);
+    bb.box('uniformWhite', 0.25, 0.05, 0.29, 0, 1.29, 0);
+    bb.sphere('uniformWhite', 0.16, 0, 1.27, 0, 1, 0.3, 0.9);
+    bb.box('wood', 0.18, 0.3, 0.1, 0.18, 0.86, -0.13);
+    if (skirt) bb.box('uniformBlue', 0.4, 0.3, 0.24, 0, 0.68, 0);
+  }
+
+  function addBicycleRack(b, x, z, yaw, count = 3) {
+    const bb = new Builder(x, z, yaw);
+    for (let i = 0; i < count; i++) {
+      const off = (i - (count - 1) / 2) * 1.25;
+      bb.cylinder('bicycleRack', 0.035, 0.72, off - 0.23, 0.36, 0);
+      bb.cylinder('bicycleRack', 0.035, 0.72, off + 0.23, 0.36, 0);
+      bb.box('bicycleRack', 0.52, 0.045, 0.045, off, 0.7, 0);
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+     Ground, street, walls and gate
+     --------------------------------------------------------------------- */
+
+  function buildGroundAndStreet() {
+    const b = siteBuilder;
+
+    // Distant earth-colored base keeps the horizon quiet beyond the site.
+    const farGround = new THREE.Mesh(
+      new THREE.PlaneGeometry(2000, 2000),
+      new THREE.MeshStandardMaterial({ color: 0x687f4b, roughness: 1 }),
+    );
+    farGround.rotation.x = -HALF_PI;
+    farGround.position.y = -0.28;
+    farGround.receiveShadow = false;
+    scene.add(farGround);
+
+    b.plane('grass', 320, 230, 0, -0.055, 0, -HALF_PI);
+    b.plane('brick', 61, 45.7, 6.5, 0.015, 6.85, -HALF_PI);
+    b.plane('brickLane', 6, 40, -36.5, 0.024, -3, -HALF_PI);
+    b.plane('court', 18, 22, 16, 0.042, 3, -HALF_PI);
+
+    // Gate apron and a small concrete transition near the entrance.
+    b.plane('concrete', 22, 2.3, 0, 0.033, 28.35, -HALF_PI);
+    b.plane('concrete', 26, 3.5, 0, 0.032, 32.05, -HALF_PI);
+
+    // Pavement and road outside the wall.
+    b.plane('concrete', 220, 3.5, 0, 0.014, 31.75, -HALF_PI);
+    b.plane('asphalt', 220, 7, 0, -0.005, 37.0, -HALF_PI);
+    b.plane('asphaltBack', 220, 4.5, 0, -0.005, -36.5, -HALF_PI);
+
+    // Curbs, split open at the central school driveway.
+    for (const [xa, xb] of [[-110, -9.5], [9.5, 110]]) {
+      b.box('stoneLight', xb - xa, 0.2, 0.28, (xa + xb) / 2, 0.08, 33.28);
+      b.box('stoneLight', xb - xa, 0.2, 0.28, (xa + xb) / 2, 0.08, 40.72);
+    }
+    for (let x = -96; x <= 96; x += 9) {
+      b.box('roadMark', 3.2, 0.025, 0.12, x, 0.032, 37.0);
+    }
+    for (const [xa, xb] of [[-110, -9.5], [9.5, 110]]) {
+      b.box('stoneLight', xb - xa, 0.16, 0.28, (xa + xb) / 2, 0.055, -33.95);
+      b.box('stoneLight', xb - xa, 0.16, 0.28, (xa + xb) / 2, 0.055, -39.05);
+    }
+
+    // Forecourt paving pattern, with a central tone change.
+    b.plane('concrete', 15.4, 4.2, 0, 0.047, 33.45, -HALF_PI);
+    b.box('stoneLight', 26.4, 0.08, 0.16, 0, 0.08, 30.42);
+
+    // Paved edges around the classroom wings.
+    b.plane('concrete', 3.0, 37.0, 36.0, 0.036, -2.0, -HALF_PI);
+    b.plane('concrete', 2.8, 33.0, -35.7, 0.036, -3.0, -HALF_PI);
+    b.plane('concrete', 39, 2.4, 17, 0.026, -18.4, -HALF_PI);
+    b.plane('concrete', 19, 2.2, -12.7, 0.026, -17.8, -HALF_PI);
+
+    // Subtle court apron line.
+    b.box('trimSoft', 18.7, 0.04, 0.13, 16, 0.062, -8.3);
+    b.box('trimSoft', 18.7, 0.04, 0.13, 16, 0.062, 14.3);
+    b.box('trimSoft', 0.13, 0.04, 22.5, 6.7, 0.062, 3);
+    b.box('trimSoft', 0.13, 0.04, 22.5, 25.3, 0.062, 3);
+
+    // A few small path markers / drainage grates.
+    for (let i = 0; i < 5; i++) {
+      b.box('metalDark', 0.42, 0.035, 0.28, -22.1, 0.043, 23 - i * 8.4);
+      b.box('metalDark', 0.42, 0.035, 0.28, 35.2, 0.043, 21 - i * 8.4);
+    }
+  }
+
+  function addWallPost(x, z, tall = false) {
+    const b = siteBuilder;
+    const h = tall ? 2.35 : 2.22;
+    b.box('stoneBase', 0.44, 0.55, 0.44, x, 0.275, z);
+    b.box('cream', 0.36, h, 0.36, x, h / 2, z);
+    b.box('trim', 0.48, 0.12, 0.48, x, h + 0.02, z);
+    b.box('trim', 0.32, 0.08, 0.32, x, h - 0.06, z);
+  }
+
+  function addWallSectionX(x1, x2, z) {
+    if (x2 <= x1) return;
+    const b = siteBuilder;
+    const length = x2 - x1;
+    const cx = (x1 + x2) / 2;
+    b.box('stoneBase', length, 0.55, 0.36, cx, 0.275, z);
+    b.box('cream', length, 1.3, 0.28, cx, 1.2, z);
+    b.box('trim', length, 0.15, 0.38, cx, 1.93, z);
+    const posts = Math.max(1, Math.floor(length / 8.5));
+    addWallPost(x1, z);
+    addWallPost(x2, z);
+    for (let i = 1; i < posts; i++) addWallPost(x1 + (i / posts) * length, z);
+  }
+
+  function addWallSectionZ(z1, z2, x) {
+    if (z2 <= z1) return;
+    const b = siteBuilder;
+    const length = z2 - z1;
+    const cz = (z1 + z2) / 2;
+    b.box('stoneBase', 0.36, 0.55, length, x, 0.275, cz);
+    b.box('cream', 0.28, 1.3, length, x, 1.2, cz);
+    b.box('trim', 0.38, 0.15, length, x, 1.93, cz);
+    const posts = Math.max(1, Math.floor(length / 8.5));
+    addWallPost(x, z1);
+    addWallPost(x, z2);
+    for (let i = 1; i < posts; i++) addWallPost(x, z1 + (i / posts) * length);
+  }
+
+  function buildPerimeter() {
+    addWallSectionX(-50, -10.2, 30);
+    addWallSectionX(7.1, 50, 30);
+    addWallSectionX(-50, 50, -30);
+    addWallSectionZ(-30, 30, -50);
+    addWallSectionZ(-30, 30, 50);
+    const b = siteBuilder;
+    // A low hedge inside the front wall softens the long line.
+    for (let x = 11; x < 47; x += 3.2) {
+      b.blob('shrub', 0.62, x, 0.42, 28.35, 1.4, 0.82, 0.8);
+      b.blob('shrubLight', 0.46, x + 0.7, 0.32, 28.3, 1.2, 0.7, 0.8);
+    }
+    for (let x = -47; x < -14; x += 3.6) {
+      b.blob('shrub', 0.56, x, 0.37, 28.4, 1.3, 0.75, 0.8);
+    }
+    // A pair of mature edge trees outside the wall gives the campus a green frame.
+    addTree(siteBuilder, -57, 19, 8.5, 4.2, 822);
+    addTree(siteBuilder, 58, 7, 9.0, 4.4, 823);
+  }
+
+  function buildMainGate() {
+    const g = new Builder(0, 30, 0);
+    const pillarXs = [-3.6, 3.6];
+
+    for (const px of pillarXs) {
+      g.box('stoneBase', 1.48, 0.7, 1.48, px, 0.35, 0);
+      g.box('cream', 1.2, 5.72, 1.2, px, 3.46, 0);
+      g.box('trim', 1.38, 0.22, 1.38, px, 6.25, 0);
+      g.box('trim', 1.54, 0.25, 1.54, px, 6.5, 0);
+      g.box('gold', 1.24, 0.08, 1.24, px, 3.95, 0);
+      g.box('gold', 1.24, 0.06, 1.24, px, 4.06, 0);
+      for (let k = -1; k <= 1; k++) {
+        g.box('creamDim', 0.07, 4.45, 0.08, px + k * 0.28, 4.15, 0.605);
+      }
+    }
+
+    // Broad flat canopy with the characteristic orange safety edge.
+    g.box('cream', 10, 0.5, 2.6, 0, 6.75, 0);
+    g.box('trim', 10.3, 0.18, 2.9, 0, 7.04, 0);
+    g.box('orange', 10.08, 0.055, 0.055, 0, 7.0, 1.32);
+    g.box('orange', 10.08, 0.055, 0.055, 0, 7.0, -1.32);
+    g.box('creamDim', 8.4, 0.12, 0.2, 0, 6.48, 0.8);
+
+    // Recessed sign box; readable from both the street and the courtyard.
+    g.box('creamDim', 6.36, 1.92, 0.3, 0, 5.14, 0);
+    g.plane('signGate', 6.18, 1.74, 0, 5.14, 0.154);
+    g.plane('signGate', 6.18, 1.74, 0, 5.14, -0.154, 0, Math.PI, 0);
+    g.box('gold', 6.35, 0.04, 0.33, 0, 6.13, 0);
+    g.box('gold', 6.35, 0.04, 0.33, 0, 4.16, 0);
+
+    // Shallow downlights under the canopy.
+    for (const x of [-2.8, 2.8]) {
+      g.sphere('lampGlass', 0.12, x, 6.42, -0.45, 1.4, 0.5, 1.4);
+    }
+
+    // Two leaves of a dark green steel gate.
+    for (const side of [-1, 1]) {
+      const inner = side < 0 ? -0.045 : 0.045;
+      const center = side * 1.52;
+      const width = 2.94;
+      g.box('ironGreenDark', width, 0.12, 0.09, center, 0.13, -0.02);
+      g.box('ironGreenDark', width, 0.94, 0.07, center, 0.68, -0.02);
+      g.box('ironGreen', width, 0.1, 0.11, center, 1.17, -0.02);
+      g.box('ironGreen', width, 0.1, 0.11, center, 2.15, -0.02);
+      g.box('ironGreen', 0.1, 2.08, 0.11, center - width / 2, 1.12, -0.02);
+      g.box('ironGreen', 0.1, 2.08, 0.11, center + width / 2, 1.12, -0.02);
+      for (let i = 1; i <= 8; i++) {
+        const bx = center - width / 2 + (i / 9) * width;
+        g.box('ironGreen', 0.035, 1.13, 0.035, bx, 1.72, -0.02);
+      }
+      g.box('ironGreenDark', 0.34, 0.32, 0.07, center - side * 0.82, 1.35, -0.07);
+      g.sphere('gold', 0.055, center + side * 0.54, 1.38, -0.09, 1, 1.2, 0.65);
+      g.box('ironGreen', 0.035, 0.14, 0.035, center + side * 0.54, 1.48, -0.02);
+      g.sphere('gold', 0.075, center + side * 0.54, 1.56, -0.02, 1, 1.1, 0.8);
+      g.box('ironGreenDark', width, 0.18, 0.15, center, 0.17, -0.02);
+    }
+
+    // Hinges and a center latch.
+    for (const x of [-3.0, 3.0]) {
+      g.box('metalDark', 0.15, 0.16, 0.16, x, 0.63, 0.01);
+      g.box('metalDark', 0.15, 0.16, 0.16, x, 1.03, 0.01);
+      g.box('metalDark', 0.15, 0.16, 0.16, x, 1.9, 0.01);
+    }
+    g.box('metalDark', 0.1, 0.22, 0.13, 0, 1.05, 0.03);
+    g.box('stoneLight', 6.3, 0.04, 0.32, 0, 0.03, 0);
+
+    // Guard room, tucked against the left pillar and facing the street.
+    g.box('stoneBase', 6.18, 0.42, 4.18, -7.2, 0.21, -1.2);
+    g.box('cream', 6.0, 2.9, 4.0, -7.2, 1.87, -1.2);
+    g.box('wallWarm', 5.84, 0.55, 3.84, -7.2, 3.1, -1.2);
+    g.box('trim', 6.35, 0.22, 4.35, -7.2, 3.55, -1.2);
+    g.box('creamDim', 6.15, 0.18, 4.15, -7.2, 3.38, -1.2);
+    addWindowZ(g, -7.5, 1.2, 0.81, 2.55, 1.25, false);
+    addDoorX(g, -4.2, 0.08, -1.2, 1.0, 2.2, 1, 'doorTeal');
+    g.box('trim', 0.24, 0.08, 1.3, -4.1, 2.36, -1.2);
+    g.box('creamDim', 1.0, 0.25, 0.05, -7.2, 3.46, 0.82);
+    g.sphere('lampGlass', 0.13, -6.3, 2.8, 0.89, 1, 1, 0.7);
+    // A small blue room-number plate.
+    g.box('doorBlue', 0.5, 0.17, 0.035, -8.7, 1.95, 0.84);
+
+    // Side pedestrian gate with a lower canopy.
+    g.box('trim', 2.9, 0.28, 2.1, 5.72, 3.42, 0);
+    g.box('cream', 0.32, 3.35, 0.32, 5.72, 1.675, -1.05);
+    g.box('trim', 0.44, 0.1, 0.44, 5.72, 3.38, -1.05);
+    g.box('cream', 0.32, 3.35, 0.32, 7.12, 1.675, -1.05);
+    g.box('trim', 0.44, 0.1, 0.44, 7.12, 3.38, -1.05);
+    g.box('creamDim', 2.7, 0.18, 0.18, 5.72, 3.25, -0.88);
+    for (let i = 0; i < 7; i++) {
+      g.box('ironGreen', 0.035, 1.2, 0.035, 4.5 + i * 0.37, 1.05, 0);
+    }
+    g.box('ironGreen', 2.55, 0.08, 0.08, 5.78, 1.67, 0);
+    g.box('ironGreen', 2.55, 0.08, 0.08, 5.78, 0.44, 0);
+    g.box('ironGreenDark', 2.55, 0.55, 0.07, 5.78, 0.28, 0);
+    addWallPost(7.1, 30);
+    addWallPost(4.28, 30);
+    // A small sign identifies the pedestrian entrance.
+    g.box('creamDim', 1.35, 0.45, 0.14, 5.72, 3.88, 0.1);
+    g.plane('signGateSmall', 1.18, 0.36, 5.72, 3.88, 0.18);
+
+    // Warm little gate lanterns.
+    for (const x of [-3.6, 3.6]) {
+      g.box('metalDark', 0.2, 0.26, 0.2, x, 4.98, 0.68);
+      g.sphere('lampGlass', 0.09, x, 4.94, 0.68, 1, 1.3, 1);
+      const glow = makeLampGlow(new THREE.Vector3(x, 5.0, 30.75));
+      glow.scale.set(2.5, 2.5, 1);
+    }
+  }
+
+  function addRailingZ(b, z1, z2, yBase, x, gaps = []) {
+    if (z2 <= z1) return;
+    const ranges = [];
+    let cursor = z1;
+    for (const [ga, gb] of gaps.slice().sort((a, b) => a[0] - b[0])) {
+      if (gb <= cursor) continue;
+      if (ga > cursor) ranges.push([cursor, Math.min(ga, z2)]);
+      cursor = Math.max(cursor, gb);
+      if (cursor >= z2) break;
+    }
+    if (cursor < z2) ranges.push([cursor, z2]);
+    for (const [start, end] of ranges) {
+      const length = end - start;
+      if (length < 0.14) continue;
+      b.box('trim', 0.065, 0.055, length, x, yBase + 0.98, (start + end) / 2);
+      b.box('trim', 0.05, 0.04, length, x, yBase + 0.12, (start + end) / 2);
+      b.box('trim', 0.085, 1.04, 0.085, x, yBase + 0.52, start);
+      b.box('trim', 0.085, 1.04, 0.085, x, yBase + 0.52, end);
+      const count = Math.max(1, Math.round((length - 0.18) / 0.67));
+      for (let i = 1; i < count; i++) {
+        const z = start + (i / count) * length;
+        b.box('trim', 0.025, 0.84, 0.025, x, yBase + 0.55, z);
+      }
+      if (length > 2.8) {
+        const posts = Math.floor(length / 2.8);
+        for (let i = 1; i <= posts; i++) {
+          const z = start + (i / (posts + 1)) * length;
+          b.box('trim', 0.055, 1.02, 0.055, x, yBase + 0.51, z);
+        }
+      }
+    }
+  }
+
+  function addSimplePorch(b, centerZ, width, depth, height, roofKey, ridgeKey) {
+    const frontZ = centerZ + depth / 2;
+    b.box('stoneLight', width + 0.25, 0.2, depth + 0.25, 0, 0.1, centerZ);
+    b.box('stoneLight', width + 0.7, 0.12, 0.55, 0, 0.06, frontZ + 0.45);
+    b.box('stoneLight', width + 0.45, 0.12, 0.5, 0, 0.16, frontZ + 0.2);
+    const columns = [-width / 2 + 0.35, width / 2 - 0.35];
+    for (const x of columns) {
+      b.cylinder('trim', 0.14, height - 0.2, x, height / 2, frontZ - 0.27);
+      b.cylinder('creamDim', 0.22, 0.18, x, 0.13, frontZ - 0.27);
+      b.box('trim', 0.38, 0.13, 0.38, x, height - 0.03, frontZ - 0.27);
+    }
+    b.box('trim', width + 0.45, 0.24, depth + 0.35, 0, height + 0.05, centerZ + 0.03);
+    addHipRoof(b, 0, height + 0.17, centerZ + 0.03, width + 0.32, depth + 0.1, 0.88, 0.48, roofKey, ridgeKey);
+  }
+
+  /* ---------------------------------------------------------------------
+     Administration block
+     --------------------------------------------------------------------- */
+
+  function buildAdministration() {
+    const b = new Builder(-12, -23, 0);
+    const W = 20;
+    const D = 12;
+    const H = 10.8;
+    const zf = D / 2;
+
+    b.box('wall', W, H, D, 0, H / 2, 0);
+    b.box('stoneBase', W + 0.24, 0.38, D + 0.24, 0, 0.19, 0);
+    b.box('trim', W + 0.28, 0.15, D + 0.28, 0, 3.58, 0);
+    b.box('trim', W + 0.28, 0.15, D + 0.28, 0, 7.18, 0);
+    b.box('trim', W + 0.62, 0.3, D + 0.55, 0, 10.64, 0);
+    b.box('trimSoft', W + 0.4, 0.18, D + 0.36, 0, 10.33, 0);
+
+    // Pilasters and the central bay that holds the big arched window.
+    for (const x of [-W / 2 + 0.19, W / 2 - 0.19]) {
+      b.box('trim', 0.34, H - 0.25, 0.2, x, H / 2, zf + 0.06);
+      b.box('trim', 0.34, H - 0.25, 0.2, x, H / 2, -zf - 0.06);
+    }
+    for (const x of [-3.18, 3.18]) {
+      b.box('trimSoft', 0.25, H - 0.4, 0.16, x, H / 2 - 0.05, zf + 0.055);
+    }
+
+    // Regular windows, ground through third floor.
+    const groundWindows = [-8.35, -5.35, 5.35, 8.35];
+    for (const x of groundWindows) {
+      addWindowZ(b, x, 1.16, zf, 1.38, 1.8, (x + 10) % 3 !== 0);
+      addWindowZ(b, x, 4.72, zf, 1.38, 1.7, (x + 13) % 4 !== 0);
+      addWindowZ(b, x, 8.15, zf, 1.38, 1.55, (x + 16) % 5 !== 0);
+    }
+
+    // Matching windows on the courtyard-side end wall.
+    for (const floorY of [1.16, 4.72, 8.15]) {
+      addWindowX(b, W / 2, floorY, -2.5, 1.25, 1.6, 1, floorY > 2);
+      addWindowX(b, W / 2, floorY, 0.55, 1.25, 1.6, 1, true);
+      addWindowX(b, -W / 2, floorY, -1.6, 1.25, 1.6, -1, floorY > 2);
+    }
+
+    // Tall arched central window spanning the upper two floors.
+    addArchedWindow(b, 0, 4.12, zf, 3.65, 5.2, false);
+    b.box('trim', 4.2, 0.12, 0.18, 0, 4.04, zf + 0.1);
+
+    // School lettering near the roofline.
+    b.plane('signAdmin', 8.2, 1.0, 0, 10.12, zf + 0.055);
+    b.box('gold', 8.42, 0.045, 0.06, 0, 10.66, zf + 0.09);
+    b.box('gold', 8.42, 0.045, 0.06, 0, 9.58, zf + 0.09);
+
+    // Ground-floor entrance and projecting porch with balcony.
+    addDoorZ(b, -0.57, 0.16, zf, 1.03, 2.35, 'doorWood');
+    addDoorZ(b, 0.57, 0.16, zf, 1.03, 2.35, 'doorWood');
+    b.box('trim', 0.12, 2.5, 0.16, 0, 1.42, zf + 0.11);
+    b.box('trim', 2.7, 0.12, 0.16, 0, 2.63, zf + 0.11);
+    addWindowZ(b, -2.25, 1.23, zf, 0.82, 1.62, false);
+    addWindowZ(b, 2.25, 1.23, zf, 0.82, 1.62, false);
+
+    b.box('stoneLight', 6.15, 0.22, 3.2, 0, 0.11, 7.59);
+    b.box('stoneLight', 5.5, 0.12, 0.55, 0, 0.06, 9.45);
+    b.box('stoneLight', 5.9, 0.13, 0.5, 0, 0.16, 9.2);
+    for (const x of [-2.35, 2.35]) {
+      b.cylinder('trim', 0.17, 3.36, x, 1.84, 8.96);
+      b.cylinder('creamDim', 0.28, 0.14, x, 0.22, 8.96);
+      b.cylinder('trim', 0.26, 0.12, x, 3.56, 8.96);
+    }
+    b.box('trim', 6.25, 0.28, 3.38, 0, 3.67, 7.67);
+    b.box('trimSoft', 6.42, 0.16, 3.54, 0, 3.86, 7.67);
+    b.box('creamDim', 5.9, 0.09, 0.17, 0, 3.53, 9.38);
+    addRailingX(b, -2.78, 2.78, 3.91, 9.28);
+    addRailingZ(b, 6.18, 9.28, 3.91, -2.78);
+    addRailingZ(b, 6.18, 9.28, 3.91, 2.78);
+    b.box('trim', 0.24, 0.03, 0.24, -2.78, 3.93, 6.2);
+    b.box('trim', 0.24, 0.03, 0.24, 2.78, 3.93, 6.2);
+    // Small topiary pots frame the balcony.
+    for (const x of [-2.25, 2.25]) {
+      b.cylinder('terracotta', 0.22, 0.38, x, 4.12, 8.73);
+      b.blob('shrubLight', 0.34, x, 4.5, 8.73, 1.0, 0.8, 1.0);
+      b.sphere('flowerPink', 0.045, x + 0.12, 4.53, 8.78);
+    }
+
+    // Small brackets under the slab.
+    for (const x of [-2.85, 2.85]) {
+      b.box('trim', 0.22, 0.45, 0.9, x, 3.45, 8.7);
+    }
+
+    // Side downpipes and a discreet rear service door.
+    for (const x of [-W / 2 + 0.25, W / 2 - 0.25]) {
+      b.cylinder('metalLight', 0.065, H - 0.4, x, (H - 0.4) / 2, zf - 0.35);
+      b.box('metalLight', 0.14, 0.1, 0.2, x, 0.14, zf - 0.25);
+    }
+    addDoorZ(b, 5.3, 0.16, -zf, 1.0, 2.2, 'doorTeal');
+
+    // Hip roof and a simple roof drainage scupper.
+    addHipRoof(b, 0, H, 0, W, D, 3.0, 0.95, 'roofGreen', 'ridge');
+    for (const x of [-7.8, 7.8]) {
+      b.box('metalLight', 0.24, 0.24, 0.8, x, H + 0.15, zf + 0.55);
+    }
+
+    // Warm facade wall lights, small but legible at night.
+    for (const x of [-1.7, 1.7]) {
+      b.box('metalDark', 0.13, 0.18, 0.13, x, 3.0, zf + 0.13);
+      b.sphere('lampGlass', 0.08, x, 2.93, zf + 0.16, 1, 1.2, 1);
+    }
+
+    // Low flower bed across the facade edges.
+    for (const [x, key] of [[-9.2, 'shrub'], [-7.4, 'shrubLight'], [7.4, 'shrub'], [9.2, 'shrubLight']]) {
+      b.blob(key, 0.55, x, 0.38, zf + 0.65, 1.3, 0.8, 0.9);
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+     Classroom blocks
+     --------------------------------------------------------------------- */
+
+  function buildClassroomBlock(options) {
+    const {
+      cx, cz, yaw, W, D, wallH = 7.2, roofRise = 2.5,
+      roofKey = 'roofPale', ridgeKey = 'ridgePale',
+      seed = 1, banner = false, porch = false, floors = 2,
+    } = options;
+    const b = new Builder(cx, cz, yaw);
+    const corridor = 2.0;
+    const coreD = D - corridor;
+    const coreZ = -D / 2 + coreD / 2;
+    const frontCore = coreZ + coreD / 2;
+    const frontZ = D / 2;
+    const floorHeight = wallH / floors;
+
+    // Main teaching block with the open veranda along its front.
+    b.box('wall', W, wallH, coreD, 0, wallH / 2, coreZ);
+    b.box('stoneBase', W + 0.18, 0.34, coreD + 0.18, 0, 0.17, coreZ);
+    b.box('trim', W + 0.22, 0.14, 0.18, 0, 3.58, frontCore + 0.06);
+    b.box('trim', W + 0.22, 0.14, 0.18, 0, 7.08, frontCore + 0.06);
+    b.box('trimSoft', W + 0.36, 0.2, 0.22, 0, wallH - 0.18, frontCore + 0.06);
+    b.box('trim', 0.3, wallH - 0.25, 0.2, -W / 2 + 0.14, wallH / 2, frontCore + 0.06);
+    b.box('trim', 0.3, wallH - 0.25, 0.2, W / 2 - 0.14, wallH / 2, frontCore + 0.06);
+
+    // Floor slab, fascia, ceiling soffit, and a pale strip of corridor floor.
+    b.box('stoneLight', W, 0.055, corridor + 0.1, 0, 0.035, frontZ - corridor / 2);
+    b.box('trimSoft', W + 0.22, 0.22, corridor + 0.35, 0, 3.65, frontZ - corridor / 2 + 0.04);
+    b.box('trim', W + 0.34, 0.2, 0.14, 0, 3.66, frontZ + 0.12);
+    b.box('trimSoft', W + 0.18, 0.12, corridor + 0.12, 0, wallH - 0.17, frontZ - corridor / 2 + 0.01);
+    b.box('plinth', W + 0.1, 0.18, corridor, 0, 0.09, frontZ - corridor / 2);
+
+    // Slender columns give the veranda its rhythm and support the slab/roof.
+    const columnCount = Math.max(4, Math.round(W / 4.5));
+    const columnXs = [];
+    for (let i = 0; i < columnCount; i++) {
+      const x = -W / 2 + 0.45 + (i / (columnCount - 1)) * (W - 0.9);
+      columnXs.push(x);
+      b.box('trim', 0.3, wallH - 0.16, 0.3, x, (wallH - 0.16) / 2, frontZ - 0.18);
+      b.box('creamDim', 0.42, 0.2, 0.42, x, 0.12, frontZ - 0.18);
+      b.box('trim', 0.38, 0.12, 0.38, x, 3.65, frontZ - 0.18);
+      b.box('trim', 0.4, 0.14, 0.4, x, wallH - 0.25, frontZ - 0.18);
+    }
+
+    // Railings on both levels; a central opening lets pupils reach the ground corridor.
+    const gapHalf = Math.min(1.5, W * 0.045);
+    addRailingX(b, -W / 2 + 0.28, W / 2 - 0.28, 0.09, frontZ - 0.025, [[-gapHalf, gapHalf]]);
+    addRailingX(b, -W / 2 + 0.28, W / 2 - 0.28, 3.76, frontZ - 0.025);
+
+    if (banner) {
+      b.box('trim', 16.75, 1.1, 0.06, 0, 4.27, frontZ + 0.015);
+      b.plane('signBanner', 16.5, 1.0, 0, 4.27, frontZ + 0.055);
+    }
+
+    // A shallow pair of entrance steps and a little landing.
+    b.box('stoneLight', 3.1, 0.07, 0.6, 0, 0.035, frontZ + 0.28);
+    b.box('stoneLight', 2.65, 0.06, 0.52, 0, 0.095, frontZ + 0.64);
+
+    // Rows of doors and windows behind the veranda.
+    const margin = Math.min(1.65, W * 0.075);
+    const span = W - margin * 2;
+    const bays = W >= 36 ? 9 : W >= 32 ? 7 : 8;
+    const bayWidth = span / bays;
+    const windowWidth = Math.min(1.78, bayWidth * 0.46);
+    const doorWidth = Math.min(1.02, bayWidth * 0.27);
+    for (let bay = 0; bay < bays; bay++) {
+      const bx = -W / 2 + margin + (bay + 0.5) * bayWidth;
+      const doorX = bx - bayWidth * 0.235;
+      const winX = bx + bayWidth * 0.17;
+      for (let floor = 0; floor < floors; floor++) {
+        const baseY = floor * floorHeight + (floor === 0 ? 0.14 : 0.14);
+        const doorKey = (bay + seed) % 4 === 0 ? 'doorTeal' : (bay + seed) % 4 === 1 ? 'doorBlue' : 'doorWood';
+        addDoorZ(b, doorX, baseY, frontCore, doorWidth, 2.18, doorKey);
+        const lit = ((bay * 3 + floor * 5 + seed * 7) % 10) > 2;
+        addWindowZ(b, winX, baseY + 0.82, frontCore, windowWidth, 1.38, lit);
+        // A transom above each door reads as a classroom entrance.
+        b.box('recess', doorWidth * 0.84, 0.26, 0.035, doorX, baseY + 2.32, frontCore + 0.02);
+        b.plane(lit ? 'windowLit' : 'windowDark', doorWidth * 0.8, 0.22, doorX, baseY + 2.32, frontCore + 0.043);
+        if (floor === 0) {
+          b.box('trim', 0.74, 0.18, 0.045, doorX, baseY + 2.68, frontCore + 0.09);
+          b.box('doorBlue', 0.63, 0.11, 0.02, doorX, baseY + 2.68, frontCore + 0.115);
+        }
+      }
+    }
+
+    // Floor-level bands and small circulation details at each column.
+    for (const x of columnXs) {
+      b.box('trimSoft', 0.18, 0.05, 0.5, x, 3.88, frontCore + 0.25);
+    }
+
+    // End-wall windows, mostly visible on the perimeter wings.
+    const endDepth = coreD;
+    for (const side of [-1, 1]) {
+      const xFace = side * W / 2;
+      for (let floor = 0; floor < floors; floor++) {
+        const y = floor * floorHeight + 1.22;
+        addWindowX(b, xFace, y, coreZ - 1.55, 1.22, 1.55, side, (floor + seed) % 3 !== 0);
+        addWindowX(b, xFace, y, coreZ + 1.55, 1.22, 1.55, side, (floor + seed) % 2 !== 0);
+      }
+    }
+
+    // Rainwater downpipes at the corners.
+    for (const x of [-W / 2 + 0.22, W / 2 - 0.22]) {
+      b.cylinder('metalLight', 0.058, wallH - 0.2, x, (wallH - 0.2) / 2, frontZ - 0.1);
+      b.cylinder('metalLight', 0.058, wallH - 0.2, x, (wallH - 0.2) / 2, -D / 2 + 0.12);
+    }
+
+    // Rear base and a few weed-level planting tufts for life between buildings.
+    b.box('stoneBase', W + 0.08, 0.28, 0.22, 0, 0.14, -D / 2 - 0.05);
+    const rng = seededRandom(seed * 61 + 12);
+    for (let i = 0; i < 6; i++) {
+      const x = -W / 2 + rng() * W;
+      b.blob(i % 2 ? 'shrub' : 'shrubLight', 0.45 + rng() * 0.25, x, 0.28, -D / 2 - 0.35, 1.2, 0.8, 0.8);
+    }
+
+    // Long roof, ridge along the building's local X axis.
+    addGableRoofX(b, 0, wallH, 0, W, D, roofRise, 0.9, roofKey, ridgeKey, 'wall');
+
+    // Open-air porch requested for the inner left wing.
+    if (porch) {
+      addSimplePorch(b, frontZ + 1.7, 4.35, 3.3, 3.1, 'roofTile', 'ridgeTile');
+      b.box('stoneLight', 2.8, 0.1, 0.45, 0, 0.06, frontZ + 3.58);
+      b.box('stoneLight', 2.35, 0.1, 0.45, 0, 0.15, frontZ + 3.9);
+    }
+
+    return {
+      W, D, height: wallH + roofRise, bays,
+    };
+  }
+
+  function buildCeremonyStage() {
+    const b = siteBuilder;
+
+    // Raised timber platform with three broad ceremonial steps.
+    b.box('stoneBase', 9.2, 0.6, 5.15, 3, 0.3, -12.5);
+    b.box('timber', 9.02, 0.07, 4.98, 3, 0.635, -12.5);
+    b.box('trim', 9.22, 0.1, 0.12, 3, 0.56, -10.02);
+    b.box('redDark', 1.85, 0.025, 4.45, 3, 0.68, -12.35);
+    const stepData = [
+      [4.7, 0.17, 0.82, -9.92],
+      [4.3, 0.31, 0.7, -9.55],
+      [3.8, 0.45, 0.62, -9.2],
+    ];
+    for (const [w, h, d, z] of stepData) {
+      b.box('stoneLight', w, h, d, 3, h / 2, z);
+      b.box('trimSoft', w + 0.05, 0.035, d + 0.03, 3, h + 0.015, z);
+    }
+    for (const x of [0.0, 6.0]) {
+      b.box('stoneLight', 0.7, 0.28, 1.6, x, 0.14, -9.42);
+    }
+
+    // Pavilion base and sloped terracotta roof.
+    b.box('stoneLight', 8, 0.6, 5, 3, 0.3, -17.5);
+    b.box('timber', 7.9, 0.055, 4.9, 3, 0.63, -17.5);
+    for (const x of [3 - 3.35, 3 + 3.35]) {
+      for (const z of [-17.5 - 1.9, -17.5 + 1.9]) {
+        b.cylinder('trim', 0.11, 2.76, x, 2.0, z);
+        b.cylinder('creamDim', 0.18, 0.12, x, 0.67, z);
+        b.box('trim', 0.3, 0.12, 0.3, x, 3.34, z);
+      }
+    }
+    const roofBase = 3.4;
+    addHipRoof(b, 3, roofBase, -17.5, 8, 5, 1.1, 0.68, 'roofTile', 'ridgeTile');
+
+    // Deep red backdrop with a gold-framed event panel.
+    b.box('stageRed', 6.9, 2.72, 0.18, 3, 1.96, -19.28);
+    b.box('gold', 7.1, 0.08, 0.24, 3, 3.38, -19.28);
+    b.box('gold', 7.1, 0.08, 0.24, 3, 0.65, -19.28);
+    b.box('redDark', 5.5, 2.3, 0.08, 3, 2.02, -19.18);
+    b.plane('signStageBackdrop', 5.25, 2.1, 3, 2.03, -19.135);
+    b.box('redDark', 0.55, 2.3, 0.05, 0.0, 2.02, -19.18);
+    b.box('redDark', 0.55, 2.3, 0.05, 6.0, 2.02, -19.18);
+    b.box('gold', 0.38, 0.06, 0.08, 0.0, 2.98, -19.14);
+    b.box('gold', 0.38, 0.06, 0.08, 6.0, 2.98, -19.14);
+
+    // Flowering plants at the pavilion lip.
+    addPottedPlant(b, -0.3, -15.8, 0.92, 'bonsai', 111);
+    addPottedPlant(b, 6.3, -15.8, 0.92, 'bonsai', 112);
+
+    // Podium and simple stage furniture.
+    b.box('wood', 0.85, 0.86, 0.55, 3, 1.11, -18.28);
+    b.box('wood', 1.05, 0.08, 0.7, 3, 1.57, -18.28);
+    b.box('metalDark', 0.035, 0.4, 0.035, 3.32, 1.82, -18.32);
+    b.sphere('metalDark', 0.055, 3.32, 2.03, -18.32);
+    b.box('gold', 0.36, 0.5, 0.025, 3, 1.15, -17.99);
+
+    // Dark green canvas awning over the platform, on four slim poles.
+    const awningY = 4.18;
+    for (const x of [-1.55, 7.55]) {
+      for (const z of [-15.35, -9.65]) {
+        b.cylinder('metalDark', 0.055, awningY, x, awningY / 2, z);
+        b.cylinder('stoneBase', 0.18, 0.12, x, 0.06, z);
+        b.sphere('metalDark', 0.075, x, awningY + 0.05, z);
+      }
+    }
+    b.box('metalDark', 9.1, 0.06, 0.06, 3, awningY, -15.35);
+    b.box('metalDark', 9.1, 0.06, 0.06, 3, awningY, -9.65);
+    b.cylinderBetween('metalDark', -1.55, 4.55, -15.35, 3, 4.2, -15.35, 0.018);
+    b.cylinderBetween('metalDark', 7.55, 4.55, -15.35, 3, 4.2, -15.35, 0.018);
+    b.cylinderBetween('metalDark', -1.55, 4.55, -9.65, 3, 4.2, -9.65, 0.018);
+    b.cylinderBetween('metalDark', 7.55, 4.55, -9.65, 3, 4.2, -9.65, 0.018);
+    b.geometry('fabricAwning', makeSaggingAwningGeometry(9.4, 6.15, 0.3, 14, 8), 3, awningY + 0.02, -12.5);
+    b.box('fabricAwning', 9.4, 0.38, 0.05, 3, awningY - 0.19, -9.44);
+    b.box('fabricAwning', 9.4, 0.32, 0.05, 3, awningY - 0.16, -15.56);
+    b.box('gold', 9.42, 0.025, 0.06, 3, awningY - 0.37, -9.42);
+
+    // Warm stage lanterns hung from the awning frame.
+    for (const x of [-1.25, 7.25]) {
+      b.box('metalDark', 0.15, 0.18, 0.15, x, 3.82, -12.5);
+      b.sphere('lampGlass', 0.085, x, 3.78, -12.5, 1, 1.3, 1);
+      const glow = makeLampGlow(new THREE.Vector3(x, 3.82, -12.5));
+      glow.scale.set(2.0, 2.0, 1);
+    }
+
+    // The flagpole and a lightweight flag mesh that ripples in the breeze.
+    b.cylinder('stoneLight', 0.5, 0.28, 3, 0.14, -8);
+    b.cylinder('trim', 0.34, 0.2, 3, 0.1, -8);
+    b.cylinder('metalLight', 0.075, 9.8, 3, 5.05, -8);
+    b.sphere('gold', 0.13, 3, 10.05, -8);
+    b.box('gold', 0.035, 0.9, 0.035, 3, 8.75, -8.06);
+    const flagGeometry = new THREE.PlaneGeometry(2.75, 1.8, 22, 12);
+    flagGeometry.translate(1.375, 0, 0);
+    flagBasePositions = flagGeometry.attributes.position.array.slice();
+    const flagMaterial = new THREE.MeshBasicMaterial({
+      map: flagTex,
+      side: THREE.DoubleSide,
+      toneMapped: true,
+    });
+    flagMesh = new THREE.Mesh(flagGeometry, flagMaterial);
+    flagMesh.position.set(3, 8.82, -8);
+    flagMesh.userData.width = 2.75;
+    flagMesh.frustumCulled = false;
+    scene.add(flagMesh);
+
+    // Two more flags flank the pavilion, bringing the courtyard to life.
+    for (const [fx, fz] of [[-0.6, -16.3], [6.6, -16.3]]) {
+      b.cylinder('metalLight', 0.035, 3.4, fx, 1.7 + 0.6, fz);
+      const smallFlagGeo = new THREE.PlaneGeometry(1.35, 0.82, 8, 5);
+      const smallFlagMat = new THREE.MeshStandardMaterial({
+        map: flagTex, side: THREE.DoubleSide, roughness: 0.9, metalness: 0,
+      });
+      const smallFlag = new THREE.Mesh(smallFlagGeo, smallFlagMat);
+      smallFlag.position.set(fx + 0.02, 3.62, fz);
+      smallFlag.rotation.y = -0.12;
+      scene.add(smallFlag);
+    }
+  }
+
+  function buildMemorialBust() {
+    const b = siteBuilder;
+    const bx = 10;
+    const bz = -13;
+
+    // Circular garden bed, stone edging and flowers.
+    b.geometry('mulch', UNIT.circle, bx, 0.055, bz, -HALF_PI, 0, 0, 2.05, 2.05, 1);
+    b.geometry('stoneLight', UNIT.ring, bx, 0.1, bz, -HALF_PI, 0, 0, 2.1, 2.1, 1.5);
+    for (let i = 0; i < 9; i++) {
+      const a = (i / 9) * TAU;
+      const r = 1.38 + (i % 3) * 0.18;
+      b.blob(i % 2 ? 'shrub' : 'shrubLight', 0.36 + (i % 3) * 0.07, bx + Math.cos(a) * r, 0.35, bz + Math.sin(a) * r, 1.2, 0.75, 1.1);
+      if (i % 2 === 0) addFlowerCluster(b, bx + Math.cos(a) * r, bz + Math.sin(a) * r, 0.34, 31 + i);
+    }
+    addFlowerCluster(b, bx - 0.9, bz + 1.04, 0.42, 66);
+    addFlowerCluster(b, bx + 0.8, bz - 1.1, 0.4, 67);
+
+    // Two-metre stone pedestal.
+    b.box('stoneBase', 1.34, 0.22, 1.34, bx, 0.14, bz);
+    b.box('stone', 0.92, 1.52, 0.92, bx, 0.94, bz);
+    b.box('stoneLight', 1.04, 0.18, 1.04, bx, 1.79, bz);
+    b.box('stone', 0.8, 0.18, 0.8, bx, 1.94, bz);
+    b.plane('signPlaque', 0.68, 0.43, bx, 1.12, bz + 0.472);
+    b.box('gold', 0.74, 0.035, 0.025, bx, 1.36, bz + 0.48);
+    b.box('gold', 0.74, 0.035, 0.025, bx, 0.88, bz + 0.48);
+
+    // Low-poly bronze memorial bust.
+    b.sphere('bronze', 0.42, bx, 2.22, bz, 1.6, 0.75, 0.86);
+    b.cylinder('bronze', 0.125, 0.14, bx, 2.42, bz);
+    b.sphere('bronze', 0.245, bx, 2.66, bz - 0.015, 0.92, 1.18, 0.96);
+    b.sphere('bronze', 0.06, bx, 2.64, bz + 0.215, 0.8, 0.85, 0.55);
+    b.sphere('bronze', 0.1, bx, 2.93, bz - 0.06, 1.4, 0.4, 0.75);
+    b.box('bronze', 0.48, 0.18, 0.3, bx, 2.1, bz - 0.16);
+  }
+
+  function buildSportsCourtDetails() {
+    const b = siteBuilder;
+    // Perimeter path is covered with a subtle white line.
+    b.geometry('courtLine', UNIT.torus, 16, 0.055, 3, -HALF_PI, 0, 0, 1.8, 1.8, 1.0);
+    b.box('courtLine', 18.0, 0.012, 0.055, 16, 0.058, -7.9);
+    b.box('courtLine', 18.0, 0.012, 0.055, 16, 0.058, 13.9);
+    b.box('courtLine', 0.055, 0.012, 21.8, 7.0, 0.058, 3);
+    b.box('courtLine', 0.055, 0.012, 21.8, 25.0, 0.058, 3);
+
+    function addHoop(zPole, direction) {
+      const backZ = zPole + direction * 0.78;
+      const rimZ = zPole + direction * 1.05;
+      b.cylinder('metalDark', 0.08, 3.52, 16, 1.76, zPole);
+      b.box('metalDark', 0.12, 0.12, 1.0, 16, 3.26, zPole + direction * 0.43);
+      b.box('trim', 1.3, 0.82, 0.06, 16, 3.28, backZ);
+      b.box('orange', 0.38, 0.27, 0.025, 16, 3.33, backZ + direction * 0.042);
+      b.box('metalDark', 0.08, 0.55, 0.08, 16, 2.98, backZ - direction * 0.18);
+      b.geometry('orange', UNIT.torus, 16, 2.93, rimZ, -HALF_PI, 0, 0, 0.31, 0.31, 0.31);
+      const netTopY = 2.9;
+      const netBottomY = 2.55;
+      const netBottomRadius = 0.15;
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * TAU;
+        b.cylinderBetween(
+          'trimSoft',
+          16 + Math.cos(a) * 0.29, netTopY, rimZ + Math.sin(a) * 0.29,
+          16 + Math.cos(a) * netBottomRadius, netBottomY, rimZ + Math.sin(a) * netBottomRadius,
+          0.009,
+        );
+        const a2 = ((i + 1) / 8) * TAU;
+        b.cylinderBetween(
+          'trimSoft',
+          16 + Math.cos(a) * netBottomRadius, netBottomY, rimZ + Math.sin(a) * netBottomRadius,
+          16 + Math.cos(a2) * 0.15, 2.6, rimZ + Math.sin(a2) * 0.15,
+          0.008,
+        );
+      }
+    }
+    addHoop(-9.35, 1);
+    addHoop(15.35, -1);
+
+    // Small team benches along the courtyard side.
+    addBench(b, 4.8, 12.5, HALF_PI);
+    addBench(b, 4.8, 2.5, HALF_PI);
+  }
+
+  function buildBicycleShed() {
+    const b = siteBuilder;
+    b.plane('concrete', 3.05, 30.5, 48.48, 0.035, -2, -HALF_PI);
+    for (let z = -16; z <= 12; z += 3.5) {
+      b.cylinder('metalDark', 0.052, 2.48, 47.15, 1.24, z);
+      b.box('metalDark', 0.12, 0.08, 0.12, 47.15, 0.06, z);
+      b.box('metalDark', 0.1, 0.1, 0.1, 47.15, 2.48, z);
+    }
+    b.box('metalDark', 0.1, 0.1, 30.2, 47.15, 2.48, -2);
+    b.box('metalDark', 0.1, 0.1, 30.2, 49.9, 2.83, -2);
+    b.box('roofShed', 3.5, 0.12, 30.6, 48.5, 2.64, -2, 0, 0, -0.14);
+    b.box('trimSoft', 0.12, 0.2, 30.6, 46.85, 2.85, -2);
+    b.box('trimSoft', 0.12, 0.18, 30.6, 50.14, 2.34, -2);
+    for (let z = -14; z <= 10; z += 4.2) {
+      addBicycleRack(b, 48.15, z, HALF_PI, 2);
+    }
+    // A few low concrete blocks / bins under the shed.
+    b.box('stoneLight', 0.6, 0.55, 0.6, 49.2, 0.275, -13.8);
+    b.box('stoneLight', 0.6, 0.55, 0.6, 49.2, 0.275, -13.1);
+  }
+
+  function buildCourtyardLife() {
+    const b = siteBuilder;
+
+    // The great shade tree, the courtyard's anchor and a nod to the real campus.
+    addTree(b, -12, 0, 12.0, 8.0, 211, { large: true });
+    const treeRing = new THREE.RingGeometry(1.2, 1.9, 32);
+    b.geometry('stoneLight', treeRing, -12, 0.048, 0, -HALF_PI, 0, 0);
+    b.box('stoneLight', 0.6, 0.3, 0.6, -14.3, 0.15, 0.8);
+    b.box('stoneLight', 0.6, 0.3, 0.6, -9.7, 0.15, -0.8);
+
+    // Medium shade trees along the right and front-right edge.
+    const trees = [
+      [33.2, -9.0, 8.6, 3.7, 301],
+      [34.0, 1.2, 8.1, 3.5, 302],
+      [32.4, 11.0, 7.8, 3.25, 303],
+      [30.6, 20.4, 7.3, 3.05, 304],
+      [24.2, 24.6, 7.0, 2.9, 305],
+      [14.8, 24.3, 7.1, 3.0, 306],
+      [35.4, 26.0, 7.7, 3.3, 307],
+    ];
+    for (const [x, z, h, r, s] of trees) addTree(b, x, z, h, r, s);
+
+    // A palm cluster at the front-right corner, softened by low shrubs.
+    addPalm(b, 31.0, 27.0, 6.2, 2.5);
+    addPalm(b, 33.7, 26.2, 5.1, 2.1);
+    for (let i = 0; i < 5; i++) {
+      b.blob(i % 2 ? 'shrub' : 'shrubLight', 0.6 + (i % 2) * 0.2, 29.5 + i * 1.4, 0.38, 26.7, 1.3, 0.8, 1);
+    }
+
+    // Planters with palms in front of the back classroom block.
+    const planterXs = [12.5, 20.4, 28.4, 34.4];
+    for (let i = 0; i < planterXs.length; i++) {
+      const x = planterXs[i];
+      b.box('stoneLight', 2.55, 0.38, 1.08, x, 0.19, -18.35);
+      b.box('mulch', 2.28, 0.035, 0.82, x, 0.39, -18.35);
+      addPalmAt(b, x - 0.55, -18.35, 2.2 + (i % 2) * 0.35, 1.05, 0.42);
+      b.blob('shrub', 0.34, x + 0.55, 0.6, -18.35, 1.15, 0.75, 1);
+      addFlowerCluster(b, x + 0.6, -18.3, 0.26, 90 + i);
+    }
+
+    // Twelve potted ornaments scattered through the front half.
+    const potData = [
+      [-21.6, 25.2, 0.95, 'bonsai', 1.0],
+      [-18.2, 20.2, 0.85, 'bonsai', 0.95],
+      [-21.1, 13.6, 1.05, 'palm', 0.94],
+      [-18.9, 6.0, 0.9, 'bonsai', 0.98],
+      [28.1, 25.0, 1.0, 'palm', 0.96],
+      [32.7, 17.2, 0.86, 'bonsai', 0.94],
+      [29.8, 8.0, 0.92, 'bonsai', 0.95],
+      [27.0, 0.7, 0.86, 'palm', 0.91],
+      [8.0, 25.4, 1.05, 'bonsai', 0.97],
+      [-4.0, 24.5, 0.86, 'bonsai', 0.93],
+      [25.0, 23.3, 0.91, 'bonsai', 0.95],
+      [-2.0, 20.3, 1.02, 'palm', 0.95],
+    ];
+    for (const [x, z, scale, kind, seed] of potData) addPottedPlant(b, x, z, scale, kind, Math.round(seed * 100));
+
+    // A few more flowering pots near the gate.
+    addPottedPlant(b, -10.7, 27.1, 1.15, 'bonsai', 173);
+    addPottedPlant(b, 10.7, 27.0, 1.15, 'bonsai', 174);
+
+    // Stone benches for a quiet moment in the shade.
+    addBench(b, -7.5, 7.4, 0.28);
+    addBench(b, -16.0, 12.7, HALF_PI);
+    addBench(b, 27.5, 21.2, -0.45);
+
+    // A low hedge / flower border along the inner face of the front wall.
+    for (let x = -20; x < 21; x += 3.1) {
+      if (Math.abs(x) < 7.5) continue;
+      b.blob('shrub', 0.57, x, 0.4, 28.9, 1.3, 0.8, 0.7);
+      if (Math.round(x) % 2 === 0) addFlowerCluster(b, x, 28.95, 0.32, 45 + Math.round(x));
+    }
+
+    // Students: tiny low-poly figures for scale and a sense of a school day.
+    addStudent(b, 0.2, -5.9, 0.1, 11);
+    addStudent(b, 1.35, -6.5, -0.25, 12);
+    addStudent(b, 2.7, -5.75, 0.2, 13);
+    addStudent(b, 4.0, -6.1, -0.1, 14);
+    addStudent(b, -13.6, 2.2, 1.3, 15);
+    addStudent(b, -15.0, 3.3, 2.3, 16);
+    addStudent(b, 12.2, 9.4, -1.0, 17);
+    addStudent(b, 18.4, 12.0, 1.3, 18);
+
+    // Two notice boards near the entrance path.
+    for (const [x, z, yaw] of [[-12.6, 24.7, 0.08], [12.3, 23.9, -0.12]]) {
+      const nb = new Builder(x, z, yaw);
+      nb.cylinder('metalDark', 0.045, 1.5, -0.8, 0.75, 0);
+      nb.cylinder('metalDark', 0.045, 1.5, 0.8, 0.75, 0);
+      nb.box('cream', 2.1, 1.22, 0.08, 0, 1.42, 0);
+      nb.box('doorTeal', 1.92, 1.04, 0.025, 0, 1.42, 0.052);
+      nb.box('trim', 2.24, 0.08, 0.16, 0, 2.06, 0);
+    }
+  }
+
+  function buildCourtyardLamps() {
+    const b = siteBuilder;
+    const positions = [
+      [-19.0, 23.1],
+      [27.6, 20.8],
+      [-17.4, -9.6],
+      [29.4, -9.8],
+    ];
+    for (const [x, z] of positions) {
+      b.cylinder('stoneBase', 0.26, 0.28, x, 0.14, z);
+      b.cylinder('lampMetal', 0.07, 3.62, x, 2.01, z);
+      b.box('lampMetal', 1.32, 0.06, 0.06, x, 3.86, z);
+      b.box('lampMetal', 0.06, 0.27, 0.06, x, 3.68, z);
+      for (const offset of [-0.56, 0.56]) {
+        const lx = x + offset;
+        b.cylinder('lampMetal', 0.03, 0.22, lx, 3.74, z);
+        b.cone('lampMetal', 0.19, 0.24, lx, 3.93, z, Math.PI, 0, 0);
+        b.sphere('lampGlass', 0.115, lx, 3.79, z, 1, 1.15, 1);
+        makeLampGlow(new THREE.Vector3(lx, 3.79, z)).scale.set(3.1, 3.1, 1);
+      }
+      const point = new THREE.PointLight(0xffcf8d, 0, 24, 2);
+      point.position.set(x, 3.72, z);
+      scene.add(point);
+      lampLights.push(point);
+    }
+    // A pair of lamps beside the guard room entrance.
+    const gatePoint = new THREE.PointLight(0xffcf8d, 0, 15, 2);
+    gatePoint.position.set(0, 4.3, 30.4);
+    scene.add(gatePoint);
+    lampLights.push(gatePoint);
+  }
+
+  function addNeighborhoodHouse(x, z, w, d, h, wallKey, roofKey, ridgeKey, seed, yaw = 0) {
+    const b = new Builder(x, z, yaw);
+    b.box('stoneBase', w + 0.2, 0.26, d + 0.2, 0, 0.13, 0);
+    b.box(wallKey, w, h, d, 0, h / 2, 0);
+    b.box('trim', w + 0.24, 0.18, d + 0.24, 0, h, 0);
+    addGableRoofX(b, 0, h, 0, w, d, Math.max(1.1, d * 0.22), 0.55, roofKey, ridgeKey, wallKey);
+    const zf = d / 2 + 0.02;
+    addDoorZ(b, -w * 0.23, 0.05, zf, 0.92, 2.0, seed % 2 ? 'doorWood' : 'doorTeal');
+    addWindowZ(b, w * 0.17, 0.95, zf, 1.2, 1.15, seed % 3 !== 0);
+    addWindowZ(b, w * 0.34, 0.95, zf, 0.9, 1.15, seed % 2 === 0);
+    // A narrow veranda canopy over the front door.
+    b.box('roofTile', 2.6, 0.1, 1.25, -w * 0.18, 2.65, zf + 0.5, 0.16, 0, 0);
+    b.cylinder('trim', 0.055, 2.5, -w * 0.18 - 1.2, 1.25, zf + 1.02);
+    b.cylinder('trim', 0.055, 2.5, -w * 0.18 + 1.2, 1.25, zf + 1.02);
+    // Low front wall and a couple of shrubs.
+    const yard = new Builder(x, z + d / 2 + 2.4, yaw);
+    yard.box('creamDim', w + 0.4, 0.7, 0.18, 0, 0.35, 0);
+    yard.box('stoneBase', w + 0.4, 0.18, 0.2, 0, 0.09, 0);
+    addTree(yard, -w * 0.36, 0.6, 4.2, 1.8, seed * 7 + 3);
+    addTree(b, w * 0.43, -d * 0.2, 3.8, 1.6, seed * 7 + 4);
+  }
+
+  function buildNeighborhood() {
+    const wallOptions = ['cream', 'wallPale', 'trimSoft', 'cream', 'wallPale'];
+    const roofOptions = [
+      ['roofTile', 'ridgeTile'], ['roofBlue', 'ridge'], ['roofMaroon', 'ridgeMaroon'],
+      ['roofTeal', 'ridge'], ['roofRed', 'ridgeMaroon'], ['roofGrey', 'ridgePale'],
+    ];
+    const houses = [
+      [-36, -47, 13, 8, 4.4, 0, 0],
+      [-14, -48, 11, 7.5, 3.9, 1, 0],
+      [7, -49, 14, 8, 5.1, 2, 0],
+      [29, -46.5, 11, 7.8, 4.0, 3, 0],
+      [47, -44, 9, 8.4, 3.7, 4, 0],
+      [-63, -17, 10, 12, 4.6, 1, HALF_PI],
+      [-63, 14, 10, 11, 3.8, 0, HALF_PI],
+      [63, -18, 10, 12, 4.6, 2, -HALF_PI],
+      [63, 20, 10, 11, 4.1, 4, -HALF_PI],
+      [-40, 49, 11, 8, 4.4, 3, 0],
+      [42, 48, 12, 8.5, 4.8, 5, 0],
+      [-12, 51, 10, 7, 3.9, 1, 0],
+    ];
+    for (const [x, z, w, d, h, wi, yaw] of houses) {
+      const [roofKey, ridgeKey] = roofOptions[wi % roofOptions.length];
+      addNeighborhoodHouse(x, z, w, d, h, wallOptions[wi % wallOptions.length], roofKey, ridgeKey, 40 + wi, yaw);
+    }
+
+    // Background orchard / neighborhood trees.
+    const outsideTrees = [
+      [-73, 2, 8.6, 3.8, 901], [-78, -35, 9.4, 4.2, 902], [-69, 39, 7.8, 3.3, 903],
+      [72, -2, 9.0, 4.0, 904], [75, -36, 8.4, 3.6, 905], [68, 36, 8.2, 3.5, 906],
+      [-26, -60, 8.2, 3.5, 907], [22, -64, 9.0, 3.9, 908], [52, -58, 7.4, 3.0, 909],
+      [-62, 58, 7.8, 3.2, 910], [13, 61, 8.0, 3.3, 911], [62, 63, 8.4, 3.6, 912],
+    ];
+    for (const [x, z, h, r, s] of outsideTrees) addTree(siteBuilder, x, z, h, r, s);
+
+    // A simple low fence along part of the road frontage, beyond the wall.
+    const b = siteBuilder;
+    for (let x = -55; x < -12; x += 4.2) {
+      b.box('creamDim', 0.13, 0.85, 0.13, x, 0.425, 42.2);
+      b.box('creamDim', 3.3, 0.08, 0.08, x + 1.65, 0.6, 42.2);
+    }
+  }
+
+  function buildCampus() {
+    ensureBuildMaterials();
+    loaderStatus.textContent = 'Laying the red-brick courtyard…';
+    buildGroundAndStreet();
+    buildPerimeter();
+    buildMainGate();
+    loaderStatus.textContent = 'Raising the classroom wings…';
+    buildAdministration();
+    buildClassroomBlock({
+      cx: 17, cz: -24.5, yaw: 0, W: 38, D: 9, seed: 4,
+      roofKey: 'roofPale', ridgeKey: 'ridgePale', roofRise: 2.5, banner: true,
+    });
+    buildClassroomBlock({
+      cx: 42, cz: -2, yaw: -HALF_PI, W: 36, D: 9, seed: 7,
+      roofKey: 'roofMaroon', ridgeKey: 'ridgeMaroon', roofRise: 2.5,
+    });
+    buildClassroomBlock({
+      cx: -29, cz: -3, yaw: HALF_PI, W: 32, D: 9, seed: 12,
+      roofKey: 'roofPale', ridgeKey: 'ridgePale', roofRise: 2.45, porch: true,
+    });
+    buildClassroomBlock({
+      cx: -44, cz: -3, yaw: HALF_PI, W: 40, D: 9, seed: 18,
+      roofKey: 'roofGreen', ridgeKey: 'ridge', roofRise: 2.55,
+    });
+    buildBicycleShed();
+    loaderStatus.textContent = 'Stretching the green ceremony awning…';
+    buildCeremonyStage();
+    buildMemorialBust();
+    buildSportsCourtDetails();
+    buildCourtyardLife();
+    buildCourtyardLamps();
+    buildNeighborhood();
+    loaderStatus.textContent = 'Setting out the little details…';
+  }
+
+  // Current camera / weather integration is completed below.
+
+  function hideLoader() {
+    window.__campusBooted = true;
+    loader.classList.add('is-done');
+    window.setTimeout(() => { loader.style.display = 'none'; }, 800);
+  }
+
+  function animate() {
+    clock.update();
+    const dt = Math.min(clock.getDelta(), 0.05);
+    const t = clock.getElapsed();
+
+    updateCameraFlight();
+    updateWeather(dt);
+    if (!isFlying) controls.update(dt);
+    constrainCamera();
+
+    // Gentle wind through the ceremonial flag.
+    if (flagMesh) {
+      const flagLight = 0.26 + 0.74 * (1 - currentWeather.night) * (1 - currentWeather.rain * 0.18);
+      flagMesh.material.color.setScalar(flagLight);
+      const positions = flagMesh.geometry.getAttribute('position');
+      for (let i = 0; i < flagBasePositions.length; i += 3) {
+        const vertex = i / 3;
+        const x = flagBasePositions[i];
+        const y = flagBasePositions[i + 1];
+        const flagWidth = flagMesh.userData.width || 2.75;
+        const span = THREE.MathUtils.clamp(x / flagWidth, 0, 1);
+        const wave = Math.sin(t * 2.3 + x * 1.7 + y * 0.55);
+        const wave2 = Math.sin(t * 3.6 + x * 2.9) * 0.32;
+        positions.setZ(vertex, (wave + wave2) * 0.085 * span);
+        positions.setY(vertex, y + Math.cos(t * 2.1 + x * 1.9) * 0.018 * span);
+      }
+      positions.needsUpdate = true;
+    }
+
+    skyUniforms.uTime.value = t;
+    skyGroup.position.copy(camera.position);
+
+    const pulse = 0.5 + Math.sin(t * 3.1) * 0.5;
+    if (hoverOutline && hoverOutline.visible) {
+      outlineLines.material.opacity = 0.74 + pulse * 0.22;
+    }
+
+    updateLabels();
+    renderer.render(scene, camera);
+  }
+
+  // Move through all weather types once to populate shader programs before
+  // the loader disappears; this avoids a stutter on the first weather switch.
+  async function boot() {
+    loaderStatus.textContent = 'Planting the courtyard trees…';
+    buildCampus();
+    flushBatches();
+    createPickProxies();
+    createLabels();
+    createHoverOutline();
+    createPuddles();
+    loaderStatus.textContent = 'Softening the afternoon light…';
+    const rainWasVisible = rain.visible;
+    rain.visible = true;
+    try {
+      await renderer.compileAsync(scene, camera);
+    } catch (error) {
+      console.warn('Shader precompile skipped:', error);
+    }
+    rain.visible = rainWasVisible;
+    renderer.shadowMap.needsUpdate = true;
+    renderer.setAnimationLoop(animate);
+    window.setTimeout(hideLoader, 280);
+  }
+
+  boot().catch((error) => {
+    console.error(error);
+    loaderStatus.textContent = 'The campus could not be built.';
+    const fallback = document.getElementById('loader-fallback');
+    if (fallback) {
+      fallback.hidden = false;
+      fallback.textContent = 'This browser may be blocking WebGL or the Three.js CDN.';
+    }
+  });
+</script>
+</body>
+</html>

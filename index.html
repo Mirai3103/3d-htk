@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#10251b" />
+<title>THCS Huynh Thuc Khang - 3D Campus</title>
+</head>
+<body>
+<div id="app">
+  <div id="stage" aria-label="Interactive 3D model of Trường THCS Huỳnh Thúc Kháng"></div>
+  <div class="edge-shade" aria-hidden="true"></div>
+  <div id="labels" class="labels-layer" aria-label="Building labels"></div>
+
+  <header class="brand">
+    <div class="crest" aria-hidden="true">
+      <svg viewBox="0 0 30 34" fill="none">
+        <path d="M15 1.8 27 6.3v10.2c0 7.1-4.8 12.6-12 15.7-7.2-3.1-12-8.6-12-15.7V6.3L15 1.8Z" stroke="currentColor" stroke-width="1.3" opacity=".74"/>
+        <path d="M7.1 16.8c2.7-1.2 5.4-1.2 7.9.2 2.5-1.4 5.2-1.4 7.9-.2v6c-2.7-1.1-5.4-1.1-7.9.4-2.5-1.5-5.2-1.5-7.9-.4v-6Z" fill="currentColor" opacity=".78"/>
+        <path d="m15 5.4.95 2.72 2.88.07-2.3 1.73.81 2.77L15 11.05l-2.34 1.64.81-2.77-2.3-1.73 2.88-.07L15 5.4Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="brand-copy">
+      <p class="eyebrow">Nghĩa Hành · Quảng Ngãi</p>
+      <h1>THCS Huỳnh Thúc Kháng <span class="title-dash">-</span><span class="title-mode">3D Campus</span></h1>
+      <p class="brand-sub">An interactive portrait of a Vietnamese school day</p>
+    </div>
+  </header>
+
+  <div class="top-controls">
+    <section class="weather-card" aria-label="Weather and lighting">
+      <span class="control-kicker">Atmosphere</span>
+      <div class="weather-options" role="group" aria-label="Weather mode">
+        <button class="weather-btn" type="button" data-weather="sunny" aria-pressed="true" title="Sunny">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.7"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.55 1.55M17.85 17.85l1.55 1.55M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.55-1.55M17.85 6.15l1.55-1.55"/>
+          </svg><span>Sunny</span>
+        </button>
+        <button class="weather-btn" type="button" data-weather="cloudy" aria-pressed="false" title="Cloudy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6.3 18.2h11a3.4 3.4 0 0 0 .3-6.78A5.25 5.25 0 0 0 7.4 10.7a3.8 3.8 0 0 0-1.1 7.5Z"/>
+          </svg><span>Cloudy</span>
+        </button>
+        <button class="weather-btn" type="button" data-weather="rain" aria-pressed="false" title="Rain">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6.4 15.8h11.1a3.35 3.35 0 0 0 .3-6.68A5.2 5.2 0 0 0 7.5 8.3a3.75 3.75 0 0 0-1.1 7.5Z"/><path d="M8.1 19.1 7.2 21M12.2 19.1 11.3 21M16.3 19.1 15.4 21"/>
+          </svg><span>Rain</span>
+        </button>
+        <button class="weather-btn" type="button" data-weather="night" aria-pressed="false" title="Night">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.2 15.1A8.4 8.4 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"/>
+          </svg><span>Night</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="utility-row">
+      <button class="utility-btn" type="button" id="labels-toggle" aria-pressed="true" title="Show or hide building labels">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2.7 12s3.4-5.2 9.3-5.2 9.3 5.2 9.3 5.2-3.4 5.2-9.3 5.2S2.7 12 2.7 12Z"/><circle cx="12" cy="12" r="2.4"/>
+        </svg><span>Labels</span>
+      </button>
+      <button class="utility-btn" type="button" id="overview-btn" title="Return to campus overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 9.2 12 3l8 6.2V20a1 1 0 0 1-1 1h-4.3v-6H9.3v6H5a1 1 0 0 1-1-1V9.2Z"/>
+        </svg><span>Overview</span>
+      </button>
+    </div>
+  </div>
+
+  <aside class="info-panel" id="info-panel" aria-hidden="true" aria-labelledby="panel-name" aria-live="polite" inert>
+    <div class="panel-topline">
+      <span class="panel-index" id="panel-index">01 / 07</span>
+      <span class="panel-kind">Campus building</span>
+      <button class="panel-close" id="panel-close" type="button" aria-label="Close details and return to overview">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m3.5 3.5 9 9M12.5 3.5l-9 9"/></svg>
+      </button>
+    </div>
+    <div class="panel-body">
+      <h2 class="panel-name" id="panel-name">Administration Block</h2>
+      <p class="panel-sub" id="panel-sub">Landmark · Back of campus</p>
+      <div class="panel-rule"></div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-label">Floor area</span>
+          <span class="stat-value" id="panel-area">720 <span class="stat-unit">m²</span></span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Storeys</span>
+          <span class="stat-value" id="panel-levels">3</span>
+        </div>
+      </div>
+      <section class="panel-function">
+        <h3>Function</h3>
+        <p id="panel-description">Principal's office, staff room, library and meeting rooms.</p>
+      </section>
+      <p class="panel-note">Drag, orbit and zoom around the campus</p>
+    </div>
+    <button class="back-button" id="panel-back" type="button">
+      <span>Return to campus overview</span>
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h11M9.6 4.5 14 9l-4.4 4.5"/></svg>
+    </button>
+  </aside>
+
+  <div class="hint" aria-hidden="true">
+    <span class="hint-icon">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+        <rect x="4.2" y="2.8" width="11.6" height="14.4" rx="5.8"/><path d="M10 5.8v3.1"/><path d="M10 11.1h.01"/>
+      </svg>
+    </span>
+    <span><strong>Drag</strong> to orbit <span class="hint-desktop">· Scroll to zoom · Right-drag to pan</span><span class="hint-mobile">· Pinch to zoom</span><br>Select any building to explore it</span>
+  </div>
+
+  <div class="loader" id="loader" role="status" aria-live="polite">
+    <div class="loader-card">
+      <div class="loader-emblem" aria-hidden="true">
+        <svg viewBox="0 0 30 34" fill="none">
+          <path d="M15 1.8 27 6.3v10.2c0 7.1-4.8 12.6-12 15.7-7.2-3.1-12-8.6-12-15.7V6.3L15 1.8Z" stroke="currentColor" stroke-width="1.1" opacity=".72"/>
+          <path d="M7.1 16.8c2.7-1.2 5.4-1.2 7.9.2 2.5-1.4 5.2-1.4 7.9-.2v6c-2.7-1.1-5.4-1.1-7.9.4-2.5-1.5-5.2-1.5-7.9-.4v-6Z" fill="currentColor" opacity=".78"/>
+          <path d="m15 5.4.95 2.72 2.88.07-2.3 1.73.81 2.77L15 11.05l-2.34 1.64.81-2.77-2.3-1.73 2.88-.07L15 5.4Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <p class="loader-kicker">Chợ Chữa · Nghĩa Hành</p>
+      <h2>Huỳnh Thúc Kháng</h2>
+      <p class="loader-status" id="loader-status">Loading the campus…</p>
+      <div class="loader-bar" aria-hidden="true"></div>
+      <noscript><p class="loader-fallback">This interactive 3D campus needs JavaScript enabled.</p></noscript>
+      <p class="loader-fallback" id="loader-fallback" hidden></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Classic (non-module) guard: shows a readable message if the 3D scene
+  // throws before it finishes booting. main.js sets __campusBooted = true.
+  window.__campusBooted = false;
+  window.addEventListener('error', function (event) {
+    if (window.__campusBooted) return;
+    var loader = document.getElementById('loader');
+    var status = document.getElementById('loader-status');
+    var fallback = document.getElementById('loader-fallback');
+    if (!loader || loader.classList.contains('is-done')) return;
+    if (status) status.textContent = 'The 3D scene could not start.';
+    if (fallback) {
+      fallback.hidden = false;
+      fallback.textContent = 'Please check that WebGL is enabled in this browser.';
+    }
+    if (event && event.message) console.error(event.message);
+  }, true);
+</script>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
