@@ -6,38 +6,39 @@ import * as THREE from 'three';
 import { maxAnisotropy } from '../core/engine.js';
 import { drawStar, fitText, makeCanvas, signTexture } from './canvas.js';
 
+// Main gate name board, after the real one: cream board, thick ochre frame, navy lettering.
 export const gateSignTex = signTexture((ctx, w, h) => {
-  const grad = ctx.createLinearGradient(0, 0, w, h);
-  grad.addColorStop(0, '#f8efd3');
-  grad.addColorStop(1, '#ead6a9');
-  ctx.fillStyle = grad;
+  const font = '"Segoe UI", Arial, sans-serif';
+  const frame = 22;
+  ctx.fillStyle = '#d4913a';
   ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = '#c3a05e';
-  ctx.lineWidth = 7;
-  ctx.strokeRect(9, 9, w - 18, h - 18);
-  ctx.fillStyle = '#23304a';
+  const board = ctx.createLinearGradient(0, frame, 0, h - frame);
+  board.addColorStop(0, '#fbf3d8');
+  board.addColorStop(1, '#f0e1b4');
+  ctx.fillStyle = board;
+  ctx.fillRect(frame, frame, w - frame * 2, h - frame * 2);
+  ctx.strokeStyle = 'rgba(110, 62, 18, 0.35)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(frame + 1.5, frame + 1.5, w - frame * 2 - 3, h - frame * 2 - 3);
+
+  const ink = '#1b2241';
+  const raised = (text, x, y) => {
+    ctx.fillStyle = 'rgba(40, 30, 10, 0.28)';
+    ctx.fillText(text, x + 2.5, y + 2.5);
+    ctx.fillStyle = ink;
+    ctx.fillText(text, x, y);
+  };
   ctx.textAlign = 'center';
-  ctx.font = '700 23px "Segoe UI", Arial, sans-serif';
-  ctx.fillText('ỦY BAN NHÂN DÂN HUYỆN NGHĨA HÀNH', w / 2, 53);
+  ctx.font = `700 38px ${font}`;
+  raised('ỦY BAN NHÂN DÂN HUYỆN NGHĨA HÀNH', w / 2 + 40, 88);
   const mainText = 'TRƯỜNG THCS HUỲNH THÚC KHÁNG';
-  const mainSize = fitText(ctx, mainText, w - 90, 62, '"Segoe UI", Arial, sans-serif', 900);
-  ctx.font = `900 ${mainSize}px "Segoe UI", Arial, sans-serif`;
-  ctx.fillText(mainText, w / 2, 143);
-  ctx.strokeStyle = '#b8944d';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(230, 171);
-  ctx.lineTo(w - 230, 171);
-  ctx.stroke();
-  ctx.fillStyle = '#4c4a3d';
-  ctx.font = '500 23px "Segoe UI", Arial, sans-serif';
-  ctx.fillText('PHÙ VINH TÂY · TT CHỢ CHỮA · NGHĨA HÀNH', w / 2, 218);
-  ctx.fillStyle = '#a77a2e';
-  drawStar(ctx, 91, 218, 9, 3.8);
-  ctx.fill();
-  drawStar(ctx, w - 91, 218, 9, 3.8);
-  ctx.fill();
-});
+  const mainSize = fitText(ctx, mainText, w - 150, 86, font, 900);
+  ctx.font = `900 ${mainSize}px ${font}`;
+  raised(mainText, w / 2, 198);
+  ctx.textAlign = 'left';
+  ctx.font = `700 32px ${font}`;
+  raised('ĐC: PHÚ VINH TÂY - TT. CHỢ CHÙA - H.NGHĨA HÀNH', frame + 30, 274);
+}, 1536, 322);
 
 export const gateSignSmallTex = signTexture((ctx, w, h) => {
   ctx.fillStyle = '#f4e7c8';

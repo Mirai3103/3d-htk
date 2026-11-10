@@ -260,6 +260,13 @@ std('puddle', {
   color: 0x7c8e95, roughness: 0.04, metalness: 0.4, transparent: true, opacity: 0,
   envMapIntensity: 1.9, depthWrite: false,
 }, { castShadow: false, receiveShadow: false });
+// Main gate (campus/gate.js): pale-yellow render and the ochre accent lines.
+std('gateWall', {
+  color: 0xf3da94, map: stuccoTex, roughness: 0.85,
+});
+std('gateOchre', {
+  color: 0xd99a3e, map: stuccoTex, roughness: 0.78,
+});
 
 addSignMaterial('signGate', gateSignTex);
 addSignMaterial('signGateSmall', gateSignSmallTex);

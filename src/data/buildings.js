@@ -87,7 +87,7 @@ export const BUILDINGS = {
     area: null,
     storeys: null,
     description: 'The formal school entrance, pedestrian side gate, guard room and the threshold to the red-brick courtyard.',
-    bounds: { x: -1.3, z: 28.9, w: 19.8, h: 7.3, d: 6.3, base: 0 },
+    bounds: { x: -1.5, z: 28.9, w: 19.0, h: 8.6, d: 6.3, base: 0 },
     label: new THREE.Vector3(0, 9.5, 30.3),
     view: { position: [7.5, 8.2, 43.5], target: [0, 3.5, 29.4] },
   },
