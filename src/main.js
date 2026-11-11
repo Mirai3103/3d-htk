@@ -21,7 +21,9 @@ import { createHoverOutline, updateOutlinePulse } from './interaction/hover.js';
 import { createLabels, updateLabels } from './interaction/labels.js';
 import { initInput } from './interaction/input.js';
 import { isWalking, teleportWalker, updateWalk } from './interaction/walk.js';
+import { updateDialogue } from './interaction/dialogue.js';
 import { updateFlag } from './campus/ceremonyStage.js';
+import { updateTeacher } from './campus/teacher.js';
 import { buildCampus } from './campus/index.js';
 
 function hideLoader() {
@@ -44,6 +46,8 @@ function animate() {
     constrainCamera();
   }
   updateFlag(t);
+  updateTeacher(t, dt);
+  updateDialogue(dt);
 
   skyUniforms.uTime.value = t;
   skyGroup.position.copy(camera.position);

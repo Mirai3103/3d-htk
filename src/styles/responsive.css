@@ -93,6 +93,11 @@
     padding: 5px 8px 5px 7px;
     font-size: 8.5px;
   }
+
+  .npc-bubble { width: min(286px, calc(100vw - 20px)); }
+  .npc-bubble-text { font-size: 13px; }
+  .npc-prompt-text { display: none; }
+  .npc-prompt svg { margin: 7px 9px; }
 }
 
 @media (max-width: 390px) {

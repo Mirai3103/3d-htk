@@ -59,6 +59,7 @@ scene/
   puddles.js                createPuddles(), puddleMeshes
 data/
   buildings.js              BUILDINGS directory (text, bounds, label anchor, camera view), BUILDING_ORDER
+  teacher.js                TEACHER: the courtyard teacher's look, position and speech lines
 kit/                        reusable parts; every function takes a Builder `b` first
   architecture.js           windows, doors, railings, gable/hip roofs, porch, sagging awning
   vegetation.js             addTree, addPalm, addPottedPlant, addFlowerCluster, addOrientedCone
@@ -68,17 +69,20 @@ campus/                     one file per place on the site; each exports build*(
   ground.js perimeter.js gate.js administration.js classroomBlock.js ceremonyStage.js
   memorialBust.js sportsCourt.js bicycleShed.js courtyardLife.js courtyardLamps.js neighborhood.js
   sideYard.js
+  teacher.js                the teacher NPC (a jointed Object3D, not batched): buildTeacher, updateTeacher
 interaction/
   cameraRig.js              overview framing, flyTo*/startCameraFlight, constrainCamera, isCameraFlying
   walk.js                   first-person walk mode: enter/exitWalk, isWalking, updateWalk(dt)
-  picking.js                invisible pick proxies from BUILDINGS bounds, findBuildingAtEvent
+  picking.js                invisible pick proxies (buildings + teacher), findPickAtEvent
+  dialogue.js               teacher's "talk" prompt and speech bubble: talkToTeacher, closeDialogue
   hover.js                  hovered state + outline box (getHoveredBuilding, setHoveredBuilding)
   labels.js                 HTML labels projected from 3D, toggleLabels
   panel.js                  selectBuilding(id), closePanel()
   input.js                  initInput(): every DOM/pointer/keyboard/resize listener
 styles/
   index.css                 @imports the parts below — ORDER MATTERS, responsive.css last
-  base.css brand.css controls.css labels.css panel.css hint.css walk.css loader.css responsive.css
+  base.css brand.css controls.css labels.css panel.css hint.css walk.css dialogue.css loader.css
+  responsive.css
 ```
 
 `index.html` holds only the static markup (header, weather buttons, info panel, loader) plus a
@@ -135,6 +139,19 @@ and `animate()` calls `updateWalk(dt)` instead of `controls.update()`.
   are floors too (see the ceremony stage). Stepping off any edge is always allowed.
 - Dev only: `?walk=x,z,yawDegrees,pitchDegrees` (e.g. `/?walk=3,-12,180`) starts in walk mode at
   that spot, handy for checking a first-person view.
+
+## The teacher (NPC)
+
+A teacher in áo dài stands in the middle of the courtyard (`campus/teacher.js`). Clicking or
+tapping her — or her "Talk to the teacher" prompt, or pressing **E** near her in walk mode —
+opens a speech bubble (`interaction/dialogue.js`) that types out one short passage per click and
+closes after the last; Esc or the × ends it early. In the orbit views the camera flies in first.
+
+- Her text, position and look are data: edit `TEACHER` in `data/teacher.js` (one `lines` entry =
+  one bubble; keep them short).
+- She is animated, so she is built from real meshes under joints (merged per joint and material
+  by `bake()`), casts a shadow but receives none (the shadow map is static).
+- The bubble and prompt are plain HTML in `#npc-layer`, projected each frame by `updateDialogue`.
 
 ## Recipes
 

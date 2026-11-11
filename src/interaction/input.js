@@ -2,11 +2,22 @@
  * DOM event wiring: pointer picking on the canvas, toolbar buttons, keyboard and resize.
  */
 
-import { infoPanel, labelsToggle, overviewBtn, panelBack, panelClose, walkToggle } from '../core/dom.js';
+import {
+  infoPanel,
+  labelsToggle,
+  npcBubbleClose,
+  npcBubbleNext,
+  npcPrompt,
+  overviewBtn,
+  panelBack,
+  panelClose,
+  walkToggle,
+} from '../core/dom.js';
 import { camera, controls, renderer, targetPixelRatio } from '../core/engine.js';
 import { setWeather } from '../scene/weather.js';
 import { overviewTarget, updateResponsiveFov, viewportOverview } from './cameraRig.js';
-import { findBuildingAtEvent } from './picking.js';
+import { closeDialogue, isTalking, isTeacherInReach, talkToTeacher } from './dialogue.js';
+import { findPickAtEvent } from './picking.js';
 import { getHoveredBuilding, setHoveredBuilding, setOutlineResolution } from './hover.js';
 import { applyLabelNames, measureLabels, toggleLabels, updateLabels } from './labels.js';
 import { closePanel, selectBuilding } from './panel.js';
@@ -23,16 +34,19 @@ import {
 let pointerDown = null;
 const activePointers = new Set();
 
+/** Start, or carry on, the conversation with the teacher. */
+function speakWithTeacher() {
+  closePanel({ fly: false });
+  talkToTeacher();
+}
+
 /** Attach every DOM listener. Call once, after the scene is built. */
 export function initInput() {
   // Pointer picking is deliberately separated from OrbitControls: a short,
   // stationary pointer gesture counts as a click, a drag does not.
   renderer.domElement.addEventListener('pointerdown', (event) => {
-    if (isWalking()) {
-      // Walking: a drag looks around; keep receiving it even if it leaves the canvas.
-      renderer.domElement.setPointerCapture(event.pointerId);
-      return;
-    }
+    // Walking: a drag looks around; keep receiving it even if it leaves the canvas.
+    if (isWalking()) renderer.domElement.setPointerCapture(event.pointerId);
     activePointers.add(event.pointerId);
     if (event.pointerType === 'mouse' && event.button !== 0) return;
     if (activePointers.size > 1) {
@@ -50,6 +64,7 @@ export function initInput() {
   renderer.domElement.addEventListener('pointermove', (event) => {
     if (isWalking()) {
       if (event.buttons !== 0) walkLook(event.movementX, event.movementY);
+      else renderer.domElement.style.cursor = findPickAtEvent(event, true) ? 'pointer' : 'grab';
       return;
     }
     if (event.pointerType !== 'mouse') return;
@@ -58,8 +73,9 @@ export function initInput() {
       if (getHoveredBuilding()) setHoveredBuilding(null);
       return;
     }
-    const id = findBuildingAtEvent(event);
-    setHoveredBuilding(id);
+    const pick = findPickAtEvent(event);
+    setHoveredBuilding(pick?.buildingId ?? null);
+    renderer.domElement.style.cursor = pick ? 'pointer' : 'grab';
   });
 
   renderer.domElement.addEventListener('pointerup', (event) => {
@@ -75,8 +91,10 @@ export function initInput() {
     const wasPrimary = event.pointerType !== 'mouse' || event.button === 0;
     pointerDown = null;
     if (wasPrimary && distance < 7 && elapsed < 900 && activePointers.size === 0) {
-      const id = findBuildingAtEvent(event);
-      if (id) selectBuilding(id);
+      // On foot only the teacher can be clicked; buildings are named as you walk past.
+      const pick = findPickAtEvent(event, isWalking());
+      if (pick?.npc) speakWithTeacher();
+      else if (pick?.buildingId) selectBuilding(pick.buildingId);
     }
   });
 
@@ -95,9 +113,17 @@ export function initInput() {
 
   labelsToggle.addEventListener('click', toggleLabels);
 
-  walkToggle.addEventListener('click', toggleWalk);
+  walkToggle.addEventListener('click', () => {
+    closeDialogue();
+    toggleWalk();
+  });
+
+  npcPrompt.addEventListener('click', speakWithTeacher);
+  npcBubbleNext.addEventListener('click', talkToTeacher);
+  npcBubbleClose.addEventListener('click', closeDialogue);
 
   overviewBtn.addEventListener('click', () => {
+    closeDialogue();
     if (isWalking()) exitWalk();
     else closePanel({ fly: true });
   });
@@ -111,13 +137,19 @@ export function initInput() {
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-      if (isWalking()) exitWalk();
+      if (isTalking()) closeDialogue();
+      else if (isWalking()) exitWalk();
       else if (infoPanel.classList.contains('is-open')) closePanel({ fly: true });
       else setHoveredBuilding(null);
       return;
     }
     // Walk keys (arrows / WASD / Shift). Browser shortcuts with a modifier stay untouched.
     if (event.ctrlKey || event.metaKey || event.altKey) return;
+    // E speaks to the teacher when she is near (and moves her on to the next line).
+    if (event.code === 'KeyE' && isWalking()) {
+      if (!event.repeat && (isTalking() || isTeacherInReach())) speakWithTeacher();
+      return;
+    }
     if (setWalkKey(event.code, true) && !event.code.startsWith('Shift')) event.preventDefault();
   });
 
