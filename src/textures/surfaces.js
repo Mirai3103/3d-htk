@@ -1,6 +1,6 @@
 /**
  * Tiling surface textures: stucco, brick, grass, asphalt, concrete, sports court,
- * corrugated metal, roof tiles.
+ * corrugated metal, roof tiles, speckled granite.
  */
 
 import { HALF_PI, seededRandom, TAU } from '../core/math.js';
@@ -291,3 +291,21 @@ const tileRoofCanvas = makeCanvas(512, 512, (ctx, w, h) => {
   }
 });
 export const tileRoofTex = canvasTexture(tileRoofCanvas, 4, 3);
+
+// Polished granite of the memorial pedestal. Painted in neutral greys so the material colour
+// decides the stone (pink for the pedestal, grey for the riser under the bust).
+const graniteCanvas = makeCanvas(512, 512, (ctx, w, h) => {
+  ctx.fillStyle = '#c9c5c2';
+  ctx.fillRect(0, 0, w, h);
+  const rng = seededRandom(149);
+  const grains = [
+    [58, 54, 54], [92, 88, 88], [140, 134, 132], [236, 230, 226], [255, 250, 246], [176, 160, 156],
+  ];
+  for (let i = 0; i < 17000; i++) {
+    const tone = grains[Math.floor(rng() * grains.length)];
+    const size = 1 + rng() * 2.4;
+    ctx.fillStyle = rgba(tone[0], tone[1], tone[2], 0.3 + rng() * 0.55);
+    ctx.fillRect(rng() * w, rng() * h, size, size * (0.6 + rng() * 0.8));
+  }
+});
+export const graniteTex = canvasTexture(graniteCanvas, 2, 3);

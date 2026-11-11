@@ -4,7 +4,8 @@
 
 import * as THREE from 'three';
 import { maxAnisotropy } from '../core/engine.js';
-import { drawStar, fitText, makeCanvas, signTexture } from './canvas.js';
+import { seededRandom } from '../core/math.js';
+import { drawStar, fitText, makeCanvas, rgba, signTexture } from './canvas.js';
 
 // Main gate name board, after the real one: cream board, thick ochre frame, navy lettering.
 export const gateSignTex = signTexture((ctx, w, h) => {
@@ -145,19 +146,63 @@ export const stageBackdropTex = signTexture((ctx, w, h) => {
   ctx.fillText('NGÀY HỘI KHAI GIẢNG', w / 2, 340);
 }, 1024, 410);
 
+// Memorial plaque, after the real one: dark red granite, engraved silver lettering, a double
+// line border with a fret in each corner.
 export const bustPlaqueTex = signTexture((ctx, w, h) => {
-  ctx.fillStyle = '#d7cbb3';
+  const font = '"Times New Roman", "Liberation Serif", "DejaVu Serif", Georgia, serif';
+  ctx.fillStyle = '#74161b';
   ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = '#8d7d5e';
-  ctx.lineWidth = 5;
-  ctx.strokeRect(7, 7, w - 14, h - 14);
-  ctx.fillStyle = '#5b523f';
+  const rng = seededRandom(211);
+  for (let i = 0; i < 2600; i++) {
+    ctx.fillStyle = rng() > 0.5 ? rgba(40, 6, 10, rng() * 0.3) : rgba(190, 70, 70, rng() * 0.16);
+    ctx.fillRect(rng() * w, rng() * h, 1 + rng() * 2.4, 1 + rng() * 2);
+  }
+
+  const silver = '#eee6da';
+  ctx.strokeStyle = silver;
+  ctx.lineWidth = 4;
+  ctx.strokeRect(26, 26, w - 52, h - 52);
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(36, 36, w - 72, h - 72);
+  // Corner frets: a small square spiral, mirrored into each corner.
+  ctx.lineWidth = 2.5;
+  for (const [cx, cy, sx, sy] of [[26, 26, 1, 1], [w - 26, 26, -1, 1], [26, h - 26, 1, -1], [w - 26, h - 26, -1, -1]]) {
+    ctx.beginPath();
+    ctx.moveTo(cx + sx * 46, cy + sy * 10);
+    ctx.lineTo(cx + sx * 46, cy + sy * 46);
+    ctx.lineTo(cx + sx * 10, cy + sy * 46);
+    ctx.moveTo(cx + sx * 34, cy + sy * 20);
+    ctx.lineTo(cx + sx * 34, cy + sy * 34);
+    ctx.lineTo(cx + sx * 20, cy + sy * 34);
+    ctx.stroke();
+  }
+
+  const lines = [
+    ['CỤ : HUỲNH THÚC KHÁNG', 700, 50],
+    ['(1876 - 1947)', 700, 38],
+    ['Sinh tại Huyện Tiên Phước ,', 700, 36],
+    ['Tỉnh Quảng Nam', 700, 36],
+    ['Nguyên là Quyền chủ tịch nước', 700, 36],
+    ['Việt Nam Dân Chủ Cộng Hòa .', 700, 36],
+    ['Mất vào ngày 21 tháng 4 năm 1947', 700, 36],
+    ['Tại Thị Trấn Chợ Chùa', 700, 36],
+    ['Huyện Nghĩa Hành', 700, 36],
+    ['Tỉnh Quảng Ngãi .', 700, 36],
+  ];
   ctx.textAlign = 'center';
-  ctx.font = '700 33px "Segoe UI", Arial, sans-serif';
-  ctx.fillText('CHỦ TỊCH', w / 2, h * 0.44);
-  ctx.font = '700 29px "Segoe UI", Arial, sans-serif';
-  ctx.fillText('HỒ CHÍ MINH', w / 2, h * 0.67);
-}, 420, 260);
+  ctx.textBaseline = 'middle';
+  const top = 132;
+  const step = (h - 100 - top) / (lines.length - 1);
+  lines.forEach(([text, weight, startSize], i) => {
+    const size = fitText(ctx, text, w - 104, startSize, font, weight);
+    ctx.font = `${weight} ${size}px ${font}`;
+    const y = top + i * step;
+    ctx.fillStyle = 'rgba(30, 4, 8, 0.55)';
+    ctx.fillText(text, w / 2 + 1.5, y + 1.5);
+    ctx.fillStyle = silver;
+    ctx.fillText(text, w / 2, y);
+  });
+}, 640, 984);
 
 const flagCanvas = makeCanvas(512, 320, (ctx, w, h) => {
   ctx.fillStyle = '#cf251e';

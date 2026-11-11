@@ -12,6 +12,7 @@ import {
   concreteTex,
   corrugationTex,
   courtTex,
+  graniteTex,
   grassTex,
   laneBrickTex,
   stuccoTex,
@@ -255,8 +256,18 @@ std('strawHat', {
 std('courtLine', {
   color: 0xf4edda, roughness: 0.7, transparent: true, opacity: 0.68,
 }, { castShadow: false });
-std('bronze', {
-  color: 0x4e4331, roughness: 0.38, metalness: 0.65,
+// Memorial bust (campus/memorialBust.js): polished granite pedestal, pale carved stone bust.
+std('granite', {
+  color: 0xe2bfb6, map: graniteTex, roughness: 0.4, metalness: 0.04,
+});
+std('graniteGrey', {
+  color: 0x9c9fa0, map: graniteTex, roughness: 0.36, metalness: 0.06,
+});
+std('bustStone', {
+  color: 0xe6dcc5, roughness: 0.9,
+});
+std('bustDark', {
+  color: 0x33302d, roughness: 0.82,
 });
 std('bicycleRack', {
   color: 0x666f6c, roughness: 0.45, metalness: 0.5,
