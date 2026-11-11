@@ -80,6 +80,20 @@ export const BUILDINGS = {
     label: new THREE.Vector3(3, 9.0, -15.0),
     view: { position: [15.5, 12.2, 5.5], target: [2.6, 2.8, -15.2] },
   },
+  bust: {
+    name: 'Tượng cụ Huỳnh Thúc Kháng',
+    short: 'Tượng cụ Huỳnh Thúc Kháng',
+    kind: 'Tưởng niệm',
+    sub: 'Tượng bán thân · Sân trường trung tâm',
+    area: null,
+    storeys: null,
+    description: 'Tượng bán thân cụ Huỳnh Thúc Kháng bằng đá: khăn đóng, kính tròn, áo dài, trên bệ granit có bia đỏ, giữa vườn hoa tưởng niệm.',
+    bounds: { x: 10, z: -13, w: 2.6, h: 3.0, d: 2.6, base: 0 },
+    label: new THREE.Vector3(10, 3.8, -13.2),
+    view: { position: [10, 2.2, -6.6], target: [10, 1.5, -13] },
+    // Phones: look down from further back so the bust clears the panel over the lower half.
+    mobileView: { position: [10, 3.2, -4.0], target: [10, 0, -13] },
+  },
   gate: {
     name: 'Cổng chính',
     short: 'Cổng chính',
@@ -110,5 +124,5 @@ export const BUILDINGS = {
   },
 };
 
-export const BUILDING_ORDER = ['admin', 'back', 'right', 'innerLeft', 'outerLeft', 'stage', 'gate', 'teachersDay'];
+export const BUILDING_ORDER = ['admin', 'back', 'right', 'innerLeft', 'outerLeft', 'stage', 'bust', 'gate', 'teachersDay'];
 export const BUILDING_TOTAL = BUILDING_ORDER.length;
