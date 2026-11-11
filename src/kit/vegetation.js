@@ -27,6 +27,7 @@ export function addPalm(b, x, z, height = 5.0, spread = 2.4, trunkOffset = 0) {
   const leanX = (rng() - 0.5) * 0.55;
   const leanZ = (rng() - 0.5) * 0.55;
   b.cylinderBetween('trunkLight', x, trunkOffset, z, x + leanX, trunkOffset + trunkHeight, z + leanZ, 0.15);
+  b.solidCircle(0.2, x, z);
   const topX = x + leanX;
   const topZ = z + leanZ;
   const topY = trunkOffset + trunkHeight;
@@ -56,6 +57,7 @@ export function addTree(b, x, z, height, radius, seed, options = {}) {
   const trunkRadius = options.large ? 0.62 : Math.max(0.22, radius * 0.075);
   b.cylinderBetween('trunk', x, 0, z, x + (rng() - 0.5) * 0.35, trunkHeight, z + (rng() - 0.5) * 0.35, trunkRadius);
   b.cylinder('trunkLight', trunkRadius * 0.84, trunkHeight * 0.36, x, 0.18, z);
+  b.solidCircle(trunkRadius + 0.05, x, z);
   const crownY = height - radius * 0.42;
   const branches = options.large ? 6 : 3;
   for (let i = 0; i < branches; i++) {
@@ -115,6 +117,7 @@ export function addPottedPlant(b, x, z, scale = 1, kind = 'bonsai', seed = 3) {
   const rng = seededRandom(seed + Math.round(x * 11 + z * 3));
   const potRadius = (kind === 'palm' ? 0.34 : 0.28) * scale;
   b.cylinder('terracotta', potRadius, 0.5 * scale, x, 0.25 * scale, z);
+  b.solidCircle(potRadius * 1.08, x, z);
   b.cylinder('terracotta', potRadius * 1.08, 0.08 * scale, x, 0.49 * scale, z);
   b.cylinder('mulch', potRadius * 0.86, 0.025 * scale, x, 0.54 * scale, z);
   if (kind === 'palm') {

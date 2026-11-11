@@ -29,6 +29,7 @@ export function buildClassroomBlock(options) {
 
   // Main teaching block with the open veranda along its front.
   b.box('wall', W, wallH, coreD, 0, wallH / 2, coreZ);
+  b.solidBox(W + 0.18, coreD + 0.18, 0, coreZ);
   b.box('stoneBase', W + 0.18, 0.34, coreD + 0.18, 0, 0.17, coreZ);
   b.box('trim', W + 0.22, 0.14, 0.18, 0, 3.58, frontCore + 0.06);
   b.box('trim', W + 0.22, 0.14, 0.18, 0, 7.08, frontCore + 0.06);
@@ -42,6 +43,7 @@ export function buildClassroomBlock(options) {
   b.box('trim', W + 0.34, 0.2, 0.14, 0, 3.66, frontZ + 0.12);
   b.box('trimSoft', W + 0.18, 0.12, corridor + 0.12, 0, wallH - 0.17, frontZ - corridor / 2 + 0.01);
   b.box('plinth', W + 0.1, 0.18, corridor, 0, 0.09, frontZ - corridor / 2);
+  b.floor(W + 0.1, corridor, 0, frontZ - corridor / 2, 0.18);
 
   // Slender columns give the veranda its rhythm and support the slab/roof.
   const columnCount = Math.max(4, Math.round(W / 4.5));
@@ -51,6 +53,7 @@ export function buildClassroomBlock(options) {
     columnXs.push(x);
     b.box('trim', 0.3, wallH - 0.16, 0.3, x, (wallH - 0.16) / 2, frontZ - 0.18);
     b.box('creamDim', 0.42, 0.2, 0.42, x, 0.12, frontZ - 0.18);
+    b.solidBox(0.42, 0.42, x, frontZ - 0.18);
     b.box('trim', 0.38, 0.12, 0.38, x, 3.65, frontZ - 0.18);
     b.box('trim', 0.4, 0.14, 0.4, x, wallH - 0.25, frontZ - 0.18);
   }

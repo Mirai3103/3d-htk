@@ -1,0 +1,58 @@
+/* Walk mode: #app gets .is-walking while the first-person view is active. */
+
+.walk-hint { display: none; }
+
+#app.is-walking .hint { display: none; }
+#app.is-walking .walk-hint { display: flex; }
+#app.is-walking .labels-layer { opacity: 0; visibility: hidden; }
+#app.is-walking #labels-toggle { display: none; }
+
+/* Name of the building you are standing next to. */
+.walk-place {
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  bottom: max(26px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 9px 20px 10px;
+  border: 1px solid rgba(252, 237, 197, 0.2);
+  border-radius: 14px;
+  background: rgba(8, 21, 15, 0.62);
+  box-shadow: 0 8px 30px rgba(4, 14, 9, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.walk-place.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.walk-place-kind {
+  color: var(--gold-bright);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+}
+
+.walk-place-name {
+  color: #f8eed3;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+/* Walking needs a keyboard, so phones and tablets do not get the button. */
+@media (hover: none) and (pointer: coarse) {
+  #walk-toggle { display: none; }
+}

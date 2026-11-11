@@ -2,7 +2,12 @@
  * Benches, students and bicycle racks.
  */
 
+import * as THREE from 'three';
 import { Builder } from '../geometry/batching.js';
+
+// The figure below is modelled 1.32 m tall; scaled up it stands about 1.5 m, eye to eye with
+// the walker in first-person mode.
+const STUDENT_SCALE = 1.14;
 
 export function addBench(b, x, z, yaw) {
   const bb = new Builder(x, z, yaw);
@@ -10,10 +15,13 @@ export function addBench(b, x, z, yaw) {
   bb.box('stone', 0.2, 0.46, 0.42, -0.82, 0.28, 0);
   bb.box('stone', 0.2, 0.46, 0.42, 0.82, 0.28, 0);
   bb.box('stone', 2.05, 0.06, 0.08, 0, 0.74, -0.24);
+  bb.solidBox(2.3, 0.56, 0, 0);
 }
 
 export function addStudent(b, x, z, yaw, seed = 1, seated = false) {
   const bb = new Builder(x, z, yaw);
+  bb.solidCircle(0.24, 0, 0);
+  bb.base.scale(new THREE.Vector3(STUDENT_SCALE, STUDENT_SCALE, STUDENT_SCALE));
   const skirt = seed % 3 === 0;
   const bodyBottom = seated ? 0.56 : 0.08;
   const legHeight = seated ? 0.38 : 0.58;
@@ -42,6 +50,7 @@ export function addStudent(b, x, z, yaw, seed = 1, seated = false) {
 
 export function addBicycleRack(b, x, z, yaw, count = 3) {
   const bb = new Builder(x, z, yaw);
+  bb.solidBox((count - 1) * 1.25 + 0.6, 0.16, 0, 0);
   for (let i = 0; i < count; i++) {
     const off = (i - (count - 1) / 2) * 1.25;
     bb.cylinder('bicycleRack', 0.035, 0.72, off - 0.23, 0.36, 0);

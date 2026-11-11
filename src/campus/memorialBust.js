@@ -14,6 +14,7 @@ export function buildMemorialBust() {
   // Circular garden bed, stone edging and flowers.
   b.geometry('mulch', UNIT.circle, bx, 0.055, bz, -HALF_PI, 0, 0, 2.05, 2.05, 1);
   b.geometry('stoneLight', UNIT.ring, bx, 0.1, bz, -HALF_PI, 0, 0, 2.1, 2.1, 1.5);
+  b.solidCircle(2.2, bx, bz);
   for (let i = 0; i < 9; i++) {
     const a = (i / 9) * TAU;
     const r = 1.38 + (i % 3) * 0.18;

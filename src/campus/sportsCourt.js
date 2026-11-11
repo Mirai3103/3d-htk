@@ -19,6 +19,7 @@ export function buildSportsCourtDetails() {
     const backZ = zPole + direction * 0.78;
     const rimZ = zPole + direction * 1.05;
     b.cylinder('metalDark', 0.08, 3.52, 16, 1.76, zPole);
+    b.solidCircle(0.1, 16, zPole);
     b.box('metalDark', 0.12, 0.12, 1.0, 16, 3.26, zPole + direction * 0.43);
     b.box('trim', 1.3, 0.82, 0.06, 16, 3.28, backZ);
     b.box('orange', 0.38, 0.27, 0.025, 16, 3.33, backZ + direction * 0.042);

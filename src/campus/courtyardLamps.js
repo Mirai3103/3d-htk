@@ -17,6 +17,7 @@ export function buildCourtyardLamps() {
   ];
   for (const [x, z] of positions) {
     b.cylinder('stoneBase', 0.26, 0.28, x, 0.14, z);
+    b.solidCircle(0.26, x, z);
     b.cylinder('lampMetal', 0.07, 3.62, x, 2.01, z);
     b.box('lampMetal', 1.32, 0.06, 0.06, x, 3.86, z);
     b.box('lampMetal', 0.06, 0.27, 0.06, x, 3.68, z);

@@ -19,29 +19,35 @@ export function buildCeremonyStage() {
 
   // Raised timber platform with three broad ceremonial steps.
   b.box('stoneBase', 9.2, 0.6, 5.15, 3, 0.3, -12.5);
+  b.floor(9.2, 5.15, 3, -12.5, 0.67);
   b.box('timber', 9.02, 0.07, 4.98, 3, 0.635, -12.5);
   b.box('trim', 9.22, 0.1, 0.12, 3, 0.56, -10.02);
   b.box('redDark', 1.85, 0.025, 4.45, 3, 0.68, -12.35);
+  // Lowest tread furthest out, so the flight really climbs towards the platform.
   const stepData = [
-    [4.7, 0.17, 0.82, -9.92],
+    [4.7, 0.45, 0.82, -9.92],
     [4.3, 0.31, 0.7, -9.55],
-    [3.8, 0.45, 0.62, -9.2],
+    [3.8, 0.17, 0.62, -9.2],
   ];
   for (const [w, h, d, z] of stepData) {
     b.box('stoneLight', w, h, d, 3, h / 2, z);
     b.box('trimSoft', w + 0.05, 0.035, d + 0.03, 3, h + 0.015, z);
+    b.floor(w, d, 3, z, h + 0.03);
   }
   for (const x of [0.0, 6.0]) {
     b.box('stoneLight', 0.7, 0.28, 1.6, x, 0.14, -9.42);
+    b.floor(0.7, 1.6, x, -9.42, 0.28);
   }
 
   // Pavilion base and sloped terracotta roof.
   b.box('stoneLight', 8, 0.6, 5, 3, 0.3, -17.5);
+  b.floor(8, 5, 3, -17.5, 0.66);
   b.box('timber', 7.9, 0.055, 4.9, 3, 0.63, -17.5);
   for (const x of [3 - 3.35, 3 + 3.35]) {
     for (const z of [-17.5 - 1.9, -17.5 + 1.9]) {
       b.cylinder('trim', 0.11, 2.76, x, 2.0, z);
       b.cylinder('creamDim', 0.18, 0.12, x, 0.67, z);
+      b.solidCircle(0.18, x, z);
       b.box('trim', 0.3, 0.12, 0.3, x, 3.34, z);
     }
   }
@@ -50,6 +56,7 @@ export function buildCeremonyStage() {
 
   // Deep red backdrop with a gold-framed event panel.
   b.box('stageRed', 6.9, 2.72, 0.18, 3, 1.96, -19.28);
+  b.solidBox(7.1, 0.3, 3, -19.24);
   b.box('gold', 7.1, 0.08, 0.24, 3, 3.38, -19.28);
   b.box('gold', 7.1, 0.08, 0.24, 3, 0.65, -19.28);
   b.box('redDark', 5.5, 2.3, 0.08, 3, 2.02, -19.18);
@@ -66,6 +73,7 @@ export function buildCeremonyStage() {
   // Podium and simple stage furniture.
   b.box('wood', 0.85, 0.86, 0.55, 3, 1.11, -18.28);
   b.box('wood', 1.05, 0.08, 0.7, 3, 1.57, -18.28);
+  b.solidBox(1.05, 0.7, 3, -18.28);
   b.box('metalDark', 0.035, 0.4, 0.035, 3.32, 1.82, -18.32);
   b.sphere('metalDark', 0.055, 3.32, 2.03, -18.32);
   b.box('gold', 0.36, 0.5, 0.025, 3, 1.15, -17.99);
@@ -76,6 +84,7 @@ export function buildCeremonyStage() {
     for (const z of [-15.35, -9.65]) {
       b.cylinder('metalDark', 0.055, awningY, x, awningY / 2, z);
       b.cylinder('stoneBase', 0.18, 0.12, x, 0.06, z);
+      b.solidCircle(0.1, x, z);
       b.sphere('metalDark', 0.075, x, awningY + 0.05, z);
     }
   }
@@ -100,6 +109,7 @@ export function buildCeremonyStage() {
 
   // The flagpole and a lightweight flag mesh that ripples in the breeze.
   b.cylinder('stoneLight', 0.5, 0.28, 3, 0.14, -8);
+  b.solidCircle(0.5, 3, -8);
   b.cylinder('trim', 0.34, 0.2, 3, 0.1, -8);
   b.cylinder('metalLight', 0.075, 9.8, 3, 5.05, -8);
   b.sphere('gold', 0.13, 3, 10.05, -8);
@@ -121,6 +131,7 @@ export function buildCeremonyStage() {
   // Two more flags flank the pavilion, bringing the courtyard to life.
   for (const [fx, fz] of [[-0.6, -16.3], [6.6, -16.3]]) {
     b.cylinder('metalLight', 0.035, 3.4, fx, 1.7 + 0.6, fz);
+    b.solidCircle(0.06, fx, fz);
     const smallFlagGeo = new THREE.PlaneGeometry(1.35, 0.82, 8, 5);
     const smallFlagMat = new THREE.MeshStandardMaterial({
       map: flagTex, side: THREE.DoubleSide, roughness: 0.9, metalness: 0,

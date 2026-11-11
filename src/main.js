@@ -20,6 +20,7 @@ import { createPickProxies } from './interaction/picking.js';
 import { createHoverOutline, updateOutlinePulse } from './interaction/hover.js';
 import { createLabels, updateLabels } from './interaction/labels.js';
 import { initInput } from './interaction/input.js';
+import { isWalking, teleportWalker, updateWalk } from './interaction/walk.js';
 import { updateFlag } from './campus/ceremonyStage.js';
 import { buildCampus } from './campus/index.js';
 
@@ -36,16 +37,29 @@ function animate() {
 
   updateCameraFlight();
   updateWeather(dt);
-  if (!isCameraFlying()) controls.update(dt);
-  constrainCamera();
+  if (isWalking()) {
+    updateWalk(dt);
+  } else {
+    if (!isCameraFlying()) controls.update(dt);
+    constrainCamera();
+  }
   updateFlag(t);
 
   skyUniforms.uTime.value = t;
   skyGroup.position.copy(camera.position);
 
   updateOutlinePulse(t);
-  updateLabels();
+  if (!isWalking()) updateLabels();
   renderer.render(scene, camera);
+}
+
+// Dev only: `?walk=x,z,yawDegrees,pitchDegrees` drops you straight into walk mode at that
+// spot, which makes it easy to check a first-person view without walking there.
+function applyDevWalkParam() {
+  const value = new URLSearchParams(window.location.search).get('walk');
+  if (value == null) return;
+  const [x = 0, z = 26.8, yawDeg = 0, pitchDeg = 0] = value.split(',').map(Number);
+  teleportWalker(x, z, (yawDeg * Math.PI) / 180, (pitchDeg * Math.PI) / 180);
 }
 
 // Build everything, then render once through all weather types' shader
@@ -73,6 +87,7 @@ async function boot() {
   renderer.shadowMap.needsUpdate = true;
   renderer.setAnimationLoop(animate);
   window.setTimeout(hideLoader, 280);
+  if (import.meta.env.DEV) applyDevWalkParam();
 }
 
 boot().catch((error) => {

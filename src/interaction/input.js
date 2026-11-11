@@ -2,7 +2,7 @@
  * DOM event wiring: pointer picking on the canvas, toolbar buttons, keyboard and resize.
  */
 
-import { infoPanel, labelsToggle, overviewBtn, panelBack, panelClose } from '../core/dom.js';
+import { infoPanel, labelsToggle, overviewBtn, panelBack, panelClose, walkToggle } from '../core/dom.js';
 import { camera, controls, renderer, targetPixelRatio } from '../core/engine.js';
 import { setWeather } from '../scene/weather.js';
 import { overviewTarget, updateResponsiveFov, viewportOverview } from './cameraRig.js';
@@ -10,6 +10,15 @@ import { findBuildingAtEvent } from './picking.js';
 import { getHoveredBuilding, setHoveredBuilding, setOutlineResolution } from './hover.js';
 import { applyLabelNames, measureLabels, toggleLabels, updateLabels } from './labels.js';
 import { closePanel, selectBuilding } from './panel.js';
+import {
+  exitWalk,
+  isWalking,
+  refreshWalkFov,
+  releaseWalkKeys,
+  setWalkKey,
+  toggleWalk,
+  walkLook,
+} from './walk.js';
 
 let pointerDown = null;
 const activePointers = new Set();
@@ -19,6 +28,11 @@ export function initInput() {
   // Pointer picking is deliberately separated from OrbitControls: a short,
   // stationary pointer gesture counts as a click, a drag does not.
   renderer.domElement.addEventListener('pointerdown', (event) => {
+    if (isWalking()) {
+      // Walking: a drag looks around; keep receiving it even if it leaves the canvas.
+      renderer.domElement.setPointerCapture(event.pointerId);
+      return;
+    }
     activePointers.add(event.pointerId);
     if (event.pointerType === 'mouse' && event.button !== 0) return;
     if (activePointers.size > 1) {
@@ -34,6 +48,10 @@ export function initInput() {
   });
 
   renderer.domElement.addEventListener('pointermove', (event) => {
+    if (isWalking()) {
+      if (event.buttons !== 0) walkLook(event.movementX, event.movementY);
+      return;
+    }
     if (event.pointerType !== 'mouse') return;
     if (pointerDown && pointerDown.pointerId === event.pointerId) return;
     if (event.buttons !== 0) {
@@ -77,8 +95,11 @@ export function initInput() {
 
   labelsToggle.addEventListener('click', toggleLabels);
 
+  walkToggle.addEventListener('click', toggleWalk);
+
   overviewBtn.addEventListener('click', () => {
-    closePanel({ fly: true });
+    if (isWalking()) exitWalk();
+    else closePanel({ fly: true });
   });
 
   panelClose.addEventListener('click', () => closePanel({ fly: true }));
@@ -90,9 +111,18 @@ export function initInput() {
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-      if (infoPanel.classList.contains('is-open')) closePanel({ fly: true });
+      if (isWalking()) exitWalk();
+      else if (infoPanel.classList.contains('is-open')) closePanel({ fly: true });
       else setHoveredBuilding(null);
+      return;
     }
+    // Walk keys (arrows / WASD / Shift). Browser shortcuts with a modifier stay untouched.
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (setWalkKey(event.code, true) && !event.code.startsWith('Shift')) event.preventDefault();
+  });
+
+  document.addEventListener('keyup', (event) => {
+    setWalkKey(event.code, false);
   });
 
   window.addEventListener('resize', () => {
@@ -101,7 +131,8 @@ export function initInput() {
     renderer.setPixelRatio(targetPixelRatio());
     renderer.setSize(width, height);
     camera.aspect = width / Math.max(1, height);
-    updateResponsiveFov();
+    if (isWalking()) refreshWalkFov();
+    else updateResponsiveFov();
     camera.updateProjectionMatrix();
     controls.maxDistance = Math.max(390, viewportOverview().position.distanceTo(overviewTarget) * 1.35);
     setOutlineResolution(width, height);
@@ -113,6 +144,7 @@ export function initInput() {
   window.addEventListener('blur', () => {
     activePointers.clear();
     pointerDown = null;
+    releaseWalkKeys();
     setHoveredBuilding(null);
   });
 }

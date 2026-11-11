@@ -14,19 +14,24 @@ export const overviewTarget = new THREE.Vector3(0, 2.0, -2.0);
 
 let lastOverviewDistance = 122;
 
-export function updateResponsiveFov() {
+/** Vertical FOV of the orbit views for the current window shape. */
+export function responsiveFov() {
   const aspect = Math.max(0.3, window.innerWidth / Math.max(1, window.innerHeight));
-  const nextFov = aspect < 0.8 ? 55 : aspect < 1.15 ? 48 : 43;
+  return aspect < 0.8 ? 55 : aspect < 1.15 ? 48 : 43;
+}
+
+export function updateResponsiveFov() {
+  const nextFov = responsiveFov();
   if (camera.fov !== nextFov) {
     camera.fov = nextFov;
     camera.updateProjectionMatrix();
   }
 }
 
+/** Overview framing for the orbit FOV; does not touch the camera. */
 export function viewportOverview() {
-  updateResponsiveFov();
   const aspect = Math.max(0.3, window.innerWidth / Math.max(1, window.innerHeight));
-  const vFov = THREE.MathUtils.degToRad(camera.fov);
+  const vFov = THREE.MathUtils.degToRad(responsiveFov());
   const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
   const overviewWidth = aspect < 0.8 ? 112 : 122;
   const distanceForWidth = (overviewWidth * 0.5) / Math.tan(hFov / 2);
@@ -39,6 +44,7 @@ export function viewportOverview() {
 }
 
 export function setInitialView() {
+  updateResponsiveFov();
   const view = viewportOverview();
   camera.position.copy(view.position);
   controls.target.copy(view.target);
@@ -68,7 +74,14 @@ export function flyToBuilding(data) {
   startCameraFlight(position, target, 1.35);
 }
 
-function startCameraFlight(toPosition, toTarget, duration = 1.35) {
+/**
+ * Ease the camera to a new position/target. Flights also carry the FOV (orbit FOV unless
+ * `fov` says otherwise). By default the orbit controls take over again on arrival; pass
+ * `handBack: false` when another mode (walking) drives the camera afterwards, and `onDone`
+ * to be told when the flight lands. A newer flight simply replaces a running one.
+ */
+export function startCameraFlight(toPosition, toTarget, duration = 1.35, options = {}) {
+  const { fov = responsiveFov(), handBack = true, onDone = null } = options;
   isFlying = true;
   controls.enabled = false;
   cameraFlight = {
@@ -76,6 +89,10 @@ function startCameraFlight(toPosition, toTarget, duration = 1.35) {
     fromTarget: controls.target.clone(),
     toPosition: toPosition.clone(),
     toTarget: toTarget.clone(),
+    fromFov: camera.fov,
+    toFov: fov,
+    handBack,
+    onDone,
     started: performance.now(),
     duration: duration * 1000,
   };
@@ -91,11 +108,19 @@ export function updateCameraFlight() {
   camera.position.lerpVectors(cameraFlight.fromPosition, cameraFlight.toPosition, eased);
   controls.target.lerpVectors(cameraFlight.fromTarget, cameraFlight.toTarget, eased);
   camera.lookAt(controls.target);
+  if (cameraFlight.fromFov !== cameraFlight.toFov) {
+    camera.fov = THREE.MathUtils.lerp(cameraFlight.fromFov, cameraFlight.toFov, eased);
+    camera.updateProjectionMatrix();
+  }
   if (linear >= 1) {
+    const { handBack, onDone } = cameraFlight;
     cameraFlight = null;
     isFlying = false;
-    controls.enabled = true;
-    controls.update(0.001);
+    if (handBack) {
+      controls.enabled = true;
+      controls.update(0.001);
+    }
+    if (onDone) onDone();
   }
 }
 
