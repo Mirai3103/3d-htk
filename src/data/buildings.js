@@ -100,7 +100,7 @@ export const BUILDINGS = {
     area: 36,
     storeys: 1,
     storeysLabel: 'open-air',
-    description: 'A photo spot dressed for Vietnamese Teachers’ Day, 20 November: a painted backdrop under a balloon garland, marquee “20 ♥ 11” numbers, congratulation flower stands, a wall of pupils’ wishes and a guest book.',
+    description: 'A photo spot dressed for Vietnamese Teachers’ Day, 20 November: a painted backdrop under a balloon garland, marquee “20 ♥ 11” numbers, congratulation flower stands, a wall of pupils’ wishes and a souvenir table with a photo album to leaf through.',
     bounds: { x: -12, z: 7.7, w: 11.6, h: 4.2, d: 6.9, base: 0 },
     label: new THREE.Vector3(-12, 5.0, 6.6),
     view: { position: [-7.0, 4.6, 20.2], target: [-9.6, 1.8, 6.4] },

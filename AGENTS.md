@@ -46,6 +46,7 @@ textures/                   canvas-painted textures (no image files)
   signs.js                  gate/admin signs, banner, stage backdrop, plaque, flag
   sky.js                    env maps per weather, lamp glow, moon
   festive.js                Teachers' Day: colour-swatch palette, check-in backdrop, props atlas
+  album.js                  souvenir album: cover, endpapers, one painted page per ALBUM_ITEMS entry
 materials/
   registry.js               MATS map, std(), addSignMaterial(), M (direct handles), SIGN/GLOW lists
   library.js                ALL named materials (std('wall', {...}) …), wetMaterials, ensureBuildMaterials
@@ -61,6 +62,7 @@ scene/
 data/
   buildings.js              BUILDINGS directory (text, bounds, label anchor, camera view), BUILDING_ORDER
   teacher.js                TEACHER: the courtyard teacher's look, position and speech lines
+  album.js                  ALBUM (cover wording) + ALBUM_ITEMS (one { imageLink, description } per page)
 kit/                        reusable parts; every function takes a Builder `b` first
   architecture.js           windows, doors, railings, gable/hip roofs, porch, sagging awning
   vegetation.js             addTree, addPalm, addPottedPlant, addFlowerCluster, addOrientedCone
@@ -72,18 +74,21 @@ campus/                     one file per place on the site; each exports build*(
   sideYard.js
   teacher.js                the teacher NPC (a jointed Object3D, not batched): buildTeacher, updateTeacher
   teachersDayBooth.js       20/11 check-in corner by the great tree: buildTeachersDayBooth, update…
+  album.js                  the souvenir album on its table (real meshes: cover, curling sheets)
 interaction/
   cameraRig.js              overview framing, flyTo*/startCameraFlight, constrainCamera, isCameraFlying
   walk.js                   first-person walk mode: enter/exitWalk, isWalking, updateWalk(dt)
   picking.js                invisible pick proxies (buildings + teacher), findPickAtEvent
   dialogue.js               teacher's "talk" prompt and speech bubble: talkToTeacher, closeDialogue
+  albumView.js              reading the album: "open" prompt, camera in/out, page turning input
   hover.js                  hovered state + outline box (getHoveredBuilding, setHoveredBuilding)
   labels.js                 HTML labels projected from 3D, toggleLabels
   panel.js                  selectBuilding(id), closePanel()
   input.js                  initInput(): every DOM/pointer/keyboard/resize listener
 styles/
   index.css                 @imports the parts below — ORDER MATTERS, responsive.css last
-  base.css brand.css controls.css labels.css panel.css hint.css walk.css dialogue.css loader.css
+  base.css brand.css controls.css labels.css panel.css hint.css walk.css dialogue.css album.css
+  loader.css
   responsive.css
 ```
 
@@ -158,7 +163,7 @@ closes after the last; Esc or the × ends it early. In the orbit views the camer
 ## The Teachers' Day corner (20/11)
 
 A check-in booth stands in front of the great tree (`campus/teachersDayBooth.js`): backdrop,
-balloon garland, marquee "20 ♥ 11", flower stands, wish board, guest-book table, photo frame,
+balloon garland, marquee "20 ♥ 11", flower stands, wish board, souvenir table, photo frame,
 bunting tied to the trunk. It is also a selectable place (`teachersDay` in `data/buildings.js`).
 
 - Its many colours come from **one swatch texture** (`textures/festive.js`): the materials
@@ -169,6 +174,32 @@ bunting tied to the trunk. It is also a selectable place (`teachersDay` in `data
   (`TEACHERS_DAY_YEAR`); the small printed props share one atlas (`PROP_REGIONS`).
 - `fairyBulb` and `lantern` glow with the courtyard lamps (`scene/weather.js`). Only the two
   helium-balloon bunches move (`updateTeachersDayBooth`).
+
+## The souvenir album
+
+A closed photo album lies on the souvenir table of the Teachers' Day corner. Clicking it (orbit
+views, once the camera is near), its "Open the album" prompt, or **E** next to it in walk mode
+flies the camera over the table and opens it; pages turn by dragging or tapping a page, the
+‹ › buttons or the arrow keys; Esc / Close turns everything back and returns the camera to
+where it was (orbit pose or the walker's eyes).
+
+- **Content is data:** edit `ALBUM` (cover, dedication, farewell) and `ALBUM_ITEMS` in
+  `data/album.js`. One entry = one page (photo + caption); two pages per sheet, so the number of
+  sheets follows the list. The current entries are mock data.
+- Page pictures are the one sanctioned exception to "no external URLs": `imageLink` is loaded at
+  runtime, first directly, then through the `wsrv.nl` image proxy (for hosts without CORS), and a
+  painted placeholder is shown when both fail (offline). Import a local file in `data/album.js`
+  to bundle a picture instead.
+- `campus/album.js` owns the book (book frame: X from the spine across the right page, Y up the
+  page, Z out of the paper; `SCALE` turns book units into metres). A sheet is a segmented box
+  re-bent every frame it moves (`deformSheet`): the curl integrates a tangent angle across the
+  page, so the paper never stretches. Sheets turn one after another and never cross.
+- `interaction/albumView.js` owns the mode: while `isAlbumActive()` nothing else drives the
+  camera (`animate()` skips the orbit controls and `updateWalk`), `#app` has the class
+  `is-reading`, and `input.js` routes pointer and keys to it. Anything that sends the camera
+  elsewhere (Overview, Walk, selecting a building) must call `closeAlbum({ fly: false })` first.
+- Page textures are painted lazily on first open (`textures/album.js`); their materials are in
+  `SIGN_MATERIALS`, so the pages stay readable at night.
 
 ## Recipes
 
@@ -210,5 +241,6 @@ are required), an env texture in `textures/sky.js` `ENV_TEXTURES`, and a `.weath
   boot, set `renderer.shadowMap.needsUpdate = true`.
 - Import three.js as `import * as THREE from 'three'`; addons from `three/addons/...` (pinned 0.186.0).
 - Keep it single-file friendly: no runtime `fetch`, no external URLs. Small assets imported from
-  `src/` get inlined by the build; avoid large binaries (the HTML is ~780 kB, mostly three.js).
+  `src/` get inlined by the build; avoid large binaries (the HTML is ~800 kB, mostly three.js).
+  The only exception is the album's page photos (see "The souvenir album").
 - UI text is English; on-scene signage is Vietnamese (with diacritics) — keep both as they are.

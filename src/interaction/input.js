@@ -3,6 +3,10 @@
  */
 
 import {
+  albumClose,
+  albumNext,
+  albumPrev,
+  albumPrompt,
   infoPanel,
   labelsToggle,
   npcBubbleClose,
@@ -15,6 +19,17 @@ import {
 } from '../core/dom.js';
 import { camera, controls, renderer, targetPixelRatio } from '../core/engine.js';
 import { setWeather } from '../scene/weather.js';
+import {
+  albumPointerDown,
+  albumPointerMove,
+  albumPointerUp,
+  closeAlbum,
+  isAlbumActive,
+  isAlbumInReach,
+  openAlbum,
+  refreshAlbumView,
+  turnAlbumPage,
+} from './albumView.js';
 import { overviewTarget, updateResponsiveFov, viewportOverview } from './cameraRig.js';
 import { closeDialogue, isTalking, isTeacherInReach, talkToTeacher } from './dialogue.js';
 import { findPickAtEvent } from './picking.js';
@@ -45,6 +60,11 @@ export function initInput() {
   // Pointer picking is deliberately separated from OrbitControls: a short,
   // stationary pointer gesture counts as a click, a drag does not.
   renderer.domElement.addEventListener('pointerdown', (event) => {
+    // Reading the album: the pointer turns pages and nothing else.
+    if (isAlbumActive()) {
+      albumPointerDown(event);
+      return;
+    }
     // Walking: a drag looks around; keep receiving it even if it leaves the canvas.
     if (isWalking()) renderer.domElement.setPointerCapture(event.pointerId);
     activePointers.add(event.pointerId);
@@ -62,6 +82,10 @@ export function initInput() {
   });
 
   renderer.domElement.addEventListener('pointermove', (event) => {
+    if (isAlbumActive()) {
+      albumPointerMove(event);
+      return;
+    }
     if (isWalking()) {
       if (event.buttons !== 0) walkLook(event.movementX, event.movementY);
       else renderer.domElement.style.cursor = findPickAtEvent(event, true) ? 'pointer' : 'grab';
@@ -80,6 +104,11 @@ export function initInput() {
 
   renderer.domElement.addEventListener('pointerup', (event) => {
     activePointers.delete(event.pointerId);
+    if (isAlbumActive()) {
+      pointerDown = null;
+      albumPointerUp(event);
+      return;
+    }
     if (!pointerDown || pointerDown.pointerId !== event.pointerId) {
       pointerDown = null;
       return;
@@ -91,9 +120,11 @@ export function initInput() {
     const wasPrimary = event.pointerType !== 'mouse' || event.button === 0;
     pointerDown = null;
     if (wasPrimary && distance < 7 && elapsed < 900 && activePointers.size === 0) {
-      // On foot only the teacher can be clicked; buildings are named as you walk past.
+      // On foot only the teacher and the album can be clicked; buildings are named as you
+      // walk past.
       const pick = findPickAtEvent(event, isWalking());
       if (pick?.npc) speakWithTeacher();
+      else if (pick?.prop === 'album') openAlbum();
       else if (pick?.buildingId) selectBuilding(pick.buildingId);
     }
   });
@@ -101,6 +132,7 @@ export function initInput() {
   renderer.domElement.addEventListener('pointercancel', (event) => {
     activePointers.delete(event.pointerId);
     pointerDown = null;
+    albumPointerUp(event);
   });
 
   renderer.domElement.addEventListener('pointerleave', () => {
@@ -115,8 +147,14 @@ export function initInput() {
 
   walkToggle.addEventListener('click', () => {
     closeDialogue();
+    closeAlbum({ fly: false });
     toggleWalk();
   });
+
+  albumPrompt.addEventListener('click', openAlbum);
+  albumPrev.addEventListener('click', () => turnAlbumPage(-1));
+  albumNext.addEventListener('click', () => turnAlbumPage(1));
+  albumClose.addEventListener('click', () => closeAlbum());
 
   npcPrompt.addEventListener('click', speakWithTeacher);
   npcBubbleNext.addEventListener('click', talkToTeacher);
@@ -124,6 +162,7 @@ export function initInput() {
 
   overviewBtn.addEventListener('click', () => {
     closeDialogue();
+    closeAlbum({ fly: false });
     if (isWalking()) exitWalk();
     else closePanel({ fly: true });
   });
@@ -136,6 +175,16 @@ export function initInput() {
   });
 
   document.addEventListener('keydown', (event) => {
+    // Reading the album: arrows turn pages, Esc closes it, everything else waits.
+    if (isAlbumActive()) {
+      if (event.key === 'Escape') closeAlbum();
+      else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        // A focused page button already turns on Enter/Space; arrows work from anywhere.
+        turnAlbumPage(event.key === 'ArrowRight' ? 1 : -1);
+        event.preventDefault();
+      }
+      return;
+    }
     if (event.key === 'Escape') {
       if (isTalking()) closeDialogue();
       else if (isWalking()) exitWalk();
@@ -145,9 +194,12 @@ export function initInput() {
     }
     // Walk keys (arrows / WASD / Shift). Browser shortcuts with a modifier stay untouched.
     if (event.ctrlKey || event.metaKey || event.altKey) return;
-    // E speaks to the teacher when she is near (and moves her on to the next line).
+    // E speaks to the teacher when she is near (and moves her on to the next line), or
+    // opens the album when standing at its table.
     if (event.code === 'KeyE' && isWalking()) {
-      if (!event.repeat && (isTalking() || isTeacherInReach())) speakWithTeacher();
+      if (event.repeat) return;
+      if (isTalking() || isTeacherInReach()) speakWithTeacher();
+      else if (isAlbumInReach()) openAlbum();
       return;
     }
     if (setWalkKey(event.code, true) && !event.code.startsWith('Shift')) event.preventDefault();
@@ -163,7 +215,8 @@ export function initInput() {
     renderer.setPixelRatio(targetPixelRatio());
     renderer.setSize(width, height);
     camera.aspect = width / Math.max(1, height);
-    if (isWalking()) refreshWalkFov();
+    if (isAlbumActive()) refreshAlbumView();
+    else if (isWalking()) refreshWalkFov();
     else updateResponsiveFov();
     camera.updateProjectionMatrix();
     controls.maxDistance = Math.max(390, viewportOverview().position.distanceTo(overviewTarget) * 1.35);

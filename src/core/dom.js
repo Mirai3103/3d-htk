@@ -31,6 +31,13 @@ export const npcBubbleTyped = document.getElementById('npc-bubble-typed');
 export const npcBubbleRest = document.getElementById('npc-bubble-rest');
 export const npcBubbleMore = document.getElementById('npc-bubble-more');
 export const npcBubbleLive = document.getElementById('npc-bubble-live');
+export const albumPrompt = document.getElementById('album-prompt');
+export const albumUi = document.getElementById('album-ui');
+export const albumPrev = document.getElementById('album-prev');
+export const albumNext = document.getElementById('album-next');
+export const albumPage = document.getElementById('album-page');
+export const albumClose = document.getElementById('album-close');
+export const albumLive = document.getElementById('album-live');
 export const panelClose = document.getElementById('panel-close');
 export const panelBack = document.getElementById('panel-back');
 

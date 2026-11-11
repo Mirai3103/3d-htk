@@ -98,6 +98,12 @@
   .npc-bubble-text { font-size: 13px; }
   .npc-prompt-text { display: none; }
   .npc-prompt svg { margin: 7px 9px; }
+
+  .album-ui { bottom: max(12px, env(safe-area-inset-bottom)); }
+  .album-status { min-width: 112px; }
+  .album-page { font-size: 13px; }
+  .album-close span { display: none; }
+  .album-close { padding: 0 14px; }
 }
 
 @media (max-width: 390px) {

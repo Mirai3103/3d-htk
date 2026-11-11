@@ -69,6 +69,11 @@ export function isWalking() {
   return mode !== 'off';
 }
 
+/** True once the walker is on foot and steering (not still flying down to the gate). */
+export function isWalkReady() {
+  return mode === 'on';
+}
+
 function walkFov() {
   const aspect = window.innerWidth / Math.max(1, window.innerHeight);
   return aspect < 1 ? 78 : 66;
@@ -196,6 +201,16 @@ function moveBy(dx, dz) {
 function applyCamera(bob) {
   camera.position.set(pos.x, eyeY + bob, pos.z);
   camera.rotation.set(pitch, yaw, 0, 'YXZ');
+}
+
+/**
+ * Where the first-person camera belongs right now. Lets another view (the album) borrow the
+ * camera and fly it back: on arrival updateWalk() takes over from exactly this pose.
+ */
+export function walkCameraPose() {
+  const position = new THREE.Vector3(pos.x, eyeY, pos.z);
+  const gaze = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
+  return { position, target: position.clone().addScaledVector(gaze, 10), fov: walkFov() };
 }
 
 function showPlace(id) {

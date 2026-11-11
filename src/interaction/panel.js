@@ -14,6 +14,7 @@ import {
 } from '../core/dom.js';
 import { BUILDING_ORDER, BUILDING_TOTAL, BUILDINGS } from '../data/buildings.js';
 import { flyToBuilding, flyToOverview } from './cameraRig.js';
+import { closeAlbum } from './albumView.js';
 import { closeDialogue } from './dialogue.js';
 import { refreshOutline, setHoveredBuilding } from './hover.js';
 
@@ -23,6 +24,7 @@ export function selectBuilding(id) {
   const data = BUILDINGS[id];
   if (!data) return;
   closeDialogue();
+  closeAlbum({ fly: false });
   setHoveredBuilding(null);
   selectedBuilding = id;
   panelKind.textContent = data.kind;

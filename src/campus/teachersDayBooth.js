@@ -1,8 +1,9 @@
 /**
  * Teachers' Day (20 November) check-in corner in front of the great shade tree: a painted
  * backdrop under a balloon garland, marquee "20 ♥ 11" numbers, congratulation flower stands,
- * a wall of wishes, a guest-book table, a photo frame to pose behind, and bunting strung from
- * the trunk. Everything is static and batched except the two bunches of helium balloons.
+ * a wall of wishes, a souvenir table, a photo frame to pose behind, and bunting strung from
+ * the trunk. Everything is static and batched except the two bunches of helium balloons and
+ * the album on the souvenir table (campus/album.js).
  */
 
 import * as THREE from 'three';
@@ -14,6 +15,7 @@ import { MATS } from '../materials/registry.js';
 import { lampLights, makeLampGlow } from '../scene/lights.js';
 import { festiveUV, propRegionUV } from '../textures/festive.js';
 import { addStudent } from '../kit/furniture.js';
+import { buildAlbum } from './album.js';
 
 // Booth origin (world): the middle of the carpet. Local +Z faces the main gate.
 const BX = -12;
@@ -443,7 +445,7 @@ function addMumPot(b, x, z, color, seed) {
   b.solidCircle(0.2, x, z);
 }
 
-// ---- Wish board, guest-book table, photo frame ---------------------------------------------
+// ---- Wish board, souvenir table, photo frame ---------------------------------------------
 
 function addWishBoard(x, z, yaw) {
   const e = at(x, z, yaw);
@@ -478,24 +480,22 @@ function addGift(b, color, ribbon, w, h, d, x, y, z, ry = 0) {
   }
 }
 
-function addGuestBookTable(x, z, yaw) {
+function addSouvenirTable(x, z, yaw) {
   const t = at(x, z, yaw);
   const top = 0.76;
   matteBox(t, 'white', 1.7, top, 0.76, 0, top / 2, 0);
   t.box('gold', 1.72, 0.025, 0.78, 0, top - 0.02, 0);
-  t.geometry('signEventProps', propPlane('guestBook'), 0, 0.38, 0.385, 0, 0, 0, 0.92, 0.46, 1);
+  t.geometry('signEventProps', propPlane('souvenir'), 0, 0.38, 0.385, 0, 0, 0, 0.92, 0.46, 1);
   t.solidBox(1.7, 0.76, 0, 0);
 
-  // Open guest book with a pen.
-  matteBox(t, 'crimson', 0.52, 0.018, 0.34, -0.42, top + 0.009, 0.1);
-  for (const side of [-1, 1]) {
-    matteBox(t, 'cream', 0.235, 0.022, 0.31, -0.42 + side * 0.122, top + 0.034, 0.1, 0, 0, side * 0.07);
-  }
-  matteRod(t, 'navy', 0.008, 0.17, -0.36, top + 0.052, 0.12, 0, 0.5, Math.PI / 2);
+  // The souvenir album: closed until someone opens it. Its spine lies here; the open book
+  // spreads a page width to either side.
+  const [albumX, albumZ] = t._worldXZ(-0.42, 0.04);
+  buildAlbum({ x: albumX, y: top, z: albumZ, yaw });
 
   // A greeting card on a little stand, a vase of flowers and a weight for the balloons.
-  t.box('wood', 0.5, 0.27, 0.02, 0.1, top + 0.13, -0.14, -0.22);
-  t.geometry('signEventProps', propPlane('card'), 0.1, top + 0.132, -0.126, -0.22, 0, 0, 0.46, 0.23, 1);
+  t.box('wood', 0.42, 0.24, 0.02, 0.2, top + 0.115, -0.2, -0.22);
+  t.geometry('signEventProps', propPlane('card'), 0.2, top + 0.117, -0.187, -0.22, 0, 0, 0.39, 0.195, 1);
   t.cylinder('ceramicBlue', 0.07, 0.24, 0.56, top + 0.12, -0.12);
   t.blob('leaf', 0.13, 0.56, top + 0.3, -0.12, 1, 0.8, 1);
   const rng = seededRandom(2026);
@@ -590,20 +590,20 @@ export function buildTeachersDayBooth() {
   });
 
   addWishBoard(-4.35, 0.45, 0.5);
-  addGuestBookTable(4.3, 0.3, -0.3);
+  addSouvenirTable(4.3, 0.3, -0.3);
   addPhotoFrame(-2.75, 3.15, 0.32);
   addBalloonBunch(5.14, 0.8, 0.3, 7, ['red', 'gold', 'pink', 'cream', 'sky']);
   addBalloonBunch(-3.43, 2.14, 3.38, 9, ['pink', 'yellow', 'red', 'teal']);
 
   // Pupils: two posing by the numbers, one taking their picture, one behind the photo frame,
-  // one reading the wishes and one signing the guest book.
+  // one reading the wishes and one at the souvenir table (clear of whoever reads the album).
   const pupil = (x, z, yaw, seed) => addStudent(b, BX + x, BZ + z, yaw, seed);
   pupil(2.4, 0.2, 0.05, 21);
   pupil(2.95, 0.05, -0.2, 22);
   pupil(2.3, 3.6, 3.04, 23);
   pupil(-2.86, 2.81, 0.32, 24);
   pupil(-3.94, 1.2, 0.5 + Math.PI, 15);
-  pupil(4.06, 1.06, Math.PI - 0.3, 16);
+  pupil(4.54, 1.21, Math.PI - 0.3, 16);
 
   // Warm light over the carpet after dark, switched with the courtyard lamps.
   const light = new THREE.PointLight(0xffd6a0, 0, 16, 2);

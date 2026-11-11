@@ -230,7 +230,7 @@ export const PROP_REGIONS = {
   wishBoard: [0, 0, 1024, 640],
   frameTop: [0, 640, 1024, 160],
   frameBottom: [0, 800, 1024, 224],
-  guestBook: [0, 1024, 512, 256],
+  souvenir: [0, 1024, 512, 256],
   card: [512, 1024, 512, 256],
 };
 
@@ -349,8 +349,8 @@ export const eventPropsTex = signTexture((ctx) => {
     ctx.fillText('#TriÂnThầyCô  #NhàGiáoViệtNam', 700, h * 0.8);
   });
 
-  // Poster on the front of the guest-book table.
-  inRegion(ctx, 'guestBook', (w, h) => {
+  // Poster on the front of the souvenir table.
+  inRegion(ctx, 'souvenir', (w, h) => {
     const g = ctx.createLinearGradient(0, 0, 0, h);
     g.addColorStop(0, '#c0302a');
     g.addColorStop(1, '#8e1b1c');
@@ -360,11 +360,11 @@ export const eventPropsTex = signTexture((ctx) => {
     ctx.lineWidth = 6;
     ctx.strokeRect(14, 14, w - 28, h - 28);
     ctx.fillStyle = '#fff3d9';
-    ctx.font = `900 86px ${SANS}`;
-    ctx.fillText('SỔ LƯU BÚT', w / 2, 128);
+    ctx.font = `900 ${fitText(ctx, 'BÀN LƯU NIỆM', w - 76, 86, SANS, 900)}px ${SANS}`;
+    ctx.fillText('BÀN LƯU NIỆM', w / 2, 128);
     ctx.fillStyle = '#f4d27c';
     ctx.font = `italic 600 36px ${SERIF}`;
-    ctx.fillText('Viết lời tri ân gửi thầy cô', w / 2, 196);
+    ctx.fillText('Mở album xem ảnh kỷ niệm', w / 2, 196);
   });
 
   // Greeting card standing on the table.

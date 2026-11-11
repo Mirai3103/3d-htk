@@ -1,20 +1,25 @@
 /**
- * Pointer picking: invisible box proxies per building, plus the teacher's own proxy, and the
- * raycast that tells which one a pointer event is over.
+ * Pointer picking: invisible box proxies per building, plus the teacher's and the album's own
+ * proxies, and the raycast that tells which one a pointer event is over.
  */
 
 import * as THREE from 'three';
 import { camera, pointerNdc, raycaster, renderer, scene } from '../core/engine.js';
+import { getAlbumPickProxy } from '../campus/album.js';
 import { getTeacherPickProxy } from '../campus/teacher.js';
 import { BUILDING_ORDER, BUILDINGS } from '../data/buildings.js';
+import { canPickAlbum } from './albumView.js';
 
 const pickables = [];
 const npcPickables = [];
+let albumProxy = null;
 
 /**
- * What is under the pointer: `{ buildingId }`, `{ npc }` or null. The nearest proxy wins, so
- * a building's box in front of the teacher hides her. With `npcOnly` the buildings are
- * ignored (walk mode, where they are not selectable).
+ * What is under the pointer: `{ buildingId }`, `{ npc }`, `{ prop }` or null. The nearest
+ * proxy wins, so a building's box in front of the teacher hides her. The album sits inside
+ * the Teachers' Day corner's own box, so it is reached through that box (`within`) once the
+ * camera is near enough. With `npcOnly` the buildings are ignored (walk mode, where they are
+ * not selectable).
  */
 export function findPickAtEvent(event, npcOnly = false) {
   const targets = npcOnly ? npcPickables : pickables;
@@ -27,7 +32,21 @@ export function findPickAtEvent(event, npcOnly = false) {
   raycaster.setFromCamera(pointerNdc, camera);
   raycaster.far = 900;
   const hits = raycaster.intersectObjects(targets, false);
-  return hits.length ? hits[0].object.userData : null;
+  let around = null;
+  for (const hit of hits) {
+    const data = hit.object.userData;
+    if (data.prop) {
+      if (canPickAlbum()) return data;
+    } else if (around) {
+      break;
+    } else if (data.buildingId && data.buildingId === albumProxy?.userData.within) {
+      // Keep looking: the album may be just behind this box's face.
+      around = data;
+    } else {
+      return data;
+    }
+  }
+  return around;
 }
 
 export function createPickProxies() {
@@ -46,5 +65,11 @@ export function createPickProxies() {
   if (teacher) {
     pickables.push(teacher);
     npcPickables.push(teacher);
+  }
+  albumProxy = getAlbumPickProxy();
+  if (albumProxy) {
+    albumProxy.userData.within = 'teachersDay';
+    pickables.push(albumProxy);
+    npcPickables.push(albumProxy);
   }
 }
