@@ -38,6 +38,12 @@ export const albumNext = document.getElementById('album-next');
 export const albumPage = document.getElementById('album-page');
 export const albumClose = document.getElementById('album-close');
 export const albumLive = document.getElementById('album-live');
+export const videoPrompt = document.getElementById('video-prompt');
+export const videoFrame = document.getElementById('video-frame');
+export const memoryVideo = document.getElementById('memory-video');
+export const videoStatus = document.getElementById('video-status');
+export const videoUi = document.getElementById('video-ui');
+export const videoClose = document.getElementById('video-close');
 export const panelClose = document.getElementById('panel-close');
 export const panelBack = document.getElementById('panel-back');
 

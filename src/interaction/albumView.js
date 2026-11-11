@@ -16,7 +16,6 @@ import {
   albumPrompt,
   albumUi,
   appEl,
-  labelsLayer,
 } from '../core/dom.js';
 import { camera, controls, pointerNdc, raycaster, renderer } from '../core/engine.js';
 import {
@@ -31,10 +30,11 @@ import {
 } from '../campus/album.js';
 import { ALBUM_ITEMS } from '../data/album.js';
 import { isCameraFlying, startCameraFlight } from './cameraRig.js';
+import { cameraReturnPose, flyCameraBack, isCameraInReach, updatePrompt } from './closeUp.js';
 import { closeDialogue } from './dialogue.js';
 import { setHoveredBuilding } from './hover.js';
 import { closePanel } from './panel.js';
-import { isWalking, isWalkReady, releaseWalkKeys, walkCameraPose } from './walk.js';
+import { isWalking, isWalkReady, releaseWalkKeys } from './walk.js';
 
 const READ_FOV = 40;
 // The camera leans over the table like a reader, this far from straight down.
@@ -46,19 +46,17 @@ const OPEN_DELAY = 0.45;
 // From how far the album can be opened: on foot, and in the orbit views.
 const WALK_REACH = 4.5;
 const ORBIT_REACH = 48;
-const EDGE_MARGIN = 10;
 
 /** 'closed' → 'opening' (flying in) → 'open' → 'closing' (flying back) → 'closed'. */
 let state = 'closed';
 let openTimer = 0;
-/** Where the camera goes back to: an orbit pose, or `walk: true` for the walker's eyes. */
+/** Where the camera goes back to (closeUp.js). */
 let returnPose = null;
 let shownSpread = '';
 let pointer = null;
 
 const center = new THREE.Vector3();
 const front = new THREE.Vector3();
-const projected = new THREE.Vector3();
 
 /** True from the moment the album is opened until the camera is back: the view owns the camera. */
 export function isAlbumActive() {
@@ -91,9 +89,9 @@ function refreshUi() {
   if (key === shownSpread) return;
   shownSpread = key;
   const shown = [left, right].filter((pageNum) => pageNum && pageNum <= total);
-  if (shown.length === 2) albumPage.textContent = `Pages ${shown[0]}–${shown[1]} of ${total}`;
-  else if (shown.length === 1) albumPage.textContent = `Page ${shown[0]} of ${total}`;
-  else albumPage.textContent = 'The end';
+  if (shown.length === 2) albumPage.textContent = `Trang ${shown[0]}–${shown[1]} / ${total}`;
+  else if (shown.length === 1) albumPage.textContent = `Trang ${shown[0]} / ${total}`;
+  else albumPage.textContent = 'Hết album';
   albumPrev.disabled = !canPrev;
   albumNext.disabled = !canNext;
   albumLive.textContent = shown.map(describe).filter(Boolean).join(' ');
@@ -110,9 +108,7 @@ export function openAlbum() {
   closeDialogue();
   setHoveredBuilding(null);
   releaseWalkKeys();
-  returnPose = isWalking()
-    ? { walk: true }
-    : { walk: false, position: camera.position.clone(), target: controls.target.clone() };
+  returnPose = cameraReturnPose();
 
   state = 'opening';
   openTimer = OPEN_DELAY;
@@ -151,15 +147,9 @@ export function closeAlbum({ fly = true } = {}) {
     return;
   }
   state = 'closing';
-  const done = () => {
+  flyCameraBack(returnPose, FLY_OUT, () => {
     if (state === 'closing') state = 'closed';
-  };
-  if (returnPose.walk) {
-    const pose = walkCameraPose();
-    startCameraFlight(pose.position, pose.target, FLY_OUT, { fov: pose.fov, handBack: false, onDone: done });
-  } else {
-    startCameraFlight(returnPose.position, returnPose.target, FLY_OUT, { onDone: done });
-  }
+  });
 }
 
 /** Turn to the next (+1) or previous (-1) spread. */
@@ -175,7 +165,7 @@ export function isAlbumInReach() {
 /** Is the camera close enough for a click on the album to count? (orbit views) */
 export function canPickAlbum() {
   if (state !== 'closed' || !getAlbumFrame(center, front)) return false;
-  return camera.position.distanceTo(center) <= (isWalking() ? WALK_REACH : ORBIT_REACH);
+  return isCameraInReach(center, WALK_REACH, ORBIT_REACH);
 }
 
 // ---- Pointer: drag or tap a page -----------------------------------------------------------
@@ -229,14 +219,6 @@ export function refreshAlbumView() {
   camera.lookAt(pose.target);
 }
 
-/** Put `element` above the projected point, kept inside the window. */
-function place(element, x, y) {
-  const half = element.offsetWidth / 2;
-  const left = THREE.MathUtils.clamp(x, half + EDGE_MARGIN, Math.max(half + EDGE_MARGIN, window.innerWidth - half - EDGE_MARGIN));
-  const top = Math.max(y, element.offsetHeight + EDGE_MARGIN);
-  element.style.transform = `translate3d(${left.toFixed(1)}px, ${top.toFixed(1)}px, 0) translate(-50%, -100%)`;
-}
-
 /** Per-frame, from animate(), after the camera has been moved. */
 export function updateAlbumView(dt) {
   if (state === 'opening' || state === 'open') {
@@ -248,27 +230,7 @@ export function updateAlbumView(dt) {
     return;
   }
   if (!getAlbumFrame(center, front)) return;
-
-  // The "open" prompt: near the album on foot; in the orbit views once the camera is close
-  // (and the Labels switch is on).
-  const walking = isWalking();
-  const distance = camera.position.distanceTo(center);
-  camera.updateMatrixWorld();
-  projected.copy(center);
-  projected.y += 0.16;
-  projected.project(camera);
-  const onScreen =
-    projected.z > -1 && projected.z < 1 &&
-    Math.abs(projected.x) < 1.02 && projected.y > -1.05 && projected.y < 1.02;
-  const show = state === 'closed' && onScreen && (walking
-    ? isWalkReady() && distance <= WALK_REACH
-    : distance <= ORBIT_REACH && !labelsLayer.classList.contains('is-hidden'));
-  if (albumPrompt.hidden === show) albumPrompt.hidden = !show;
-  if (show) {
-    place(
-      albumPrompt,
-      (projected.x * 0.5 + 0.5) * window.innerWidth,
-      (-projected.y * 0.5 + 0.5) * window.innerHeight,
-    );
-  }
+  // The "open" prompt floats just above the closed album.
+  center.y += 0.16;
+  updatePrompt(albumPrompt, center, state === 'closed', WALK_REACH, ORBIT_REACH);
 }

@@ -23,6 +23,7 @@ import { initInput } from './interaction/input.js';
 import { isWalking, teleportWalker, updateWalk } from './interaction/walk.js';
 import { updateDialogue } from './interaction/dialogue.js';
 import { isAlbumActive, updateAlbumView } from './interaction/albumView.js';
+import { isVideoActive, updateVideoView } from './interaction/videoView.js';
 import { updateFlag } from './campus/ceremonyStage.js';
 import { updateTeacher } from './campus/teacher.js';
 import { updateAlbum } from './campus/album.js';
@@ -42,8 +43,8 @@ function animate() {
 
   updateCameraFlight();
   updateWeather(dt);
-  if (isAlbumActive()) {
-    // The album's reading view holds the camera (its flights run in updateCameraFlight).
+  if (isAlbumActive() || isVideoActive()) {
+    // A close-up view (album, video) holds the camera; its flights run in updateCameraFlight.
   } else if (isWalking()) {
     updateWalk(dt);
   } else {
@@ -56,6 +57,7 @@ function animate() {
   updateDialogue(dt);
   updateAlbum(dt);
   updateAlbumView(dt);
+  updateVideoView();
 
   skyUniforms.uTime.value = t;
   skyGroup.position.copy(camera.position);
@@ -79,7 +81,7 @@ function applyDevWalkParam() {
 // weather switch.
 async function boot() {
   setInitialView();
-  loaderStatus.textContent = 'Planting the courtyard trees…';
+  loaderStatus.textContent = 'Trồng cây cho sân trường…';
   buildCampus();
   flushBatches();
   createPickProxies();
@@ -87,7 +89,7 @@ async function boot() {
   createHoverOutline();
   createPuddles();
   initInput();
-  loaderStatus.textContent = 'Softening the afternoon light…';
+  loaderStatus.textContent = 'Pha ánh nắng chiều…';
   const rainWasVisible = rain.visible;
   rain.visible = true;
   try {
@@ -104,10 +106,10 @@ async function boot() {
 
 boot().catch((error) => {
   console.error(error);
-  loaderStatus.textContent = 'The campus could not be built.';
+  loaderStatus.textContent = 'Không thể dựng khu trường.';
   const fallback = document.getElementById('loader-fallback');
   if (fallback) {
     fallback.hidden = false;
-    fallback.textContent = 'This browser may be blocking WebGL.';
+    fallback.textContent = 'Trình duyệt này có thể đang chặn WebGL.';
   }
 });

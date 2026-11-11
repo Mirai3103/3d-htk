@@ -15,6 +15,8 @@ import {
   overviewBtn,
   panelBack,
   panelClose,
+  videoClose,
+  videoPrompt,
   walkToggle,
 } from '../core/dom.js';
 import { camera, controls, renderer, targetPixelRatio } from '../core/engine.js';
@@ -36,6 +38,15 @@ import { findPickAtEvent } from './picking.js';
 import { getHoveredBuilding, setHoveredBuilding, setOutlineResolution } from './hover.js';
 import { applyLabelNames, measureLabels, toggleLabels, updateLabels } from './labels.js';
 import { closePanel, selectBuilding } from './panel.js';
+import {
+  closeVideo,
+  initVideoView,
+  isVideoActive,
+  isVideoInReach,
+  openVideo,
+  refreshVideoView,
+  videoKeyDown,
+} from './videoView.js';
 import {
   exitWalk,
   isWalking,
@@ -65,6 +76,8 @@ export function initInput() {
       albumPointerDown(event);
       return;
     }
+    // Watching the video: the scene behind it is not touched.
+    if (isVideoActive()) return;
     // Walking: a drag looks around; keep receiving it even if it leaves the canvas.
     if (isWalking()) renderer.domElement.setPointerCapture(event.pointerId);
     activePointers.add(event.pointerId);
@@ -86,6 +99,7 @@ export function initInput() {
       albumPointerMove(event);
       return;
     }
+    if (isVideoActive()) return;
     if (isWalking()) {
       if (event.buttons !== 0) walkLook(event.movementX, event.movementY);
       else renderer.domElement.style.cursor = findPickAtEvent(event, true) ? 'pointer' : 'grab';
@@ -120,11 +134,12 @@ export function initInput() {
     const wasPrimary = event.pointerType !== 'mouse' || event.button === 0;
     pointerDown = null;
     if (wasPrimary && distance < 7 && elapsed < 900 && activePointers.size === 0) {
-      // On foot only the teacher and the album can be clicked; buildings are named as you
-      // walk past.
+      // On foot only the teacher, the album and the video screen can be clicked; buildings
+      // are named as you walk past.
       const pick = findPickAtEvent(event, isWalking());
       if (pick?.npc) speakWithTeacher();
       else if (pick?.prop === 'album') openAlbum();
+      else if (pick?.prop === 'video') openVideo();
       else if (pick?.buildingId) selectBuilding(pick.buildingId);
     }
   });
@@ -148,6 +163,7 @@ export function initInput() {
   walkToggle.addEventListener('click', () => {
     closeDialogue();
     closeAlbum({ fly: false });
+    closeVideo({ fly: false });
     toggleWalk();
   });
 
@@ -156,6 +172,10 @@ export function initInput() {
   albumNext.addEventListener('click', () => turnAlbumPage(1));
   albumClose.addEventListener('click', () => closeAlbum());
 
+  initVideoView();
+  videoPrompt.addEventListener('click', openVideo);
+  videoClose.addEventListener('click', () => closeVideo());
+
   npcPrompt.addEventListener('click', speakWithTeacher);
   npcBubbleNext.addEventListener('click', talkToTeacher);
   npcBubbleClose.addEventListener('click', closeDialogue);
@@ -163,6 +183,7 @@ export function initInput() {
   overviewBtn.addEventListener('click', () => {
     closeDialogue();
     closeAlbum({ fly: false });
+    closeVideo({ fly: false });
     if (isWalking()) exitWalk();
     else closePanel({ fly: true });
   });
@@ -185,6 +206,10 @@ export function initInput() {
       }
       return;
     }
+    if (isVideoActive()) {
+      videoKeyDown(event);
+      return;
+    }
     if (event.key === 'Escape') {
       if (isTalking()) closeDialogue();
       else if (isWalking()) exitWalk();
@@ -194,12 +219,13 @@ export function initInput() {
     }
     // Walk keys (arrows / WASD / Shift). Browser shortcuts with a modifier stay untouched.
     if (event.ctrlKey || event.metaKey || event.altKey) return;
-    // E speaks to the teacher when she is near (and moves her on to the next line), or
-    // opens the album when standing at its table.
+    // E speaks to the teacher when she is near (and moves her on to the next line), opens
+    // the album when standing at its table, or starts the video in front of its screen.
     if (event.code === 'KeyE' && isWalking()) {
       if (event.repeat) return;
       if (isTalking() || isTeacherInReach()) speakWithTeacher();
       else if (isAlbumInReach()) openAlbum();
+      else if (isVideoInReach()) openVideo();
       return;
     }
     if (setWalkKey(event.code, true) && !event.code.startsWith('Shift')) event.preventDefault();
@@ -216,6 +242,7 @@ export function initInput() {
     renderer.setSize(width, height);
     camera.aspect = width / Math.max(1, height);
     if (isAlbumActive()) refreshAlbumView();
+    else if (isVideoActive()) refreshVideoView();
     else if (isWalking()) refreshWalkFov();
     else updateResponsiveFov();
     camera.updateProjectionMatrix();

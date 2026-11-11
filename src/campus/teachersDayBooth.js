@@ -1,9 +1,10 @@
 /**
  * Teachers' Day (20 November) check-in corner in front of the great shade tree: a painted
  * backdrop under a balloon garland, marquee "20 ♥ 11" numbers, congratulation flower stands,
- * a wall of wishes, a souvenir table, a photo frame to pose behind, and bunting strung from
- * the trunk. Everything is static and batched except the two bunches of helium balloons and
- * the album on the souvenir table (campus/album.js).
+ * a memory-video screen, a souvenir table with a wall of wishes beside it, a photo frame to
+ * pose behind, and bunting strung from the trunk. Everything is static and batched except the
+ * two bunches of helium balloons, the album on the souvenir table (campus/album.js) and the
+ * screen's picture (campus/memoryScreen.js).
  */
 
 import * as THREE from 'three';
@@ -16,6 +17,7 @@ import { lampLights, makeLampGlow } from '../scene/lights.js';
 import { festiveUV, propRegionUV } from '../textures/festive.js';
 import { addStudent } from '../kit/furniture.js';
 import { buildAlbum } from './album.js';
+import { buildMemoryScreen } from './memoryScreen.js';
 
 // Booth origin (world): the middle of the carpet. Local +Z faces the main gate.
 const BX = -12;
@@ -589,20 +591,26 @@ export function buildTeachersDayBooth() {
     addMumPot(b, x, 1.74, i % 3 === 1 ? 'pink' : 'yellow', 60 + i);
   });
 
-  addWishBoard(-4.35, 0.45, 0.5);
+  // The memory-video screen on the left; the souvenir table on the right with the wall of
+  // wishes beside it. Keep the 3 m in front of the screen clear: the camera watches from there.
+  buildMemoryScreen({ x: BX - 4.7, z: BZ + 0.4, yaw: 0.22 });
   addSouvenirTable(4.3, 0.3, -0.3);
-  addPhotoFrame(-2.75, 3.15, 0.32);
+  addWishBoard(6.8, 1.05, -0.6);
+  // The photo frame stands out to the left, clear of the view onto the screen.
+  addPhotoFrame(-5.9, 3.6, 0.45);
   addBalloonBunch(5.14, 0.8, 0.3, 7, ['red', 'gold', 'pink', 'cream', 'sky']);
-  addBalloonBunch(-3.43, 2.14, 3.38, 9, ['pink', 'yellow', 'red', 'teal']);
+  addBalloonBunch(-6.55, 2.14, 3.92, 9, ['pink', 'yellow', 'red', 'teal']);
 
   // Pupils: two posing by the numbers, one taking their picture, one behind the photo frame,
-  // one reading the wishes and one at the souvenir table (clear of whoever reads the album).
+  // one watching the screen from its side, one reading the wishes and one at the souvenir
+  // table (clear of whoever reads the album).
   const pupil = (x, z, yaw, seed) => addStudent(b, BX + x, BZ + z, yaw, seed);
   pupil(2.4, 0.2, 0.05, 21);
   pupil(2.95, 0.05, -0.2, 22);
   pupil(2.3, 3.6, 3.04, 23);
-  pupil(-2.86, 2.81, 0.32, 24);
-  pupil(-3.94, 1.2, 0.5 + Math.PI, 15);
+  pupil(-6.05, 3.28, 0.45, 24);
+  pupil(-5.95, 1.7, 2.38, 17);
+  pupil(6.32, 1.75, Math.PI - 0.6, 15);
   pupil(4.54, 1.21, Math.PI - 0.3, 16);
 
   // Warm light over the carpet after dark, switched with the courtyard lamps.

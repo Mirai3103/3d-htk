@@ -61,8 +61,8 @@ function showLine() {
   const line = lines[lineIndex];
   const last = lineIndex === lines.length - 1;
   npcBubbleStep.textContent = `${lineIndex + 1} / ${lines.length}`;
-  npcBubbleMore.textContent = last ? 'Done' : 'Next';
-  npcBubbleNext.setAttribute('aria-label', last ? 'End the conversation' : 'Continue');
+  npcBubbleMore.textContent = last ? 'Xong' : 'Tiếp';
+  npcBubbleNext.setAttribute('aria-label', last ? 'Kết thúc trò chuyện' : 'Tiếp tục');
   npcBubbleLive.textContent = line;
   typed = reducedMotion.matches ? line.length : 0;
   shownChars = -1;

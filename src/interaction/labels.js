@@ -45,7 +45,7 @@ export function createLabels() {
     button.className = 'building-label';
     button.dataset.building = id;
     button.textContent = data.name;
-    button.setAttribute('aria-label', `View ${data.name}`);
+    button.setAttribute('aria-label', `Xem ${data.name}`);
     button.addEventListener('click', () => selectBuilding(id));
     button.addEventListener('pointerenter', (event) => {
       if (event.pointerType === 'mouse') setHoveredBuilding(id, true);

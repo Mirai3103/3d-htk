@@ -1,25 +1,28 @@
 /**
- * Pointer picking: invisible box proxies per building, plus the teacher's and the album's own
- * proxies, and the raycast that tells which one a pointer event is over.
+ * Pointer picking: invisible box proxies per building, plus the teacher's, the album's and the
+ * video screen's own proxies, and the raycast that tells which one a pointer event is over.
  */
 
 import * as THREE from 'three';
 import { camera, pointerNdc, raycaster, renderer, scene } from '../core/engine.js';
 import { getAlbumPickProxy } from '../campus/album.js';
+import { getMemoryScreenPickProxy } from '../campus/memoryScreen.js';
 import { getTeacherPickProxy } from '../campus/teacher.js';
 import { BUILDING_ORDER, BUILDINGS } from '../data/buildings.js';
 import { canPickAlbum } from './albumView.js';
+import { canPickVideo } from './videoView.js';
 
 const pickables = [];
 const npcPickables = [];
-let albumProxy = null;
+// Buildings whose box has props (the album, the video screen) inside it.
+const propHosts = new Set();
 
 /**
  * What is under the pointer: `{ buildingId }`, `{ npc }`, `{ prop }` or null. The nearest
- * proxy wins, so a building's box in front of the teacher hides her. The album sits inside
- * the Teachers' Day corner's own box, so it is reached through that box (`within`) once the
- * camera is near enough. With `npcOnly` the buildings are ignored (walk mode, where they are
- * not selectable).
+ * proxy wins, so a building's box in front of the teacher hides her. The props stand inside
+ * the Teachers' Day corner's own box, so they are reached through that box once the camera
+ * is near enough (`canPick`). With `npcOnly` the buildings are ignored (walk mode, where
+ * they are not selectable).
  */
 export function findPickAtEvent(event, npcOnly = false) {
   const targets = npcOnly ? npcPickables : pickables;
@@ -36,11 +39,11 @@ export function findPickAtEvent(event, npcOnly = false) {
   for (const hit of hits) {
     const data = hit.object.userData;
     if (data.prop) {
-      if (canPickAlbum()) return data;
+      if (data.canPick()) return data;
     } else if (around) {
       break;
-    } else if (data.buildingId && data.buildingId === albumProxy?.userData.within) {
-      // Keep looking: the album may be just behind this box's face.
+    } else if (data.buildingId && propHosts.has(data.buildingId)) {
+      // Keep looking: a prop may be just behind this box's face.
       around = data;
     } else {
       return data;
@@ -66,10 +69,12 @@ export function createPickProxies() {
     pickables.push(teacher);
     npcPickables.push(teacher);
   }
-  albumProxy = getAlbumPickProxy();
-  if (albumProxy) {
-    albumProxy.userData.within = 'teachersDay';
-    pickables.push(albumProxy);
-    npcPickables.push(albumProxy);
+  const props = [[getAlbumPickProxy(), canPickAlbum], [getMemoryScreenPickProxy(), canPickVideo]];
+  for (const [proxy, canPick] of props) {
+    if (!proxy) continue;
+    proxy.userData.canPick = canPick;
+    propHosts.add('teachersDay');
+    pickables.push(proxy);
+    npcPickables.push(proxy);
   }
 }

@@ -3,7 +3,8 @@
 Procedural low-poly 3D model of a Vietnamese secondary school, built with **Three.js + Vite**.
 Everything (geometry, textures, signs) is generated in code: there are **no image/model assets
 and no CDN**. `bun run build` produces **one self-contained file: `dist/index.html`**
-(via `vite-plugin-singlefile`).
+(via `vite-plugin-singlefile`), plus a copy of `public/` beside it — today only the memory
+video, `dist/videos/` (see "The memory video").
 
 ## Commands (package manager: **bun**)
 
@@ -12,7 +13,7 @@ and no CDN**. `bun run build` produces **one self-contained file: `dist/index.ht
 | `bun install`      | Install deps                                                         |
 | `bun run dev`      | Dev server with HMR (full reload on most changes)                    |
 | `bun run lint`     | ESLint: catches **missing imports** (`no-undef`), writes to imports  |
-| `bun run build`    | Single-file bundle → `dist/index.html`                               |
+| `bun run build`    | Single-file bundle → `dist/index.html` (+ `public/` copied to `dist/`) |
 | `bun run check`    | `lint` + `build`. **Run this after every change.**                   |
 
 `bun run check` passing ≠ the scene works: runtime errors only show in the browser console.
@@ -45,7 +46,8 @@ textures/                   canvas-painted textures (no image files)
   surfaces.js               stucco, brick, grass, asphalt, concrete, court, corrugation, roof tile
   signs.js                  gate/admin signs, banner, stage backdrop, plaque, flag
   sky.js                    env maps per weather, lamp glow, moon
-  festive.js                Teachers' Day: colour-swatch palette, check-in backdrop, props atlas
+  festive.js                Teachers' Day: colour-swatch palette, check-in backdrop, props atlas,
+                            the video screen's title card
   album.js                  souvenir album: cover, endpapers, one painted page per ALBUM_ITEMS entry
 materials/
   registry.js               MATS map, std(), addSignMaterial(), M (direct handles), SIGN/GLOW lists
@@ -63,6 +65,7 @@ data/
   buildings.js              BUILDINGS directory (text, bounds, label anchor, camera view), BUILDING_ORDER
   teacher.js                TEACHER: the courtyard teacher's look, position and speech lines
   album.js                  ALBUM (cover wording) + ALBUM_ITEMS (one { imageLink, description } per page)
+  video.js                  MEMORY_VIDEO: the memory video's file and the screen's title card wording
 kit/                        reusable parts; every function takes a Builder `b` first
   architecture.js           windows, doors, railings, gable/hip roofs, porch, sagging awning
   vegetation.js             addTree, addPalm, addPottedPlant, addFlowerCluster, addOrientedCone
@@ -75,12 +78,15 @@ campus/                     one file per place on the site; each exports build*(
   teacher.js                the teacher NPC (a jointed Object3D, not batched): buildTeacher, updateTeacher
   teachersDayBooth.js       20/11 check-in corner by the great tree: buildTeachersDayBooth, update…
   album.js                  the souvenir album on its table (real meshes: cover, curling sheets)
+  memoryScreen.js           the memory-video screen: batched stand + its self-lit picture mesh
 interaction/
   cameraRig.js              overview framing, flyTo*/startCameraFlight, constrainCamera, isCameraFlying
   walk.js                   first-person walk mode: enter/exitWalk, isWalking, updateWalk(dt)
-  picking.js                invisible pick proxies (buildings + teacher), findPickAtEvent
+  picking.js                pick proxies (buildings, teacher, album, video screen), findPickAtEvent
   dialogue.js               teacher's "talk" prompt and speech bubble: talkToTeacher, closeDialogue
+  closeUp.js                shared by the close-up views: camera return pose, reach, prompt chip
   albumView.js              reading the album: "open" prompt, camera in/out, page turning input
+  videoView.js              watching the memory video: "watch" prompt, camera in/out, <video> overlay
   hover.js                  hovered state + outline box (getHoveredBuilding, setHoveredBuilding)
   labels.js                 HTML labels projected from 3D, toggleLabels
   panel.js                  selectBuilding(id), closePanel()
@@ -88,7 +94,7 @@ interaction/
 styles/
   index.css                 @imports the parts below — ORDER MATTERS, responsive.css last
   base.css brand.css controls.css labels.css panel.css hint.css walk.css dialogue.css album.css
-  loader.css
+  video.css loader.css
   responsive.css
 ```
 
@@ -163,8 +169,8 @@ closes after the last; Esc or the × ends it early. In the orbit views the camer
 ## The Teachers' Day corner (20/11)
 
 A check-in booth stands in front of the great tree (`campus/teachersDayBooth.js`): backdrop,
-balloon garland, marquee "20 ♥ 11", flower stands, wish board, souvenir table, photo frame,
-bunting tied to the trunk. It is also a selectable place (`teachersDay` in `data/buildings.js`).
+balloon garland, marquee "20 ♥ 11", flower stands, memory-video screen (left), souvenir table
+with the wish board beside it (right), photo frame, bunting tied to the trunk. It is also a selectable place (`teachersDay` in `data/buildings.js`).
 
 - Its many colours come from **one swatch texture** (`textures/festive.js`): the materials
   `festGloss` (balloons) and `festMatte` (paper, cloth, pennants; two-sided) read a colour by
@@ -200,6 +206,31 @@ where it was (orbit pose or the walker's eyes).
   elsewhere (Overview, Walk, selecting a building) must call `closeAlbum({ fly: false })` first.
 - Page textures are painted lazily on first open (`textures/album.js`); their materials are in
   `SIGN_MATERIALS`, so the pages stay readable at night.
+
+## The memory video
+
+A screen on a stand, left of the backdrop in the Teachers' Day corner, shows a title card.
+Clicking it (orbit views, once the camera is near), its "Watch the video" prompt, or **E** in
+front of it in walk mode flies the camera square in front of the screen and plays the video on
+it; Space pauses, Esc / Close stops it and returns the camera to where it was.
+
+- **Content is data:** edit `MEMORY_VIDEO` in `data/video.js` (`src`, and the title card's
+  wording). The file lives in `public/videos/`: Vite copies `public/` into `dist/` untouched, so
+  `src` is a path relative to `index.html` and **`dist/videos/` must be deployed with
+  `dist/index.html`**. A full `https://` address works too (second sanctioned exception to "no
+  external URLs"). The current file is mock footage. Never `import` a video from `src/`: the
+  single-file build would inline it as base64.
+- The video is a plain HTML `<video controls>` (`#video-frame`), not a texture, so it also plays
+  from hosts without CORS and from a build opened straight from disk. `videoView.js` puts the
+  camera on the screen's normal — the picture then projects to an exact rectangle — and lays
+  the element over it (`watchingPose()` returns both the pose and the rectangle; narrow windows
+  widen the FOV instead of backing away). Nothing is requested until the first click.
+- `campus/memoryScreen.js` owns the prop: the stand is batched, the picture is a real
+  `MeshBasicMaterial` mesh (self-lit like a display, and the pick target).
+- `interaction/videoView.js` owns the mode, built like the album's: while `isVideoActive()`
+  nothing else drives the camera, `#app` has the class `is-watching` (the header hides too), and
+  anything that sends the camera elsewhere must call `closeVideo({ fly: false })` first.
+- Keep the ~3 m in front of the screen free of props: the camera watches from there.
 
 ## Recipes
 
@@ -242,5 +273,6 @@ are required), an env texture in `textures/sky.js` `ENV_TEXTURES`, and a `.weath
 - Import three.js as `import * as THREE from 'three'`; addons from `three/addons/...` (pinned 0.186.0).
 - Keep it single-file friendly: no runtime `fetch`, no external URLs. Small assets imported from
   `src/` get inlined by the build; avoid large binaries (the HTML is ~800 kB, mostly three.js).
-  The only exception is the album's page photos (see "The souvenir album").
-- UI text is English; on-scene signage is Vietnamese (with diacritics) — keep both as they are.
+  The only exceptions are the album's page photos (see "The souvenir album") and the memory
+  video, which is a separate file by design (see "The memory video").
+- All UI text is Vietnamese; on-scene signage is Vietnamese too (with diacritics) — keep both as they are.

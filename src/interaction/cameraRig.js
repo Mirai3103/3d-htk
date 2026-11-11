@@ -68,7 +68,7 @@ export function flyToBuilding(data) {
     target = new THREE.Vector3(...data.mobileView.target);
     position = new THREE.Vector3(...data.mobileView.position);
   } else if (mobile) {
-    const mobileScales = { 'Administration Block': 2.05, 'Back Classroom Block': 2.35, 'Right Classroom Wing': 1.92, 'Inner Left Wing': 2.08, 'Outer Left Wing': 2.2, 'Ceremony Stage': 1.45, 'Main Gate': 1.18 };
+    const mobileScales = { 'Nhà Hành chính': 2.05, 'Dãy lớp học phía sau': 2.35, 'Dãy lớp học bên phải': 1.92, 'Dãy lớp học trái trong': 2.08, 'Dãy lớp học trái ngoài': 2.2, 'Lễ đài': 1.45, 'Cổng chính': 1.18 };
     const direction = basePosition.clone().sub(originalTarget);
     target = originalTarget.clone();
     target.y = Math.min(target.y, 1.35);

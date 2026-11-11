@@ -1,0 +1,57 @@
+/* Watching the memory video (interaction/videoView.js): #app gets .is-watching while the
+   camera faces the screen, and .video-frame is laid exactly over the screen's picture (its
+   left/top/width/height are set from the 3D scene). The "Watch the video" prompt reuses the
+   teacher's .npc-prompt chip (dialogue.css) and the bar reuses the album's (album.css). */
+
+#app.is-watching .hint,
+#app.is-watching .walk-place,
+#app.is-watching .npc-prompt,
+#app.is-watching #npc-bubble { display: none; }
+#app.is-watching .labels-layer { opacity: 0; visibility: hidden; }
+
+/* The header steps aside too: the picture takes the whole window above the bar. */
+.brand,
+.top-controls { transition: opacity 0.35s ease, visibility 0.35s; }
+#app.is-watching .brand,
+#app.is-watching .top-controls { opacity: 0; visibility: hidden; }
+
+.video-frame {
+  position: absolute;
+  z-index: 9;
+  overflow: hidden;
+  background: #000;
+  animation: video-on 0.4s ease both;
+}
+
+.video-frame[hidden] { display: none; }
+
+@keyframes video-on {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.video-frame video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.video-status {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(8, 21, 15, 0.74);
+  color: #f8eed3;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.video-status[hidden] { display: none; }

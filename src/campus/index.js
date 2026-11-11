@@ -23,11 +23,11 @@ import { buildTeachersDayBooth } from './teachersDayBooth.js';
 
 export function buildCampus() {
   ensureBuildMaterials();
-  loaderStatus.textContent = 'Laying the red-brick courtyard…';
+  loaderStatus.textContent = 'Lát sân gạch đỏ…';
   buildGroundAndStreet();
   buildPerimeter();
   buildMainGate();
-  loaderStatus.textContent = 'Raising the classroom wings…';
+  loaderStatus.textContent = 'Dựng các dãy lớp học…';
   buildAdministration();
   buildClassroomBlock({
     cx: 17, cz: -24.5, yaw: 0, W: 38, D: 9, seed: 4,
@@ -46,7 +46,7 @@ export function buildCampus() {
     roofKey: 'roofGreen', ridgeKey: 'ridge', roofRise: 2.55,
   });
   buildBicycleShed();
-  loaderStatus.textContent = 'Stretching the green ceremony awning…';
+  loaderStatus.textContent = 'Căng mái xanh của lễ đài…';
   buildCeremonyStage();
   buildMemorialBust();
   buildSportsCourtDetails();
@@ -56,5 +56,5 @@ export function buildCampus() {
   buildCourtyardLamps();
   buildTeacher();
   buildNeighborhood();
-  loaderStatus.textContent = 'Setting out the little details…';
+  loaderStatus.textContent = 'Sắp đặt những chi tiết nhỏ…';
 }

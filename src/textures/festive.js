@@ -1,10 +1,12 @@
 /**
  * Teachers' Day (20 November) decorations: the colour palette shared by every balloon, pennant
- * and paper prop, the painted check-in backdrop, and one atlas for the small printed props.
+ * and paper prop, the painted check-in backdrop, one atlas for the small printed props, and
+ * the title card of the memory-video screen.
  */
 
 import * as THREE from 'three';
 import { seededRandom, TAU } from '../core/math.js';
+import { MEMORY_VIDEO } from '../data/video.js';
 import { drawHeart, fitText, makeCanvas, rgba, signTexture } from './canvas.js';
 
 // The anniversary on the backdrop counts from the first Teachers' Day, 20/11/1982.
@@ -385,3 +387,70 @@ export const eventPropsTex = signTexture((ctx) => {
     ctx.fillText('mạnh khỏe · hạnh phúc', w / 2, 214);
   });
 }, ATLAS_W, ATLAS_H);
+
+// ---- Memory-video screen -------------------------------------------------------------------
+// What the screen shows while the video is not playing: a title card with a play button.
+
+export const memoryScreenTex = signTexture((ctx, w, h) => {
+  const glow = ctx.createRadialGradient(w / 2, h * 0.4, 40, w / 2, h * 0.45, w * 0.62);
+  glow.addColorStop(0, '#8f1f22');
+  glow.addColorStop(0.55, '#4f1216');
+  glow.addColorStop(1, '#1d080b');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, w, h);
+
+  // Film perforations along the top and bottom edges.
+  const band = 46;
+  ctx.fillStyle = 'rgba(12, 4, 6, 0.86)';
+  ctx.fillRect(0, 0, w, band);
+  ctx.fillRect(0, h - band, w, band);
+  ctx.fillStyle = 'rgba(255, 233, 190, 0.82)';
+  for (let x = 14; x < w; x += 44) {
+    ctx.fillRect(x, 12, 24, 22);
+    ctx.fillRect(x, h - 34, 24, 22);
+  }
+
+  // Play button.
+  const cx = w / 2;
+  const cy = 196;
+  ctx.fillStyle = 'rgba(255, 226, 150, 0.16)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 104, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = '#f2c35a';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 82, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = '#7a1418';
+  ctx.beginPath();
+  ctx.moveTo(cx - 26, cy - 42);
+  ctx.lineTo(cx + 46, cy);
+  ctx.lineTo(cx - 26, cy + 42);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff3d9';
+  ctx.font = `900 ${fitText(ctx, MEMORY_VIDEO.title, w - 150, 92, SANS, 900)}px ${SANS}`;
+  ctx.fillText(MEMORY_VIDEO.title, cx, 392);
+  ctx.fillStyle = '#f4d27c';
+  ctx.font = `italic 600 ${fitText(ctx, MEMORY_VIDEO.subtitle, w - 200, 40, SERIF, 'italic 600')}px ${SERIF}`;
+  ctx.fillText(MEMORY_VIDEO.subtitle, cx, 446);
+
+  // The invitation, in a pill.
+  ctx.font = `800 30px ${SANS}`;
+  const pill = ctx.measureText(MEMORY_VIDEO.invite).width + 64;
+  ctx.fillStyle = '#f2c35a';
+  ctx.beginPath();
+  ctx.roundRect(cx - pill / 2, 468, pill, 46, 23);
+  ctx.fill();
+  ctx.fillStyle = '#5c1014';
+  ctx.fillText(MEMORY_VIDEO.invite, cx, 502);
+
+  ctx.fillStyle = '#e9566a';
+  for (const [x, y, size] of [[118, 150, 46], [w - 118, 150, 46], [196, 300, 26], [w - 196, 300, 26]]) {
+    drawHeart(ctx, x, y, size);
+    ctx.fill();
+  }
+}, 1024, 576);

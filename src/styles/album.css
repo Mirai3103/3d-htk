@@ -4,7 +4,7 @@
 
 #app.is-reading .hint,
 #app.is-reading .walk-place,
-#app.is-reading #npc-prompt,
+#app.is-reading .npc-prompt,
 #app.is-reading #npc-bubble { display: none; }
 #app.is-reading .labels-layer { opacity: 0; visibility: hidden; }
 

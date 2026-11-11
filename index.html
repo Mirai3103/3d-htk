@@ -1,43 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#10251b" />
-<title>THCS Huynh Thuc Khang - 3D Campus</title>
+<title>THCS Huỳnh Thúc Kháng - Mô hình 3D</title>
 </head>
 <body>
 <div id="app">
-  <div id="stage" aria-label="Interactive 3D model of Trường THCS Huỳnh Thúc Kháng"></div>
+  <div id="stage" aria-label="Mô hình 3D tương tác Trường THCS Huỳnh Thúc Kháng"></div>
   <div class="edge-shade" aria-hidden="true"></div>
-  <div id="labels" class="labels-layer" aria-label="Building labels"></div>
+  <div id="labels" class="labels-layer" aria-label="Nhãn công trình"></div>
 
   <div id="npc-layer" class="npc-layer">
-    <button class="npc-prompt" id="npc-prompt" type="button" aria-label="Talk to the teacher" hidden>
+    <button class="npc-prompt" id="npc-prompt" type="button" aria-label="Nói chuyện với cô giáo" hidden>
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M4.6 3.6h10.8a2 2 0 0 1 2 2v6.2a2 2 0 0 1-2 2H10l-3.9 3v-3H4.6a2 2 0 0 1-2-2V5.6a2 2 0 0 1 2-2Z"/><path d="M6.6 7.4h6.8M6.6 10.2h4.4"/>
       </svg>
-      <span class="npc-prompt-text">Talk to the teacher</span>
+      <span class="npc-prompt-text">Nói chuyện với cô giáo</span>
       <kbd class="npc-prompt-key" aria-hidden="true">E</kbd>
     </button>
-    <button class="npc-prompt" id="album-prompt" type="button" aria-label="Open the album" hidden>
+    <button class="npc-prompt" id="album-prompt" type="button" aria-label="Mở album" hidden>
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M10 5.2C8.3 4 6 3.6 3.2 3.9v11.3c2.8-.3 5.1.1 6.8 1.3 1.7-1.2 4-1.6 6.8-1.3V3.9c-2.8-.3-5.1.1-6.8 1.3Z"/><path d="M10 5.2v11.3"/>
       </svg>
-      <span class="npc-prompt-text">Open the album</span>
+      <span class="npc-prompt-text">Mở album</span>
       <kbd class="npc-prompt-key" aria-hidden="true">E</kbd>
     </button>
-    <div class="npc-bubble" id="npc-bubble" role="group" aria-label="The teacher is speaking" hidden>
+    <button class="npc-prompt" id="video-prompt" type="button" aria-label="Xem video" hidden>
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2.6" y="4" width="14.8" height="10" rx="1.8"/><path d="m8.6 7 3.6 2-3.6 2V7Z"/><path d="M7 16.6h6"/>
+      </svg>
+      <span class="npc-prompt-text">Xem video</span>
+      <kbd class="npc-prompt-key" aria-hidden="true">E</kbd>
+    </button>
+    <div class="npc-bubble" id="npc-bubble" role="group" aria-label="Cô giáo đang nói" hidden>
       <div class="npc-bubble-head">
         <span class="npc-bubble-name" id="npc-bubble-name">Cô giáo</span>
         <span class="npc-bubble-step" id="npc-bubble-step">1 / 6</span>
-        <button class="npc-bubble-close" id="npc-bubble-close" type="button" aria-label="End the conversation">
+        <button class="npc-bubble-close" id="npc-bubble-close" type="button" aria-label="Kết thúc trò chuyện">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m3.5 3.5 9 9M12.5 3.5l-9 9"/></svg>
         </button>
       </div>
-      <button class="npc-bubble-body" id="npc-bubble-next" type="button" aria-label="Continue">
+      <button class="npc-bubble-body" id="npc-bubble-next" type="button" aria-label="Tiếp tục">
         <span class="npc-bubble-text" lang="vi" aria-hidden="true"><span id="npc-bubble-typed"></span><span class="npc-bubble-rest" id="npc-bubble-rest"></span></span>
-        <span class="npc-bubble-more" aria-hidden="true"><span id="npc-bubble-more">Next</span>
+        <span class="npc-bubble-more" aria-hidden="true"><span id="npc-bubble-more">Tiếp</span>
           <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.2 2.4 3.6 3.6-3.6 3.6"/></svg>
         </span>
       </button>
@@ -55,53 +62,53 @@
     </div>
     <div class="brand-copy">
       <p class="eyebrow">Nghĩa Hành · Quảng Ngãi</p>
-      <h1>THCS Huỳnh Thúc Kháng <span class="title-dash">-</span><span class="title-mode">3D Campus</span></h1>
-      <p class="brand-sub">An interactive portrait of a Vietnamese school day</p>
+      <h1>THCS Huỳnh Thúc Kháng <span class="title-dash">-</span><span class="title-mode">Mô hình 3D</span></h1>
+      <p class="brand-sub">Chân dung tương tác về một ngày đến trường Việt Nam</p>
     </div>
   </header>
 
   <div class="top-controls">
-    <section class="weather-card" aria-label="Weather and lighting">
-      <span class="control-kicker">Atmosphere</span>
-      <div class="weather-options" role="group" aria-label="Weather mode">
-        <button class="weather-btn" type="button" data-weather="sunny" aria-pressed="true" title="Sunny">
+    <section class="weather-card" aria-label="Thời tiết và ánh sáng">
+      <span class="control-kicker">Không gian</span>
+      <div class="weather-options" role="group" aria-label="Chọn thời tiết">
+        <button class="weather-btn" type="button" data-weather="sunny" aria-pressed="true" title="Nắng">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3.7"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.55 1.55M17.85 17.85l1.55 1.55M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.55-1.55M17.85 6.15l1.55-1.55"/>
-          </svg><span>Sunny</span>
+          </svg><span>Nắng</span>
         </button>
-        <button class="weather-btn" type="button" data-weather="cloudy" aria-pressed="false" title="Cloudy">
+        <button class="weather-btn" type="button" data-weather="cloudy" aria-pressed="false" title="Mây">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M6.3 18.2h11a3.4 3.4 0 0 0 .3-6.78A5.25 5.25 0 0 0 7.4 10.7a3.8 3.8 0 0 0-1.1 7.5Z"/>
-          </svg><span>Cloudy</span>
+          </svg><span>Mây</span>
         </button>
-        <button class="weather-btn" type="button" data-weather="rain" aria-pressed="false" title="Rain">
+        <button class="weather-btn" type="button" data-weather="rain" aria-pressed="false" title="Mưa">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M6.4 15.8h11.1a3.35 3.35 0 0 0 .3-6.68A5.2 5.2 0 0 0 7.5 8.3a3.75 3.75 0 0 0-1.1 7.5Z"/><path d="M8.1 19.1 7.2 21M12.2 19.1 11.3 21M16.3 19.1 15.4 21"/>
-          </svg><span>Rain</span>
+          </svg><span>Mưa</span>
         </button>
-        <button class="weather-btn" type="button" data-weather="night" aria-pressed="false" title="Night">
+        <button class="weather-btn" type="button" data-weather="night" aria-pressed="false" title="Đêm">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M20.2 15.1A8.4 8.4 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"/>
-          </svg><span>Night</span>
+          </svg><span>Đêm</span>
         </button>
       </div>
     </section>
 
     <div class="utility-row">
-      <button class="utility-btn" type="button" id="labels-toggle" aria-pressed="true" title="Show or hide building labels">
+      <button class="utility-btn" type="button" id="labels-toggle" aria-pressed="true" title="Hiện hoặc ẩn nhãn công trình">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M2.7 12s3.4-5.2 9.3-5.2 9.3 5.2 9.3 5.2-3.4 5.2-9.3 5.2S2.7 12 2.7 12Z"/><circle cx="12" cy="12" r="2.4"/>
-        </svg><span>Labels</span>
+        </svg><span>Nhãn</span>
       </button>
-      <button class="utility-btn" type="button" id="walk-toggle" aria-pressed="false" title="Walk through the campus on foot">
+      <button class="utility-btn" type="button" id="walk-toggle" aria-pressed="false" title="Đi bộ tham quan khu trường">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="13" cy="4.6" r="1.9"/><path d="m9.2 21 2.2-6.2-2.3-2.6 1.3-4.9 3.1 1.1 1.9 2.9 3.1 1"/><path d="m10.4 7.3-3.2 1.6-.9 3.2M13.6 14.4l1.9 2.5.6 4.1"/>
-        </svg><span>Walk</span>
+        </svg><span>Dạo bước</span>
       </button>
-      <button class="utility-btn" type="button" id="overview-btn" title="Return to campus overview">
+      <button class="utility-btn" type="button" id="overview-btn" title="Trở về tổng quan khu trường">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M4 9.2 12 3l8 6.2V20a1 1 0 0 1-1 1h-4.3v-6H9.3v6H5a1 1 0 0 1-1-1V9.2Z"/>
-        </svg><span>Overview</span>
+        </svg><span>Tổng quan</span>
       </button>
     </div>
   </div>
@@ -109,33 +116,33 @@
   <aside class="info-panel" id="info-panel" aria-hidden="true" aria-labelledby="panel-name" aria-live="polite" inert>
     <div class="panel-topline">
       <span class="panel-index" id="panel-index">01 / 07</span>
-      <span class="panel-kind">Campus building</span>
-      <button class="panel-close" id="panel-close" type="button" aria-label="Close details and return to overview">
+      <span class="panel-kind">Công trình trong trường</span>
+      <button class="panel-close" id="panel-close" type="button" aria-label="Đóng chi tiết và về tổng quan">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m3.5 3.5 9 9M12.5 3.5l-9 9"/></svg>
       </button>
     </div>
     <div class="panel-body">
-      <h2 class="panel-name" id="panel-name">Administration Block</h2>
-      <p class="panel-sub" id="panel-sub">Landmark · Back of campus</p>
+      <h2 class="panel-name" id="panel-name">Nhà Hành chính</h2>
+      <p class="panel-sub" id="panel-sub">Điểm nhấn · Cuối khuôn viên</p>
       <div class="panel-rule"></div>
       <div class="stat-grid">
         <div class="stat-card">
-          <span class="stat-label">Floor area</span>
+          <span class="stat-label">Diện tích sàn</span>
           <span class="stat-value" id="panel-area">720 <span class="stat-unit">m²</span></span>
         </div>
         <div class="stat-card">
-          <span class="stat-label">Storeys</span>
+          <span class="stat-label">Số tầng</span>
           <span class="stat-value" id="panel-levels">3</span>
         </div>
       </div>
       <section class="panel-function">
-        <h3>Function</h3>
-        <p id="panel-description">Principal's office, staff room, library and meeting rooms.</p>
+        <h3>Chức năng</h3>
+        <p id="panel-description">Phòng hiệu trưởng, phòng giáo viên, thư viện và các phòng họp.</p>
       </section>
-      <p class="panel-note">Drag, orbit and zoom around the campus</p>
+      <p class="panel-note">Kéo, xoay và thu phóng quanh khu trường</p>
     </div>
     <button class="back-button" id="panel-back" type="button">
-      <span>Return to campus overview</span>
+      <span>Về tổng quan khu trường</span>
       <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h11M9.6 4.5 14 9l-4.4 4.5"/></svg>
     </button>
   </aside>
@@ -146,7 +153,7 @@
         <rect x="4.2" y="2.8" width="11.6" height="14.4" rx="5.8"/><path d="M10 5.8v3.1"/><path d="M10 11.1h.01"/>
       </svg>
     </span>
-    <span><strong>Drag</strong> to orbit <span class="hint-desktop">· Scroll to zoom · Right-drag to pan</span><span class="hint-mobile">· Pinch to zoom</span><br>Select any building to explore it</span>
+    <span><strong>Kéo</strong> để xoay <span class="hint-desktop">· Cuộn để thu phóng · Kéo chuột phải để dịch chuyển</span><span class="hint-mobile">· Chụm hai ngón để thu phóng</span><br>Chọn một công trình để khám phá</span>
   </div>
 
   <div class="hint walk-hint" aria-hidden="true">
@@ -155,7 +162,7 @@
         <rect x="7.2" y="3" width="5.6" height="5.4" rx="1.3"/><rect x="1.4" y="10.6" width="5.6" height="5.4" rx="1.3"/><rect x="7.2" y="10.6" width="5.6" height="5.4" rx="1.3"/><rect x="13" y="10.6" width="5.6" height="5.4" rx="1.3"/>
       </svg>
     </span>
-    <span><strong>↑ ↓</strong> walk · <strong>← →</strong> turn · <strong>Shift</strong> run<br>Drag to look around · <strong>Esc</strong> to leave</span>
+    <span><strong>↑ ↓</strong> đi · <strong>← →</strong> quay · <strong>Shift</strong> chạy<br>Kéo để nhìn quanh · <strong>Esc</strong> để thoát</span>
   </div>
 
   <div class="walk-place" id="walk-place" role="status" aria-live="polite">
@@ -163,26 +170,46 @@
     <span class="walk-place-name" id="walk-place-name"></span>
   </div>
 
-  <div class="album-ui" id="album-ui" role="group" aria-label="Souvenir album" hidden>
+  <div class="album-ui" id="album-ui" role="group" aria-label="Album kỷ niệm" hidden>
     <div class="album-bar">
-      <button class="album-nav" id="album-prev" type="button" aria-label="Previous page">
+      <button class="album-nav" id="album-prev" type="button" aria-label="Trang trước">
         <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3.8 5.8 9l5.2 5.2"/></svg>
       </button>
       <div class="album-status">
-        <span class="album-kicker">Souvenir album</span>
-        <span class="album-page" id="album-page">Page 1 of 10</span>
+        <span class="album-kicker">Album kỷ niệm</span>
+        <span class="album-page" id="album-page">Trang 1 / 10</span>
       </div>
-      <button class="album-nav" id="album-next" type="button" aria-label="Next page">
+      <button class="album-nav" id="album-next" type="button" aria-label="Trang sau">
         <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 3.8 5.2 5.2L7 14.2"/></svg>
       </button>
       <span class="album-divider" aria-hidden="true"></span>
-      <button class="album-close" id="album-close" type="button" aria-label="Close the album">
+      <button class="album-close" id="album-close" type="button" aria-label="Đóng album">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m3.5 3.5 9 9M12.5 3.5l-9 9"/></svg>
-        <span>Close</span>
+        <span>Đóng</span>
       </button>
     </div>
-    <p class="album-hint" aria-hidden="true">Drag or tap a page to turn it<span class="album-hint-keys"> · <strong>← →</strong> · <strong>Esc</strong> to close</span></p>
+    <p class="album-hint" aria-hidden="true">Kéo hoặc chạm vào trang để lật<span class="album-hint-keys"> · <strong>← →</strong> · <strong>Esc</strong> để đóng</span></p>
     <p class="npc-bubble-live" id="album-live" lang="vi" aria-live="polite"></p>
+  </div>
+
+  <div class="video-frame" id="video-frame" hidden>
+    <video id="memory-video" controls playsinline preload="none" aria-label="Video kỷ niệm"></video>
+    <p class="video-status" id="video-status" role="status" hidden></p>
+  </div>
+
+  <div class="album-ui" id="video-ui" role="group" aria-label="Video kỷ niệm" hidden>
+    <div class="album-bar">
+      <div class="album-status">
+        <span class="album-kicker">Đang trình chiếu</span>
+        <span class="album-page">Video kỷ niệm</span>
+      </div>
+      <span class="album-divider" aria-hidden="true"></span>
+      <button class="album-close" id="video-close" type="button" aria-label="Đóng video">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m3.5 3.5 9 9M12.5 3.5l-9 9"/></svg>
+        <span>Đóng</span>
+      </button>
+    </div>
+    <p class="album-hint" aria-hidden="true">Dùng thanh điều khiển của video<span class="album-hint-keys"> · <strong>Space</strong> để tạm dừng · <strong>Esc</strong> để đóng</span></p>
   </div>
 
   <div class="loader" id="loader" role="status" aria-live="polite">
@@ -196,9 +223,9 @@
       </div>
       <p class="loader-kicker">Chợ Chữa · Nghĩa Hành</p>
       <h2>Huỳnh Thúc Kháng</h2>
-      <p class="loader-status" id="loader-status">Loading the campus…</p>
+      <p class="loader-status" id="loader-status">Đang dựng khu trường…</p>
       <div class="loader-bar" aria-hidden="true"></div>
-      <noscript><p class="loader-fallback">This interactive 3D campus needs JavaScript enabled.</p></noscript>
+      <noscript><p class="loader-fallback">Mô hình 3D tương tác này cần bật JavaScript.</p></noscript>
       <p class="loader-fallback" id="loader-fallback" hidden></p>
     </div>
   </div>
@@ -214,10 +241,10 @@
     var status = document.getElementById('loader-status');
     var fallback = document.getElementById('loader-fallback');
     if (!loader || loader.classList.contains('is-done')) return;
-    if (status) status.textContent = 'The 3D scene could not start.';
+    if (status) status.textContent = 'Không thể khởi động cảnh 3D.';
     if (fallback) {
       fallback.hidden = false;
-      fallback.textContent = 'Please check that WebGL is enabled in this browser.';
+      fallback.textContent = 'Vui lòng kiểm tra xem trình duyệt đã bật WebGL chưa.';
     }
     if (event && event.message) console.error(event.message);
   }, true);

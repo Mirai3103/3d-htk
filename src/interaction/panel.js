@@ -16,6 +16,7 @@ import { BUILDING_ORDER, BUILDING_TOTAL, BUILDINGS } from '../data/buildings.js'
 import { flyToBuilding, flyToOverview } from './cameraRig.js';
 import { closeAlbum } from './albumView.js';
 import { closeDialogue } from './dialogue.js';
+import { closeVideo } from './videoView.js';
 import { refreshOutline, setHoveredBuilding } from './hover.js';
 
 let selectedBuilding = null;
@@ -25,6 +26,7 @@ export function selectBuilding(id) {
   if (!data) return;
   closeDialogue();
   closeAlbum({ fly: false });
+  closeVideo({ fly: false });
   setHoveredBuilding(null);
   selectedBuilding = id;
   panelKind.textContent = data.kind;
@@ -39,7 +41,7 @@ export function selectBuilding(id) {
   if (data.storeys == null) {
     panelLevels.textContent = '—';
   } else {
-    const unit = data.storeysLabel || (data.storeys === 1 ? 'storey' : 'storeys');
+    const unit = data.storeysLabel || 'tầng';
     panelLevels.innerHTML = `${data.storeys} <span class="stat-unit">${unit}</span>`;
   }
   panelDescription.textContent = data.description;
