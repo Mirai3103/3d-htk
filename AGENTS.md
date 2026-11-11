@@ -41,10 +41,12 @@ core/
   dom.js                    references to static DOM in index.html (loader, panel, buttons…)
   engine.js                 renderer, scene, camera, OrbitControls, raycaster, clock, targetPixelRatio
 textures/                   canvas-painted textures (no image files)
-  canvas.js                 makeCanvas, canvasTexture, signTexture, fitText, drawStar, rgba
+  canvas.js                 makeCanvas, canvasTexture, signTexture, fitText, drawStar, drawHeart, rgba
   surfaces.js               stucco, brick, grass, asphalt, concrete, court, corrugation, roof tile
   signs.js                  gate/admin signs, banner, stage backdrop, plaque, flag
   sky.js                    env maps per weather, lamp glow, moon
+  festive.js                Teachers' Day: colour-swatch palette, check-in backdrop, props atlas
+  album.js                  souvenir album: cover, endpapers, one painted page per ALBUM_ITEMS entry
 materials/
   registry.js               MATS map, std(), addSignMaterial(), M (direct handles), SIGN/GLOW lists
   library.js                ALL named materials (std('wall', {...}) …), wetMaterials, ensureBuildMaterials
@@ -59,6 +61,8 @@ scene/
   puddles.js                createPuddles(), puddleMeshes
 data/
   buildings.js              BUILDINGS directory (text, bounds, label anchor, camera view), BUILDING_ORDER
+  teacher.js                TEACHER: the courtyard teacher's look, position and speech lines
+  album.js                  ALBUM (cover wording) + ALBUM_ITEMS (one { imageLink, description } per page)
 kit/                        reusable parts; every function takes a Builder `b` first
   architecture.js           windows, doors, railings, gable/hip roofs, porch, sagging awning
   vegetation.js             addTree, addPalm, addPottedPlant, addFlowerCluster, addOrientedCone
@@ -68,17 +72,24 @@ campus/                     one file per place on the site; each exports build*(
   ground.js perimeter.js gate.js administration.js classroomBlock.js ceremonyStage.js
   memorialBust.js sportsCourt.js bicycleShed.js courtyardLife.js courtyardLamps.js neighborhood.js
   sideYard.js
+  teacher.js                the teacher NPC (a jointed Object3D, not batched): buildTeacher, updateTeacher
+  teachersDayBooth.js       20/11 check-in corner by the great tree: buildTeachersDayBooth, update…
+  album.js                  the souvenir album on its table (real meshes: cover, curling sheets)
 interaction/
   cameraRig.js              overview framing, flyTo*/startCameraFlight, constrainCamera, isCameraFlying
   walk.js                   first-person walk mode: enter/exitWalk, isWalking, updateWalk(dt)
-  picking.js                invisible pick proxies from BUILDINGS bounds, findBuildingAtEvent
+  picking.js                invisible pick proxies (buildings + teacher), findPickAtEvent
+  dialogue.js               teacher's "talk" prompt and speech bubble: talkToTeacher, closeDialogue
+  albumView.js              reading the album: "open" prompt, camera in/out, page turning input
   hover.js                  hovered state + outline box (getHoveredBuilding, setHoveredBuilding)
   labels.js                 HTML labels projected from 3D, toggleLabels
   panel.js                  selectBuilding(id), closePanel()
   input.js                  initInput(): every DOM/pointer/keyboard/resize listener
 styles/
   index.css                 @imports the parts below — ORDER MATTERS, responsive.css last
-  base.css brand.css controls.css labels.css panel.css hint.css walk.css loader.css responsive.css
+  base.css brand.css controls.css labels.css panel.css hint.css walk.css dialogue.css album.css
+  loader.css
+  responsive.css
 ```
 
 `index.html` holds only the static markup (header, weather buttons, info panel, loader) plus a
@@ -136,6 +147,60 @@ and `animate()` calls `updateWalk(dt)` instead of `controls.update()`.
 - Dev only: `?walk=x,z,yawDegrees,pitchDegrees` (e.g. `/?walk=3,-12,180`) starts in walk mode at
   that spot, handy for checking a first-person view.
 
+## The teacher (NPC)
+
+A teacher in áo dài stands in the middle of the courtyard (`campus/teacher.js`). Clicking or
+tapping her — or her "Talk to the teacher" prompt, or pressing **E** near her in walk mode —
+opens a speech bubble (`interaction/dialogue.js`) that types out one short passage per click and
+closes after the last; Esc or the × ends it early. In the orbit views the camera flies in first.
+
+- Her text, position and look are data: edit `TEACHER` in `data/teacher.js` (one `lines` entry =
+  one bubble; keep them short).
+- She is animated, so she is built from real meshes under joints (merged per joint and material
+  by `bake()`), casts a shadow but receives none (the shadow map is static).
+- The bubble and prompt are plain HTML in `#npc-layer`, projected each frame by `updateDialogue`.
+
+## The Teachers' Day corner (20/11)
+
+A check-in booth stands in front of the great tree (`campus/teachersDayBooth.js`): backdrop,
+balloon garland, marquee "20 ♥ 11", flower stands, wish board, souvenir table, photo frame,
+bunting tied to the trunk. It is also a selectable place (`teachersDay` in `data/buildings.js`).
+
+- Its many colours come from **one swatch texture** (`textures/festive.js`): the materials
+  `festGloss` (balloons) and `festMatte` (paper, cloth, pennants; two-sided) read a colour by
+  UV, so a prop is coloured with the module's `tint(UNIT.x, 'red')` / `colorize(geometry, 'gold')`
+  helpers instead of a material per colour. Add a colour by adding a swatch to `SWATCHES`.
+- The backdrop text and the anniversary count are painted in `textures/festive.js`
+  (`TEACHERS_DAY_YEAR`); the small printed props share one atlas (`PROP_REGIONS`).
+- `fairyBulb` and `lantern` glow with the courtyard lamps (`scene/weather.js`). Only the two
+  helium-balloon bunches move (`updateTeachersDayBooth`).
+
+## The souvenir album
+
+A closed photo album lies on the souvenir table of the Teachers' Day corner. Clicking it (orbit
+views, once the camera is near), its "Open the album" prompt, or **E** next to it in walk mode
+flies the camera over the table and opens it; pages turn by dragging or tapping a page, the
+‹ › buttons or the arrow keys; Esc / Close turns everything back and returns the camera to
+where it was (orbit pose or the walker's eyes).
+
+- **Content is data:** edit `ALBUM` (cover, dedication, farewell) and `ALBUM_ITEMS` in
+  `data/album.js`. One entry = one page (photo + caption); two pages per sheet, so the number of
+  sheets follows the list. The current entries are mock data.
+- Page pictures are the one sanctioned exception to "no external URLs": `imageLink` is loaded at
+  runtime, first directly, then through the `wsrv.nl` image proxy (for hosts without CORS), and a
+  painted placeholder is shown when both fail (offline). Import a local file in `data/album.js`
+  to bundle a picture instead.
+- `campus/album.js` owns the book (book frame: X from the spine across the right page, Y up the
+  page, Z out of the paper; `SCALE` turns book units into metres). A sheet is a segmented box
+  re-bent every frame it moves (`deformSheet`): the curl integrates a tangent angle across the
+  page, so the paper never stretches. Sheets turn one after another and never cross.
+- `interaction/albumView.js` owns the mode: while `isAlbumActive()` nothing else drives the
+  camera (`animate()` skips the orbit controls and `updateWalk`), `#app` has the class
+  `is-reading`, and `input.js` routes pointer and keys to it. Anything that sends the camera
+  elsewhere (Overview, Walk, selecting a building) must call `closeAlbum({ fly: false })` first.
+- Page textures are painted lazily on first open (`textures/album.js`); their materials are in
+  `SIGN_MATERIALS`, so the pages stay readable at night.
+
 ## Recipes
 
 **Add a material** → `materials/library.js`: `std('myKey', { color: 0x…, roughness: … }, { castShadow, receiveShadow })`.
@@ -148,7 +213,8 @@ then call it from `buildCampus()` in `campus/index.js`. Keep it inside the lot u
 **Make it selectable (info panel + label + hover outline)** → add an entry to `BUILDINGS` and its id to
 `BUILDING_ORDER` in `data/buildings.js` (`bounds` = pick box centre/size, `label` = 3D anchor,
 `view` = camera position/target used by `flyToBuilding`). Picking, labels and panel pick it up
-automatically. Also add a `mobileScales` entry in `cameraRig.js#flyToBuilding` if needed.
+automatically. For phones, add a `mobileScales` entry in `cameraRig.js#flyToBuilding`, or give the
+entry its own `mobileView` when it is too low to show above the panel.
 
 **Add a weather preset** → `WEATHERS` in `scene/weather.js` (all keys of `COLOR_KEYS`/`NUM_KEYS`
 are required), an env texture in `textures/sky.js` `ENV_TEXTURES`, and a `.weather-btn` with
@@ -175,5 +241,6 @@ are required), an env texture in `textures/sky.js` `ENV_TEXTURES`, and a `.weath
   boot, set `renderer.shadowMap.needsUpdate = true`.
 - Import three.js as `import * as THREE from 'three'`; addons from `three/addons/...` (pinned 0.186.0).
 - Keep it single-file friendly: no runtime `fetch`, no external URLs. Small assets imported from
-  `src/` get inlined by the build; avoid large binaries (the HTML is ~720 kB, mostly three.js).
+  `src/` get inlined by the build; avoid large binaries (the HTML is ~800 kB, mostly three.js).
+  The only exception is the album's page photos (see "The souvenir album").
 - UI text is English; on-scene signage is Vietnamese (with diacritics) — keep both as they are.

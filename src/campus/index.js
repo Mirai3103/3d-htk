@@ -18,6 +18,8 @@ import { buildBicycleShed } from './bicycleShed.js';
 import { buildCourtyardLife } from './courtyardLife.js';
 import { buildCourtyardLamps } from './courtyardLamps.js';
 import { buildNeighborhood } from './neighborhood.js';
+import { buildTeacher } from './teacher.js';
+import { buildTeachersDayBooth } from './teachersDayBooth.js';
 
 export function buildCampus() {
   ensureBuildMaterials();
@@ -50,7 +52,9 @@ export function buildCampus() {
   buildSportsCourtDetails();
   buildSideYard();
   buildCourtyardLife();
+  buildTeachersDayBooth();
   buildCourtyardLamps();
+  buildTeacher();
   buildNeighborhood();
   loaderStatus.textContent = 'Setting out the little details…';
 }

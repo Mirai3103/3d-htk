@@ -12,6 +12,39 @@
   <div class="edge-shade" aria-hidden="true"></div>
   <div id="labels" class="labels-layer" aria-label="Building labels"></div>
 
+  <div id="npc-layer" class="npc-layer">
+    <button class="npc-prompt" id="npc-prompt" type="button" aria-label="Talk to the teacher" hidden>
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4.6 3.6h10.8a2 2 0 0 1 2 2v6.2a2 2 0 0 1-2 2H10l-3.9 3v-3H4.6a2 2 0 0 1-2-2V5.6a2 2 0 0 1 2-2Z"/><path d="M6.6 7.4h6.8M6.6 10.2h4.4"/>
+      </svg>
+      <span class="npc-prompt-text">Talk to the teacher</span>
+      <kbd class="npc-prompt-key" aria-hidden="true">E</kbd>
+    </button>
+    <button class="npc-prompt" id="album-prompt" type="button" aria-label="Open the album" hidden>
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M10 5.2C8.3 4 6 3.6 3.2 3.9v11.3c2.8-.3 5.1.1 6.8 1.3 1.7-1.2 4-1.6 6.8-1.3V3.9c-2.8-.3-5.1.1-6.8 1.3Z"/><path d="M10 5.2v11.3"/>
+      </svg>
+      <span class="npc-prompt-text">Open the album</span>
+      <kbd class="npc-prompt-key" aria-hidden="true">E</kbd>
+    </button>
+    <div class="npc-bubble" id="npc-bubble" role="group" aria-label="The teacher is speaking" hidden>
+      <div class="npc-bubble-head">
+        <span class="npc-bubble-name" id="npc-bubble-name">Cô giáo</span>
+        <span class="npc-bubble-step" id="npc-bubble-step">1 / 6</span>
+        <button class="npc-bubble-close" id="npc-bubble-close" type="button" aria-label="End the conversation">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m3.5 3.5 9 9M12.5 3.5l-9 9"/></svg>
+        </button>
+      </div>
+      <button class="npc-bubble-body" id="npc-bubble-next" type="button" aria-label="Continue">
+        <span class="npc-bubble-text" lang="vi" aria-hidden="true"><span id="npc-bubble-typed"></span><span class="npc-bubble-rest" id="npc-bubble-rest"></span></span>
+        <span class="npc-bubble-more" aria-hidden="true"><span id="npc-bubble-more">Next</span>
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.2 2.4 3.6 3.6-3.6 3.6"/></svg>
+        </span>
+      </button>
+      <p class="npc-bubble-live" id="npc-bubble-live" lang="vi" aria-live="polite"></p>
+    </div>
+  </div>
+
   <header class="brand">
     <div class="crest" aria-hidden="true">
       <svg viewBox="0 0 30 34" fill="none">
@@ -128,6 +161,28 @@
   <div class="walk-place" id="walk-place" role="status" aria-live="polite">
     <span class="walk-place-kind" id="walk-place-kind"></span>
     <span class="walk-place-name" id="walk-place-name"></span>
+  </div>
+
+  <div class="album-ui" id="album-ui" role="group" aria-label="Souvenir album" hidden>
+    <div class="album-bar">
+      <button class="album-nav" id="album-prev" type="button" aria-label="Previous page">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3.8 5.8 9l5.2 5.2"/></svg>
+      </button>
+      <div class="album-status">
+        <span class="album-kicker">Souvenir album</span>
+        <span class="album-page" id="album-page">Page 1 of 10</span>
+      </div>
+      <button class="album-nav" id="album-next" type="button" aria-label="Next page">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 3.8 5.2 5.2L7 14.2"/></svg>
+      </button>
+      <span class="album-divider" aria-hidden="true"></span>
+      <button class="album-close" id="album-close" type="button" aria-label="Close the album">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m3.5 3.5 9 9M12.5 3.5l-9 9"/></svg>
+        <span>Close</span>
+      </button>
+    </div>
+    <p class="album-hint" aria-hidden="true">Drag or tap a page to turn it<span class="album-hint-keys"> · <strong>← →</strong> · <strong>Esc</strong> to close</span></p>
+    <p class="npc-bubble-live" id="album-live" lang="vi" aria-live="polite"></p>
   </div>
 
   <div class="loader" id="loader" role="status" aria-live="polite">

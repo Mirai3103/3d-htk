@@ -80,7 +80,7 @@ export function buildCourtyardLife() {
   addPottedPlant(b, 10.7, 27.0, 1.15, 'bonsai', 174);
 
   // Stone benches for a quiet moment in the shade.
-  addBench(b, -7.5, 7.4, 0.28);
+  addBench(b, -5.2, 10.6, 0.28);
   addBench(b, -16.0, 12.7, HALF_PI);
   addBench(b, 27.5, 21.2, -0.45);
 
@@ -93,13 +93,12 @@ export function buildCourtyardLife() {
   }
 
   // Students: tiny low-poly figures for scale and a sense of a school day.
-  // The first four stand before the flagpole, facing the flag and the stage (-Z).
+  // The first four stand before the flagpole, facing the flag and the stage (-Z). More
+  // pupils gather at the Teachers' Day corner under the great tree (teachersDayBooth.js).
   addStudent(b, 0.2, -5.9, Math.PI + 0.1, 11);
   addStudent(b, 1.35, -6.5, Math.PI - 0.25, 12);
   addStudent(b, 2.7, -5.75, Math.PI + 0.2, 13);
   addStudent(b, 4.0, -6.1, Math.PI - 0.1, 14);
-  addStudent(b, -13.6, 2.2, 1.3, 15);
-  addStudent(b, -15.0, 3.3, 2.3, 16);
   addStudent(b, 12.2, 9.4, -1.0, 17);
   addStudent(b, 18.4, 12.0, 1.3, 18);
 

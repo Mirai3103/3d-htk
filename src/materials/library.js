@@ -27,6 +27,7 @@ import {
   sideGateSignTex,
   stageBackdropTex,
 } from '../textures/signs.js';
+import { eventPropsTex, festiveTex, teachersDayBackdropTex } from '../textures/festive.js';
 import { addSignMaterial, M, MATS, std } from './registry.js';
 
 std('wall', {
@@ -283,6 +284,21 @@ std('gateWall', {
 std('gateOchre', {
   color: 0xd99a3e, map: stuccoTex, roughness: 0.78,
 });
+// Teachers' Day check-in corner (campus/teachersDayBooth.js). The two palette materials take
+// their colour from a swatch texture: glossy for balloons, matte and two-sided for paper,
+// cloth and pennants. Fairy bulbs and lanterns light up with the courtyard lamps.
+std('festGloss', {
+  color: 0xffffff, map: festiveTex, roughness: 0.26, metalness: 0.04,
+}, { envMapIntensity: 0.9 });
+std('festMatte', {
+  color: 0xffffff, map: festiveTex, roughness: 0.84, side: THREE.DoubleSide,
+});
+std('fairyBulb', {
+  color: 0xfff1cf, roughness: 0.4, emissive: 0xffc267, emissiveIntensity: 0.5,
+}, { castShadow: false, receiveShadow: false });
+std('lantern', {
+  color: 0xd5352c, roughness: 0.55, emissive: 0xff5a26, emissiveIntensity: 0.06,
+}, { receiveShadow: false });
 
 addSignMaterial('signGate', gateSignTex);
 addSignMaterial('signGateSmall', gateSignSmallTex);
@@ -291,11 +307,15 @@ addSignMaterial('signAdmin', adminSignTex);
 addSignMaterial('signBanner', bannerTex);
 addSignMaterial('signStageBackdrop', stageBackdropTex);
 addSignMaterial('signPlaque', bustPlaqueTex);
+addSignMaterial('signTeachersDay', teachersDayBackdropTex);
+addSignMaterial('signEventProps', eventPropsTex);
 
 M.wall = MATS.get('wall').material;
 M.windowLit = MATS.get('windowLit').material;
 M.windowDark = MATS.get('windowDark').material;
 M.lampGlass = MATS.get('lampGlass').material;
+M.fairyBulb = MATS.get('fairyBulb').material;
+M.lantern = MATS.get('lantern').material;
 M.brick = MATS.get('brick').material;
 M.brickLane = MATS.get('brickLane').material;
 M.court = MATS.get('court').material;

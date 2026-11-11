@@ -21,7 +21,12 @@ import { createHoverOutline, updateOutlinePulse } from './interaction/hover.js';
 import { createLabels, updateLabels } from './interaction/labels.js';
 import { initInput } from './interaction/input.js';
 import { isWalking, teleportWalker, updateWalk } from './interaction/walk.js';
+import { updateDialogue } from './interaction/dialogue.js';
+import { isAlbumActive, updateAlbumView } from './interaction/albumView.js';
 import { updateFlag } from './campus/ceremonyStage.js';
+import { updateTeacher } from './campus/teacher.js';
+import { updateAlbum } from './campus/album.js';
+import { updateTeachersDayBooth } from './campus/teachersDayBooth.js';
 import { buildCampus } from './campus/index.js';
 
 function hideLoader() {
@@ -37,13 +42,20 @@ function animate() {
 
   updateCameraFlight();
   updateWeather(dt);
-  if (isWalking()) {
+  if (isAlbumActive()) {
+    // The album's reading view holds the camera (its flights run in updateCameraFlight).
+  } else if (isWalking()) {
     updateWalk(dt);
   } else {
     if (!isCameraFlying()) controls.update(dt);
     constrainCamera();
   }
   updateFlag(t);
+  updateTeacher(t, dt);
+  updateTeachersDayBooth(t);
+  updateDialogue(dt);
+  updateAlbum(dt);
+  updateAlbumView(dt);
 
   skyUniforms.uTime.value = t;
   skyGroup.position.copy(camera.position);

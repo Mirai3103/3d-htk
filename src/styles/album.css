@@ -1,0 +1,131 @@
+/* The souvenir album's reading view (interaction/albumView.js): #app gets .is-reading while
+   the camera is over the open album, and the page bar below replaces the usual hints. The
+   "Open the album" prompt reuses the teacher's .npc-prompt chip (dialogue.css). */
+
+#app.is-reading .hint,
+#app.is-reading .walk-place,
+#app.is-reading #npc-prompt,
+#app.is-reading #npc-bubble { display: none; }
+#app.is-reading .labels-layer { opacity: 0; visibility: hidden; }
+
+.album-ui {
+  position: absolute;
+  z-index: 10;
+  left: 50%;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transform: translateX(-50%);
+  animation: album-rise 0.45s 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+.album-ui[hidden] { display: none; }
+
+@keyframes album-rise {
+  from { opacity: 0; transform: translate(-50%, 14px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.album-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid rgba(252, 237, 197, 0.2);
+  border-radius: 17px;
+  background: rgba(8, 21, 15, 0.74);
+  box-shadow: 0 10px 34px rgba(4, 14, 9, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.album-nav {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid rgba(252, 237, 197, 0.18);
+  border-radius: 12px;
+  background: rgba(247, 240, 221, 0.08);
+  color: #f8eed3;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.album-nav svg { width: 17px; height: 17px; }
+.album-nav:hover:not(:disabled) { background: rgba(241, 201, 107, 0.24); }
+.album-nav:disabled { opacity: 0.3; cursor: default; }
+
+.album-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 132px;
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+.album-kicker {
+  color: var(--gold-bright);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+}
+
+.album-page {
+  color: #f8eed3;
+  font-size: 14px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.album-divider {
+  width: 1px;
+  height: 26px;
+  margin: 0 2px;
+  background: rgba(247, 240, 221, 0.16);
+}
+
+.album-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 14px 0 11px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #f6e9c2, #e3c178);
+  color: #2c2412;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.album-close:hover { filter: brightness(1.06); }
+.album-close svg { width: 12px; height: 12px; }
+
+.album-hint {
+  margin: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(8, 21, 15, 0.52);
+  color: rgba(248, 238, 211, 0.86);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.album-hint strong { color: var(--gold-bright); font-weight: 700; }
+
+/* No keyboard on phones and tablets. */
+@media (hover: none) and (pointer: coarse) {
+  .album-hint-keys { display: none; }
+}

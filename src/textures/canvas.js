@@ -39,6 +39,18 @@ export function drawStar(ctx, cx, cy, outer, inner, points = 5) {
   ctx.closePath();
 }
 
+/** Heart path centred on (cx, cy), `size` wide; fill or stroke it afterwards. */
+export function drawHeart(ctx, cx, cy, size) {
+  const s = size / 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + s * 0.5);
+  ctx.bezierCurveTo(cx - s * 0.55, cy + s * 0.1, cx - s * 0.6, cy - s * 0.35, cx - s * 0.28, cy - s * 0.45);
+  ctx.bezierCurveTo(cx - s * 0.1, cy - s * 0.5, cx, cy - s * 0.38, cx, cy - s * 0.25);
+  ctx.bezierCurveTo(cx, cy - s * 0.38, cx + s * 0.1, cy - s * 0.5, cx + s * 0.28, cy - s * 0.45);
+  ctx.bezierCurveTo(cx + s * 0.6, cy - s * 0.35, cx + s * 0.55, cy + s * 0.1, cx, cy + s * 0.5);
+  ctx.closePath();
+}
+
 export function signTexture(draw, w = 1024, h = 288) {
   const c = makeCanvas(w, h, draw);
   const t = new THREE.CanvasTexture(c);
