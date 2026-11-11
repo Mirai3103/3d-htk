@@ -105,6 +105,8 @@ export function addRailingX(b, x1, x2, yBase, z, gaps = []) {
   for (const [start, end] of ranges) {
     const length = end - start;
     if (length < 0.14) continue;
+    // Only ground-level railings stand in a pedestrian's way.
+    if (yBase < 1) b.solidBox(length, 0.1, (start + end) / 2, z);
     b.box('trim', length, 0.055, 0.065, (start + end) / 2, yBase + 0.98, z);
     b.box('trim', length, 0.04, 0.05, (start + end) / 2, yBase + 0.12, z);
     b.box('trim', 0.085, 1.04, 0.085, start, yBase + 0.52, z);
@@ -270,12 +272,14 @@ export function addRailingZ(b, z1, z2, yBase, x, gaps = []) {
 export function addSimplePorch(b, centerZ, width, depth, height, roofKey, ridgeKey) {
   const frontZ = centerZ + depth / 2;
   b.box('stoneLight', width + 0.25, 0.2, depth + 0.25, 0, 0.1, centerZ);
+  b.floor(width + 0.25, depth + 0.25, 0, centerZ, 0.2);
   b.box('stoneLight', width + 0.7, 0.12, 0.55, 0, 0.06, frontZ + 0.45);
   b.box('stoneLight', width + 0.45, 0.12, 0.5, 0, 0.16, frontZ + 0.2);
   const columns = [-width / 2 + 0.35, width / 2 - 0.35];
   for (const x of columns) {
     b.cylinder('trim', 0.14, height - 0.2, x, height / 2, frontZ - 0.27);
     b.cylinder('creamDim', 0.22, 0.18, x, 0.13, frontZ - 0.27);
+    b.solidCircle(0.22, x, frontZ - 0.27);
     b.box('trim', 0.38, 0.13, 0.38, x, height - 0.03, frontZ - 0.27);
   }
   b.box('trim', width + 0.45, 0.24, depth + 0.35, 0, height + 0.05, centerZ + 0.03);

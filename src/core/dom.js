@@ -4,6 +4,7 @@
  */
 
 export const ROOT = document.documentElement;
+export const appEl = document.getElementById('app');
 export const loader = document.getElementById('loader');
 export const loaderStatus = document.getElementById('loader-status');
 export const labelsLayer = document.getElementById('labels');
@@ -16,6 +17,10 @@ export const panelLevels = document.getElementById('panel-levels');
 export const panelDescription = document.getElementById('panel-description');
 export const labelsToggle = document.getElementById('labels-toggle');
 export const overviewBtn = document.getElementById('overview-btn');
+export const walkToggle = document.getElementById('walk-toggle');
+export const walkPlace = document.getElementById('walk-place');
+export const walkPlaceKind = document.getElementById('walk-place-kind');
+export const walkPlaceName = document.getElementById('walk-place-name');
 export const panelClose = document.getElementById('panel-close');
 export const panelBack = document.getElementById('panel-back');
 

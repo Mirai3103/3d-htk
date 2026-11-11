@@ -48,6 +48,7 @@ materials/
   library.js                ALL named materials (std('wall', {...}) …), wetMaterials, ensureBuildMaterials
 geometry/
   batching.js               UNIT geometries, Builder, siteBuilder, commitGeometry, flushBatches
+  colliders.js              walk-mode collision registry: solid boxes/circles, raised floors
 scene/
   sky.js                    sky dome shader, stars, moon (skyGroup follows the camera)
   lights.js                 ambient/hemi/sun/fill lights, lampLights, makeLampGlow()
@@ -66,6 +67,7 @@ campus/                     one file per place on the site; each exports build*(
   memorialBust.js sportsCourt.js bicycleShed.js courtyardLife.js courtyardLamps.js neighborhood.js
 interaction/
   cameraRig.js              overview framing, flyTo*/startCameraFlight, constrainCamera, isCameraFlying
+  walk.js                   first-person walk mode: enter/exitWalk, isWalking, updateWalk(dt)
   picking.js                invisible pick proxies from BUILDINGS bounds, findBuildingAtEvent
   hover.js                  hovered state + outline box (getHoveredBuilding, setHoveredBuilding)
   labels.js                 HTML labels projected from 3D, toggleLabels
@@ -73,7 +75,7 @@ interaction/
   input.js                  initInput(): every DOM/pointer/keyboard/resize listener
 styles/
   index.css                 @imports the parts below — ORDER MATTERS, responsive.css last
-  base.css brand.css controls.css labels.css panel.css hint.css loader.css responsive.css
+  base.css brand.css controls.css labels.css panel.css hint.css walk.css loader.css responsive.css
 ```
 
 `index.html` holds only the static markup (header, weather buttons, info panel, loader) plus a
@@ -104,6 +106,31 @@ b.geometry('key', anyBufferGeometry, x, y, z, rx, ry, rz, sx, sy, sz);
 - Builder output is **static**: it cannot be moved or animated after `flushBatches()`.
   Anything dynamic (the flag, lamp glows, point lights, puddles, rain) is a real `THREE.Object3D`
   added with `scene.add(...)` and updated per frame.
+
+## Walk mode (first person)
+
+The **Walk** button flies the camera down to the main gate and hands it to `interaction/walk.js`:
+arrows / WASD walk and turn, Shift runs, dragging looks around, Esc (or Overview) flies back.
+While walking, `#app` has the class `is-walking`, the orbit controls, picking and labels are off
+and `animate()` calls `updateWalk(dt)` instead of `controls.update()`.
+
+- The walker is a circle (radius 0.35 m, eyes 1.45 m up) confined to the lot. It never raycasts
+  the merged meshes: it collides with the 2D footprints in `geometry/colliders.js`.
+- **Anything you build that a pupil could bump into needs a collider**, registered right next to
+  its geometry, in the same local frame:
+
+  ```js
+  b.solidBox(w, d, x, z, ry);     // walls, railings, benches (footprint centred on x, z)
+  b.solidCircle(radius, x, z);    // trunks, posts, pots
+  b.floor(w, d, x, z, height);    // surface that can be stood on (platform, step, plinth)
+  ```
+
+  Kit helpers already do this (`addTree`, `addPalm`, `addPottedPlant`, `addBench`, `addStudent`,
+  `addBicycleRack`, ground-level `addRailingX`, `addSimplePorch`).
+- A floor is climbed only from a spot at most 0.36 m lower, so a tall platform needs steps that
+  are floors too (see the ceremony stage). Stepping off any edge is always allowed.
+- Dev only: `?walk=x,z,yawDegrees,pitchDegrees` (e.g. `/?walk=3,-12,180`) starts in walk mode at
+  that spot, handy for checking a first-person view.
 
 ## Recipes
 
@@ -138,6 +165,8 @@ are required), an env texture in `textures/sky.js` `ENV_TEXTURES`, and a `.weath
   creates materials, `lights.js` adds lights). Keep heavy work inside functions called from `boot()`.
 - `interaction/panel.js ↔ labels.js ↔ hover.js` import each other; that is fine only because they
   touch each other's exports inside functions, never at module top level. Keep it that way.
+- `camera.fov` and `camera.near` differ between the orbit views and walk mode. Camera flights carry
+  the FOV (`startCameraFlight(..., { fov })`); do not set it elsewhere while a flight is running.
 - Shadows are static: `renderer.shadowMap.autoUpdate = false`. If you add/move shadow casters after
   boot, set `renderer.shadowMap.needsUpdate = true`.
 - Import three.js as `import * as THREE from 'three'`; addons from `three/addons/...` (pinned 0.186.0).

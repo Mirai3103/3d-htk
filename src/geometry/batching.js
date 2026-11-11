@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { scene } from '../core/engine.js';
 import { MATS } from '../materials/registry.js';
+import { addFloor, addSolidBox, addSolidCircle } from './colliders.js';
 
 const batchMap = new Map();
 export const UNIT = {
@@ -61,6 +62,9 @@ export function commitGeometry(key, baseGeometry, worldMatrix) {
 
 export class Builder {
   constructor(cx = 0, cz = 0, yaw = 0) {
+    this.cx = cx;
+    this.cz = cz;
+    this.yaw = yaw;
     this.base = new THREE.Matrix4()
       .makeTranslation(cx, 0, cz)
       .multiply(new THREE.Matrix4().makeRotationY(yaw));
@@ -118,6 +122,36 @@ export class Builder {
     scratchMatrix.compose(mid, q, new THREE.Vector3(radius, length, radius));
     const world = new THREE.Matrix4().multiplyMatrices(this.base, scratchMatrix);
     commitGeometry(key, UNIT.cylinderFine, world);
+    return this;
+  }
+
+  // Walk-mode collision (see geometry/colliders.js). These add no geometry: they describe
+  // the footprint of what was just built, in this builder's local frame.
+
+  _worldXZ(x, z) {
+    const cos = Math.cos(this.yaw);
+    const sin = Math.sin(this.yaw);
+    return [this.cx + x * cos + z * sin, this.cz - x * sin + z * cos];
+  }
+
+  /** Blocks walking: a w × d footprint centred on (x, z), optionally rotated by ry. */
+  solidBox(w, d, x, z, ry = 0) {
+    const [wx, wz] = this._worldXZ(x, z);
+    addSolidBox(wx, wz, w, d, this.yaw + ry);
+    return this;
+  }
+
+  /** Blocks walking: a round footprint (posts, trunks, pots). */
+  solidCircle(radius, x, z) {
+    const [wx, wz] = this._worldXZ(x, z);
+    addSolidCircle(wx, wz, radius);
+    return this;
+  }
+
+  /** A w × d surface `height` metres up that can be walked on (reached by small steps). */
+  floor(w, d, x, z, height) {
+    const [wx, wz] = this._worldXZ(x, z);
+    addFloor(wx, wz, w, d, height, this.yaw);
     return this;
   }
 }

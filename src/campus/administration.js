@@ -21,6 +21,7 @@ export function buildAdministration() {
   const zf = D / 2;
 
   b.box('wall', W, H, D, 0, H / 2, 0);
+  b.solidBox(W + 0.24, D + 0.24, 0, 0);
   b.box('stoneBase', W + 0.24, 0.38, D + 0.24, 0, 0.19, 0);
   b.box('trim', W + 0.28, 0.15, D + 0.28, 0, 3.58, 0);
   b.box('trim', W + 0.28, 0.15, D + 0.28, 0, 7.18, 0);
@@ -69,11 +70,13 @@ export function buildAdministration() {
   addWindowZ(b, 2.25, 1.23, zf, 0.82, 1.62, false);
 
   b.box('stoneLight', 6.15, 0.22, 3.2, 0, 0.11, 7.59);
+  b.floor(6.15, 3.2, 0, 7.59, 0.22);
   b.box('stoneLight', 5.5, 0.12, 0.55, 0, 0.06, 9.45);
   b.box('stoneLight', 5.9, 0.13, 0.5, 0, 0.16, 9.2);
   for (const x of [-2.35, 2.35]) {
     b.cylinder('trim', 0.17, 3.36, x, 1.84, 8.96);
     b.cylinder('creamDim', 0.28, 0.14, x, 0.22, 8.96);
+    b.solidCircle(0.28, x, 8.96);
     b.cylinder('trim', 0.26, 0.12, x, 3.56, 8.96);
   }
   b.box('trim', 6.25, 0.28, 3.38, 0, 3.67, 7.67);

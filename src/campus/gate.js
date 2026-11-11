@@ -58,6 +58,7 @@ function addMainPillar(g, side) {
   const shaftY = PILLAR_TILE_H + shaftH / 2;
 
   addTiledBase(g, cx, 0, PILLAR_W + 0.04, PILLAR_D + 0.04, PILLAR_TILE_H);
+  g.solidBox(PILLAR_W + 0.04, PILLAR_D + 0.04, cx, 0);
   g.box('creamDim', 0.05, shaftH, PILLAR_D - 0.1, cx, shaftY, 0);
   g.box('gateWall', half - 0.03, shaftH, PILLAR_D, outerX + side * 0.015, shaftY, 0);
   g.box('gateWall', half - 0.03, shaftH, PILLAR_D - 0.2, innerX - side * 0.015, shaftY, 0);
@@ -78,6 +79,7 @@ function addSmallPillar(g, cx, cz, height, capTop, capH = 0.75, tileH = 0.6) {
   const shaftH = height - tileH;
   const shaftY = tileH + shaftH / 2;
   addTiledBase(g, cx, cz, w + 0.04, d + 0.04, tileH);
+  g.solidBox(w + 0.04, d + 0.04, cx, cz);
   g.box('gateWall', w * 0.62, shaftH, d, cx - w * 0.19, shaftY, cz);
   g.box('gateWall', w * 0.36, shaftH, d - 0.16, cx + w * 0.31, shaftY, cz);
   g.box('creamDim', 0.04, shaftH, d - 0.2, cx + w * 0.12, shaftY, cz);
@@ -110,6 +112,7 @@ function addGateLeaf(g, x1, x2, height = LEAF_H) {
   const z = 0;
   const bottom = 0.07;
   const panelTop = 1.0;
+  g.solidBox(w, 0.12, cx, z);
   // Stiles.
   g.box('ironGreenDark', 0.09, height - bottom, 0.1, x1 + 0.045, bottom + (height - bottom) / 2, z);
   g.box('ironGreenDark', 0.09, height - bottom, 0.1, x2 - 0.045, bottom + (height - bottom) / 2, z);
@@ -181,6 +184,7 @@ function buildGuardRoom(g) {
 
   g.box('stone', w + 0.04, 0.16, d + 0.04, cx, 0.08, cz);
   g.box('gateWall', w, wallH, d, cx, wallH / 2, cz);
+  g.solidBox(w + 0.04, d + 0.04, cx, cz);
   addFlatSlab(g, -10.75, x2, zBack - 0.35, zFront + 0.4, wallH, 0.22, ['front', 'left', 'back']);
 
   // Stepped corner pilaster where the boundary wall meets the guard room.

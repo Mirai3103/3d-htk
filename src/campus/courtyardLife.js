@@ -23,6 +23,8 @@ export function buildCourtyardLife() {
   b.geometry('stoneLight', treeRing, -12, 0.048, 0, -HALF_PI, 0, 0);
   b.box('stoneLight', 0.6, 0.3, 0.6, -14.3, 0.15, 0.8);
   b.box('stoneLight', 0.6, 0.3, 0.6, -9.7, 0.15, -0.8);
+  b.floor(0.6, 0.6, -14.3, 0.8, 0.3);
+  b.floor(0.6, 0.6, -9.7, -0.8, 0.3);
 
   // Medium shade trees along the right and front-right edge.
   const trees = [
@@ -42,12 +44,14 @@ export function buildCourtyardLife() {
   for (let i = 0; i < 5; i++) {
     b.blob(i % 2 ? 'shrub' : 'shrubLight', 0.6 + (i % 2) * 0.2, 29.5 + i * 1.4, 0.38, 26.7, 1.3, 0.8, 1);
   }
+  b.solidBox(7.4, 1.2, 32.3, 26.7);
 
   // Planters with palms in front of the back classroom block.
   const planterXs = [12.5, 20.4, 28.4, 34.4];
   for (let i = 0; i < planterXs.length; i++) {
     const x = planterXs[i];
     b.box('stoneLight', 2.55, 0.38, 1.08, x, 0.19, -18.35);
+    b.solidBox(2.55, 1.08, x, -18.35);
     b.box('mulch', 2.28, 0.035, 0.82, x, 0.39, -18.35);
     addPalmAt(b, x - 0.55, -18.35, 2.2 + (i % 2) * 0.35, 1.05, 0.42);
     b.blob('shrub', 0.34, x + 0.55, 0.6, -18.35, 1.15, 0.75, 1);
@@ -84,14 +88,16 @@ export function buildCourtyardLife() {
   for (let x = -20; x < 21; x += 3.1) {
     if (Math.abs(x) < 7.5) continue;
     b.blob('shrub', 0.57, x, 0.4, 28.9, 1.3, 0.8, 0.7);
+    b.solidCircle(0.55, x, 28.9);
     if (Math.round(x) % 2 === 0) addFlowerCluster(b, x, 28.95, 0.32, 45 + Math.round(x));
   }
 
   // Students: tiny low-poly figures for scale and a sense of a school day.
-  addStudent(b, 0.2, -5.9, 0.1, 11);
-  addStudent(b, 1.35, -6.5, -0.25, 12);
-  addStudent(b, 2.7, -5.75, 0.2, 13);
-  addStudent(b, 4.0, -6.1, -0.1, 14);
+  // The first four stand before the flagpole, facing the flag and the stage (-Z).
+  addStudent(b, 0.2, -5.9, Math.PI + 0.1, 11);
+  addStudent(b, 1.35, -6.5, Math.PI - 0.25, 12);
+  addStudent(b, 2.7, -5.75, Math.PI + 0.2, 13);
+  addStudent(b, 4.0, -6.1, Math.PI - 0.1, 14);
   addStudent(b, -13.6, 2.2, 1.3, 15);
   addStudent(b, -15.0, 3.3, 2.3, 16);
   addStudent(b, 12.2, 9.4, -1.0, 17);
@@ -103,6 +109,7 @@ export function buildCourtyardLife() {
     nb.cylinder('metalDark', 0.045, 1.5, -0.8, 0.75, 0);
     nb.cylinder('metalDark', 0.045, 1.5, 0.8, 0.75, 0);
     nb.box('cream', 2.1, 1.22, 0.08, 0, 1.42, 0);
+    nb.solidBox(2.1, 0.12, 0, 0);
     nb.box('doorTeal', 1.92, 1.04, 0.025, 0, 1.42, 0.052);
     nb.box('trim', 2.24, 0.08, 0.16, 0, 2.06, 0);
   }

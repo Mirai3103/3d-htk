@@ -53,9 +53,11 @@ export function buildPerimeter() {
   for (let x = 11; x < 47; x += 3.2) {
     b.blob('shrub', 0.62, x, 0.42, 28.35, 1.4, 0.82, 0.8);
     b.blob('shrubLight', 0.46, x + 0.7, 0.32, 28.3, 1.2, 0.7, 0.8);
+    b.solidCircle(0.6, x + 0.2, 28.35);
   }
   for (let x = -47; x < -14; x += 3.6) {
     b.blob('shrub', 0.56, x, 0.37, 28.4, 1.3, 0.75, 0.8);
+    b.solidCircle(0.55, x, 28.4);
   }
   // A pair of mature edge trees outside the wall gives the campus a green frame.
   addTree(siteBuilder, -57, 19, 8.5, 4.2, 822);

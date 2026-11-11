@@ -11,6 +11,7 @@ export function buildBicycleShed() {
   b.plane('concrete', 3.05, 30.5, 48.48, 0.035, -2, -HALF_PI);
   for (let z = -16; z <= 12; z += 3.5) {
     b.cylinder('metalDark', 0.052, 2.48, 47.15, 1.24, z);
+    b.solidCircle(0.07, 47.15, z);
     b.box('metalDark', 0.12, 0.08, 0.12, 47.15, 0.06, z);
     b.box('metalDark', 0.1, 0.1, 0.1, 47.15, 2.48, z);
   }
@@ -25,4 +26,5 @@ export function buildBicycleShed() {
   // A few low concrete blocks / bins under the shed.
   b.box('stoneLight', 0.6, 0.55, 0.6, 49.2, 0.275, -13.8);
   b.box('stoneLight', 0.6, 0.55, 0.6, 49.2, 0.275, -13.1);
+  b.solidBox(0.6, 1.3, 49.2, -13.45);
 }
