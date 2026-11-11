@@ -24,6 +24,7 @@ import { isWalking, teleportWalker, updateWalk } from './interaction/walk.js';
 import { updateDialogue } from './interaction/dialogue.js';
 import { updateFlag } from './campus/ceremonyStage.js';
 import { updateTeacher } from './campus/teacher.js';
+import { updateTeachersDayBooth } from './campus/teachersDayBooth.js';
 import { buildCampus } from './campus/index.js';
 
 function hideLoader() {
@@ -47,6 +48,7 @@ function animate() {
   }
   updateFlag(t);
   updateTeacher(t, dt);
+  updateTeachersDayBooth(t);
   updateDialogue(dt);
 
   skyUniforms.uTime.value = t;

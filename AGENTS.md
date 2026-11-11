@@ -41,10 +41,11 @@ core/
   dom.js                    references to static DOM in index.html (loader, panel, buttons…)
   engine.js                 renderer, scene, camera, OrbitControls, raycaster, clock, targetPixelRatio
 textures/                   canvas-painted textures (no image files)
-  canvas.js                 makeCanvas, canvasTexture, signTexture, fitText, drawStar, rgba
+  canvas.js                 makeCanvas, canvasTexture, signTexture, fitText, drawStar, drawHeart, rgba
   surfaces.js               stucco, brick, grass, asphalt, concrete, court, corrugation, roof tile
   signs.js                  gate/admin signs, banner, stage backdrop, plaque, flag
   sky.js                    env maps per weather, lamp glow, moon
+  festive.js                Teachers' Day: colour-swatch palette, check-in backdrop, props atlas
 materials/
   registry.js               MATS map, std(), addSignMaterial(), M (direct handles), SIGN/GLOW lists
   library.js                ALL named materials (std('wall', {...}) …), wetMaterials, ensureBuildMaterials
@@ -70,6 +71,7 @@ campus/                     one file per place on the site; each exports build*(
   memorialBust.js sportsCourt.js bicycleShed.js courtyardLife.js courtyardLamps.js neighborhood.js
   sideYard.js
   teacher.js                the teacher NPC (a jointed Object3D, not batched): buildTeacher, updateTeacher
+  teachersDayBooth.js       20/11 check-in corner by the great tree: buildTeachersDayBooth, update…
 interaction/
   cameraRig.js              overview framing, flyTo*/startCameraFlight, constrainCamera, isCameraFlying
   walk.js                   first-person walk mode: enter/exitWalk, isWalking, updateWalk(dt)
@@ -153,6 +155,21 @@ closes after the last; Esc or the × ends it early. In the orbit views the camer
   by `bake()`), casts a shadow but receives none (the shadow map is static).
 - The bubble and prompt are plain HTML in `#npc-layer`, projected each frame by `updateDialogue`.
 
+## The Teachers' Day corner (20/11)
+
+A check-in booth stands in front of the great tree (`campus/teachersDayBooth.js`): backdrop,
+balloon garland, marquee "20 ♥ 11", flower stands, wish board, guest-book table, photo frame,
+bunting tied to the trunk. It is also a selectable place (`teachersDay` in `data/buildings.js`).
+
+- Its many colours come from **one swatch texture** (`textures/festive.js`): the materials
+  `festGloss` (balloons) and `festMatte` (paper, cloth, pennants; two-sided) read a colour by
+  UV, so a prop is coloured with the module's `tint(UNIT.x, 'red')` / `colorize(geometry, 'gold')`
+  helpers instead of a material per colour. Add a colour by adding a swatch to `SWATCHES`.
+- The backdrop text and the anniversary count are painted in `textures/festive.js`
+  (`TEACHERS_DAY_YEAR`); the small printed props share one atlas (`PROP_REGIONS`).
+- `fairyBulb` and `lantern` glow with the courtyard lamps (`scene/weather.js`). Only the two
+  helium-balloon bunches move (`updateTeachersDayBooth`).
+
 ## Recipes
 
 **Add a material** → `materials/library.js`: `std('myKey', { color: 0x…, roughness: … }, { castShadow, receiveShadow })`.
@@ -165,7 +182,8 @@ then call it from `buildCampus()` in `campus/index.js`. Keep it inside the lot u
 **Make it selectable (info panel + label + hover outline)** → add an entry to `BUILDINGS` and its id to
 `BUILDING_ORDER` in `data/buildings.js` (`bounds` = pick box centre/size, `label` = 3D anchor,
 `view` = camera position/target used by `flyToBuilding`). Picking, labels and panel pick it up
-automatically. Also add a `mobileScales` entry in `cameraRig.js#flyToBuilding` if needed.
+automatically. For phones, add a `mobileScales` entry in `cameraRig.js#flyToBuilding`, or give the
+entry its own `mobileView` when it is too low to show above the panel.
 
 **Add a weather preset** → `WEATHERS` in `scene/weather.js` (all keys of `COLOR_KEYS`/`NUM_KEYS`
 are required), an env texture in `textures/sky.js` `ENV_TEXTURES`, and a `.weather-btn` with
@@ -192,5 +210,5 @@ are required), an env texture in `textures/sky.js` `ENV_TEXTURES`, and a `.weath
   boot, set `renderer.shadowMap.needsUpdate = true`.
 - Import three.js as `import * as THREE from 'three'`; addons from `three/addons/...` (pinned 0.186.0).
 - Keep it single-file friendly: no runtime `fetch`, no external URLs. Small assets imported from
-  `src/` get inlined by the build; avoid large binaries (the HTML is ~720 kB, mostly three.js).
+  `src/` get inlined by the build; avoid large binaries (the HTML is ~780 kB, mostly three.js).
 - UI text is English; on-scene signage is Vietnamese (with diacritics) — keep both as they are.

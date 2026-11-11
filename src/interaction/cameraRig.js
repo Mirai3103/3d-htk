@@ -64,7 +64,10 @@ export function flyToBuilding(data) {
   const basePosition = new THREE.Vector3(...data.view.position);
   let target = originalTarget;
   let position = basePosition;
-  if (mobile) {
+  if (mobile && data.mobileView) {
+    target = new THREE.Vector3(...data.mobileView.target);
+    position = new THREE.Vector3(...data.mobileView.position);
+  } else if (mobile) {
     const mobileScales = { 'Administration Block': 2.05, 'Back Classroom Block': 2.35, 'Right Classroom Wing': 1.92, 'Inner Left Wing': 2.08, 'Outer Left Wing': 2.2, 'Ceremony Stage': 1.45, 'Main Gate': 1.18 };
     const direction = basePosition.clone().sub(originalTarget);
     target = originalTarget.clone();

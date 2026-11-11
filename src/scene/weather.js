@@ -153,6 +153,8 @@ export function updateWeather(dt) {
   M.windowLit.emissiveIntensity = currentWeather.windows * 3.1;
   M.windowDark.emissiveIntensity = 0;
   M.lampGlass.emissiveIntensity = 0.16 + currentWeather.lamps * 3.2;
+  M.fairyBulb.emissiveIntensity = 0.5 + currentWeather.lamps * 3.4;
+  M.lantern.emissiveIntensity = 0.06 + currentWeather.lamps * 1.5;
   for (const material of SIGN_MATERIALS) {
     material.emissiveIntensity = currentWeather.night * 0.52;
   }

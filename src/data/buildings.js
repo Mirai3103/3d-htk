@@ -1,6 +1,7 @@
 /**
  * Campus directory: names, descriptions, pick bounds, label anchors and camera views for
- * every selectable building. Edit content here.
+ * every selectable building. Edit content here. `view` is the camera for a selected building;
+ * an optional `mobileView` replaces it on narrow screens (otherwise `view` is pulled back).
  */
 
 import * as THREE from 'three';
@@ -91,7 +92,23 @@ export const BUILDINGS = {
     label: new THREE.Vector3(0, 9.5, 30.3),
     view: { position: [7.5, 8.2, 43.5], target: [0, 3.5, 29.4] },
   },
+  teachersDay: {
+    name: 'Teachers’ Day Corner',
+    short: 'Teachers’ Day',
+    kind: 'Event',
+    sub: 'Check-in backdrop · Under the great tree',
+    area: 36,
+    storeys: 1,
+    storeysLabel: 'open-air',
+    description: 'A photo spot dressed for Vietnamese Teachers’ Day, 20 November: a painted backdrop under a balloon garland, marquee “20 ♥ 11” numbers, congratulation flower stands, a wall of pupils’ wishes and a guest book.',
+    bounds: { x: -12, z: 7.7, w: 11.6, h: 4.2, d: 6.9, base: 0 },
+    label: new THREE.Vector3(-12, 5.0, 6.6),
+    view: { position: [-7.0, 4.6, 20.2], target: [-9.6, 1.8, 6.4] },
+    // Phones: the panel covers the lower half, so look down from higher up and aim short of
+    // the booth to lift it into the free part of the screen.
+    mobileView: { position: [-8.0, 9.0, 24.0], target: [-10.5, 0.5, 13.5] },
+  },
 };
 
-export const BUILDING_ORDER = ['admin', 'back', 'right', 'innerLeft', 'outerLeft', 'stage', 'gate'];
+export const BUILDING_ORDER = ['admin', 'back', 'right', 'innerLeft', 'outerLeft', 'stage', 'gate', 'teachersDay'];
 export const BUILDING_TOTAL = BUILDING_ORDER.length;
