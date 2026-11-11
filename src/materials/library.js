@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import {
   asphaltTex,
   backRoadTex,
+  basketballTex,
   brickTex,
   concreteTex,
   corrugationTex,
@@ -22,6 +23,7 @@ import {
   bustPlaqueTex,
   gateSignSmallTex,
   gateSignTex,
+  sideGateSignTex,
   stageBackdropTex,
 } from '../textures/signs.js';
 import { addSignMaterial, M, MATS, std } from './registry.js';
@@ -61,6 +63,9 @@ std('concrete', {
 });
 std('court', {
   color: 0xffffff, map: courtTex, roughness: 0.88, metalness: 0.02,
+}, { castShadow: false });
+std('basketball', {
+  color: 0xffffff, map: basketballTex, roughness: 0.9, metalness: 0.02,
 }, { castShadow: false });
 std('brick', {
   color: 0xffffff, map: brickTex, roughness: 0.88,
@@ -270,6 +275,7 @@ std('gateOchre', {
 
 addSignMaterial('signGate', gateSignTex);
 addSignMaterial('signGateSmall', gateSignSmallTex);
+addSignMaterial('signSideGate', sideGateSignTex);
 addSignMaterial('signAdmin', adminSignTex);
 addSignMaterial('signBanner', bannerTex);
 addSignMaterial('signStageBackdrop', stageBackdropTex);

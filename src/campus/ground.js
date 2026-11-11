@@ -34,9 +34,11 @@ export function buildGroundAndStreet() {
   b.plane('asphalt', 220, 7, 0, -0.005, 37.0, -HALF_PI);
   b.plane('asphaltBack', 220, 4.5, 0, -0.005, -36.5, -HALF_PI);
 
-  // Curbs, split open at the central school driveway.
-  for (const [xa, xb] of [[-110, -9.5], [9.5, 110]]) {
+  // Curbs, split open at the central school driveway and the east side lane.
+  for (const [xa, xb] of [[-110, -9.5], [9.5, 101.8], [108.8, 110]]) {
     b.box('stoneLight', xb - xa, 0.2, 0.28, (xa + xb) / 2, 0.08, 33.28);
+  }
+  for (const [xa, xb] of [[-110, -9.5], [9.5, 110]]) {
     b.box('stoneLight', xb - xa, 0.2, 0.28, (xa + xb) / 2, 0.08, 40.72);
   }
   for (let x = -96; x <= 96; x += 9) {

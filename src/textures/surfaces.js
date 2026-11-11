@@ -181,6 +181,63 @@ const courtCanvas = makeCanvas(640, 800, (ctx, w, h) => {
 });
 export const courtTex = canvasTexture(courtCanvas, 1, 1);
 
+// Full-size outdoor basketball court (28 × 15 m playing area inside a 30 × 17 m slab).
+const basketballCanvas = makeCanvas(840, 476, (ctx, w, h) => {
+  ctx.fillStyle = '#4f6f68';
+  ctx.fillRect(0, 0, w, h);
+  const rng = seededRandom(47);
+  for (let i = 0; i < 9000; i++) {
+    const c = rng() > 0.5 ? 255 : 30;
+    ctx.globalAlpha = 0.025 + rng() * 0.05;
+    ctx.fillStyle = rgba(c, c, c);
+    ctx.fillRect(rng() * w, rng() * h, 1 + rng() * 2, 1 + rng() * 2);
+  }
+  ctx.globalAlpha = 1;
+  const m = w / 30; // 28 px per metre
+  const x0 = m;
+  const x1 = w - m;
+  const y0 = m;
+  const y1 = h - m;
+  ctx.strokeStyle = 'rgba(248, 246, 232, 0.72)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
+  ctx.beginPath();
+  ctx.moveTo(w / 2, y0);
+  ctx.lineTo(w / 2, y1);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(w / 2, h / 2, 1.8 * m, 0, TAU);
+  ctx.stroke();
+  const keyW = 4.9 * m;
+  const keyL = 5.8 * m;
+  ctx.strokeRect(x0, h / 2 - keyW / 2, keyL, keyW);
+  ctx.strokeRect(x1 - keyL, h / 2 - keyW / 2, keyL, keyW);
+  ctx.beginPath();
+  ctx.arc(x0 + keyL, h / 2, 1.8 * m, -HALF_PI, HALF_PI);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x1 - keyL, h / 2, 1.8 * m, HALF_PI, -HALF_PI);
+  ctx.stroke();
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x0, y0, x1 - x0, y1 - y0);
+  ctx.clip();
+  ctx.beginPath();
+  ctx.arc(x0 + 1.575 * m, h / 2, 6.75 * m, -HALF_PI, HALF_PI);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x1 - 1.575 * m, h / 2, 6.75 * m, HALF_PI, -HALF_PI);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x0 + 1.575 * m, h / 2, 1.25 * m, -HALF_PI, HALF_PI);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x1 - 1.575 * m, h / 2, 1.25 * m, HALF_PI, -HALF_PI);
+  ctx.stroke();
+  ctx.restore();
+});
+export const basketballTex = canvasTexture(basketballCanvas, 1, 1);
+
 const corrugationCanvas = makeCanvas(256, 128, (ctx, w, h) => {
   ctx.fillStyle = '#d9d9d4';
   ctx.fillRect(0, 0, w, h);

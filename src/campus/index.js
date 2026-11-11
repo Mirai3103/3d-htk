@@ -13,6 +13,7 @@ import { buildClassroomBlock } from './classroomBlock.js';
 import { buildCeremonyStage } from './ceremonyStage.js';
 import { buildMemorialBust } from './memorialBust.js';
 import { buildSportsCourtDetails } from './sportsCourt.js';
+import { buildSideYard } from './sideYard.js';
 import { buildBicycleShed } from './bicycleShed.js';
 import { buildCourtyardLife } from './courtyardLife.js';
 import { buildCourtyardLamps } from './courtyardLamps.js';
@@ -47,6 +48,7 @@ export function buildCampus() {
   buildCeremonyStage();
   buildMemorialBust();
   buildSportsCourtDetails();
+  buildSideYard();
   buildCourtyardLife();
   buildCourtyardLamps();
   buildNeighborhood();

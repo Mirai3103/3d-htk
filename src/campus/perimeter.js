@@ -44,13 +44,19 @@ function addWallSectionZ(z1, z2, x) {
 
 export function buildPerimeter() {
   addWallSectionX(-50, -10.2, 30);
-  addWallSectionX(7.1, 50, 30);
-  addWallSectionX(-50, 50, -30);
+  addWallSectionX(7.1, 100, 30);
+  addWallSectionX(-50, 100, -30);
   addWallSectionZ(-30, 30, -50);
-  addWallSectionZ(-30, 30, 50);
+  addWallSectionZ(-30, 9.5, 100);
+  addWallSectionZ(18.5, 30, 100);
   const b = siteBuilder;
   // A low hedge inside the front wall softens the long line.
   for (let x = 11; x < 47; x += 3.2) {
+    b.blob('shrub', 0.62, x, 0.42, 28.35, 1.4, 0.82, 0.8);
+    b.blob('shrubLight', 0.46, x + 0.7, 0.32, 28.3, 1.2, 0.7, 0.8);
+    b.solidCircle(0.6, x + 0.2, 28.35);
+  }
+  for (let x = 53; x < 97; x += 3.2) {
     b.blob('shrub', 0.62, x, 0.42, 28.35, 1.4, 0.82, 0.8);
     b.blob('shrubLight', 0.46, x + 0.7, 0.32, 28.3, 1.2, 0.7, 0.8);
     b.solidCircle(0.6, x + 0.2, 28.35);
@@ -61,5 +67,5 @@ export function buildPerimeter() {
   }
   // A pair of mature edge trees outside the wall gives the campus a green frame.
   addTree(siteBuilder, -57, 19, 8.5, 4.2, 822);
-  addTree(siteBuilder, 58, 7, 9.0, 4.4, 823);
+  addTree(siteBuilder, 111, 6, 9.0, 4.4, 823);
 }

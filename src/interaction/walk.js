@@ -29,8 +29,8 @@ const MAX_STEP_UP = 0.36; // tallest riser that can be climbed without a jump
 const SUBSTEP = 0.12; // longest move resolved in one go, so thin railings cannot be skipped
 const PLACE_RANGE = 6; // metres from a building's footprint at which its name appears
 
-// Walkers stay inside the perimeter wall (lot is x ∈ [-50, 50], z ∈ [-30, 30]).
-const LOT = { minX: -49.45, maxX: 49.45, minZ: -29.45, maxZ: 29.45 };
+// Walkers stay inside the perimeter wall: the main lot plus the east side yard.
+const LOT = { minX: -49.45, maxX: 99.45, minZ: -29.45, maxZ: 29.45 };
 
 // Just inside the main gate, facing the courtyard.
 const START = { x: 0, z: 26.8, yaw: 0 };

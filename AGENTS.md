@@ -24,7 +24,9 @@ Do not edit `index.backup.donttouch.html` (original single-file version, kept fo
 ## World conventions
 
 - Units are **metres**. `+X` east/right, `+Z` toward the street (front), `-Z` back, `+Y` up.
-- The school lot is `x ∈ [-50, 50]`, `z ∈ [-30, 30]`. Main gate at `z = +30`, admin block at the back.
+- The school lot is `x ∈ [-50, 100]`, `z ∈ [-30, 30]`: the main campus `x ∈ [-50, 50]` and the
+  east side yard (basketball court, parking rows, secondary gate) `x ∈ [50, 100]`. Main gate at
+  `z = +30`, admin block at the back.
 - All randomness uses `seededRandom(seed)` (`core/math.js`) so the campus is deterministic.
   Never use `Math.random()` for scene content.
 
@@ -65,6 +67,7 @@ campus/                     one file per place on the site; each exports build*(
   index.js                  buildCampus(): calls every builder in order  ← register new builders here
   ground.js perimeter.js gate.js administration.js classroomBlock.js ceremonyStage.js
   memorialBust.js sportsCourt.js bicycleShed.js courtyardLife.js courtyardLamps.js neighborhood.js
+  sideYard.js
 interaction/
   cameraRig.js              overview framing, flyTo*/startCameraFlight, constrainCamera, isCameraFlying
   walk.js                   first-person walk mode: enter/exitWalk, isWalking, updateWalk(dt)
@@ -114,8 +117,9 @@ arrows / WASD walk and turn, Shift runs, dragging looks around, Esc (or Overview
 While walking, `#app` has the class `is-walking`, the orbit controls, picking and labels are off
 and `animate()` calls `updateWalk(dt)` instead of `controls.update()`.
 
-- The walker is a circle (radius 0.35 m, eyes 1.45 m up) confined to the lot. It never raycasts
-  the merged meshes: it collides with the 2D footprints in `geometry/colliders.js`.
+- The walker is a circle (radius 0.35 m, eyes 1.45 m up) confined to the campus (main lot and east
+  side yard). It never raycasts the merged meshes: it collides with the 2D footprints in
+  `geometry/colliders.js`.
 - **Anything you build that a pupil could bump into needs a collider**, registered right next to
   its geometry, in the same local frame:
 

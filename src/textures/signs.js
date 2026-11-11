@@ -57,6 +57,31 @@ export const gateSignSmallTex = signTexture((ctx, w, h) => {
   ctx.fillText('NĂM HỌC 2026 – 2027', w / 2, 252);
 });
 
+// East (secondary) gate: green board with white lettering and a red frame, as on the
+// real gate photographed from the lane.
+export const sideGateSignTex = signTexture((ctx, w, h) => {
+  const font = '"Segoe UI", Arial, sans-serif';
+  ctx.fillStyle = '#b63a2e';
+  ctx.fillRect(0, 0, w, h);
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, '#1e8b74');
+  bg.addColorStop(1, '#146b58');
+  ctx.fillStyle = bg;
+  ctx.fillRect(12, 12, w - 24, h - 24);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#f7f4e6';
+  ctx.font = `700 28px ${font}`;
+  ctx.fillText('PHÒNG GIÁO DỤC VÀ ĐÀO TẠO HUYỆN NGHĨA HÀNH', w / 2, 58);
+  const mainText = 'TRƯỜNG TRUNG HỌC CƠ SỞ HUỲNH THÚC KHÁNG';
+  const mainSize = fitText(ctx, mainText, w - 170, 86, font, 900);
+  ctx.font = `900 ${mainSize}px ${font}`;
+  ctx.fillText(mainText, w / 2, 141);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#f0dda6';
+  ctx.font = `600 22px ${font}`;
+  ctx.fillText('ĐT: 0255.3682222', w - 28, 181);
+}, 2048, 200);
+
 export const adminSignTex = signTexture((ctx, w, h) => {
   const g = ctx.createLinearGradient(0, 0, w, h);
   g.addColorStop(0, '#173d55');

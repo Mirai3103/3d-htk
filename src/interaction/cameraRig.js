@@ -10,9 +10,9 @@ let isFlying = false;
 let cameraFlight = null;
 
 const overviewDirection = new THREE.Vector3(0.17, 0.70, 0.69).normalize();
-export const overviewTarget = new THREE.Vector3(0, 2.0, -2.0);
+export const overviewTarget = new THREE.Vector3(24, 2.0, -2.0);
 
-let lastOverviewDistance = 122;
+let lastOverviewDistance = 140;
 
 /** Vertical FOV of the orbit views for the current window shape. */
 export function responsiveFov() {
@@ -33,9 +33,9 @@ export function viewportOverview() {
   const aspect = Math.max(0.3, window.innerWidth / Math.max(1, window.innerHeight));
   const vFov = THREE.MathUtils.degToRad(responsiveFov());
   const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
-  const overviewWidth = aspect < 0.8 ? 112 : 122;
+  const overviewWidth = aspect < 0.8 ? 168 : 182;
   const distanceForWidth = (overviewWidth * 0.5) / Math.tan(hFov / 2);
-  const distanceForHeight = (80 * 0.5) / Math.tan(vFov / 2);
+  const distanceForHeight = (88 * 0.5) / Math.tan(vFov / 2);
   const distance = Math.max(distanceForWidth, distanceForHeight) * 1.055;
   lastOverviewDistance = distance;
   const target = overviewTarget.clone();
