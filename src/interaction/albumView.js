@@ -2,6 +2,7 @@
  * Reading the souvenir album: the "open" prompt floating over it, and the reading view that
  * borrows the camera — it flies in over the table, the album opens, pages turn by drag, tap,
  * button or arrow key, and closing flies the camera back to where it was (orbit or on foot).
+ * A tap on a page's photo shows that photo large instead, in the #album-photo overlay.
  *
  * While the view is active (isAlbumActive) nothing else may drive the camera: animate() skips
  * the orbit controls and the walker, and input.js routes pointer and keys here.
@@ -12,6 +13,11 @@ import {
   albumLive,
   albumNext,
   albumPage,
+  albumPhoto,
+  albumPhotoCaption,
+  albumPhotoClose,
+  albumPhotoImage,
+  albumPhotoStatus,
   albumPrev,
   albumPrompt,
   albumUi,
@@ -20,6 +26,7 @@ import {
 import { camera, controls, pointerNdc, raycaster, renderer } from '../core/engine.js';
 import {
   albumPageUnder,
+  albumPhotoUnder,
   albumSpread,
   dragAlbumPage,
   flipAlbum,
@@ -29,15 +36,20 @@ import {
   setAlbumOpen,
 } from '../campus/album.js';
 import { ALBUM_ITEMS } from '../data/album.js';
-import { isCameraFlying, startCameraFlight } from './cameraRig.js';
+import { albumPhotoUrl } from '../textures/album.js';
+import { isCameraFlying, lookQuaternion, startCameraFlight } from './cameraRig.js';
 import { cameraReturnPose, flyCameraBack, isCameraInReach, updatePrompt } from './closeUp.js';
 import { closeDialogue } from './dialogue.js';
 import { setHoveredBuilding } from './hover.js';
 import { isWalking, isWalkReady, releaseWalkKeys } from './walk.js';
 
 const READ_FOV = 40;
-// The camera leans over the table like a reader, this far from straight down.
-const TILT = 0.5;
+// Screen space (px) the open album stays clear of: the header, the page bar, the window edges.
+const HEADER_ROOM = 92;
+const BAR_ROOM = 112;
+const EDGE = 16;
+// On a very short window the album keeps this share of the height and slips under them instead.
+const MIN_SHARE = 0.6;
 const FLY_IN = 1.25;
 const FLY_OUT = 1.1;
 // The cover starts to open once the camera is on its way.
@@ -45,6 +57,13 @@ const OPEN_DELAY = 0.45;
 // From how far the album can be opened: on foot, and in the orbit views.
 const WALK_REACH = 4.5;
 const ORBIT_REACH = 48;
+// A press this short (ms) that stays put is a tap: on a photo it shows the photo large (the
+// longer limit), anywhere else on a page it turns the sheet.
+const TAP_MS = 320;
+const PHOTO_TAP_MS = 700;
+const TAP_TRAVEL = 7;
+// The overlay ignores clicks for this long (ms) after it appears: the tap that opened it.
+const PHOTO_GUARD_MS = 350;
 
 /** 'closed' → 'opening' (flying in) → 'open' → 'closing' (flying back) → 'closed'. */
 let state = 'closed';
@@ -53,6 +72,9 @@ let openTimer = 0;
 let returnPose = null;
 let shownSpread = '';
 let pointer = null;
+/** Page number (1-based) of the photo shown large; 0 when none is. */
+let shownPhoto = 0;
+let photoShownAt = 0;
 
 const center = new THREE.Vector3();
 const front = new THREE.Vector3();
@@ -62,19 +84,26 @@ export function isAlbumActive() {
   return state !== 'closed';
 }
 
-/** Camera position and target for reading, fitted to the window. */
+/**
+ * The reading view, fitted to the window: the camera hangs straight above the open album and
+ * looks down square on the pages, so they show as true rectangles, as large as the space
+ * between the header and the page bar allows. `up` is the top of the picture: the far edge of
+ * the pages, away from the reader.
+ */
 function readingPose() {
   const frame = getAlbumFrame(center, front);
-  const aspect = window.innerWidth / Math.max(1, window.innerHeight);
-  const half = Math.tan(THREE.MathUtils.degToRad(READ_FOV) / 2);
-  // Room for the page bar below and the header above on tall, narrow screens.
-  const fitHeight = (frame.height * (aspect < 1 ? 0.62 : 0.74)) / half;
-  const fitWidth = (frame.width * 0.56) / (half * aspect);
-  const distance = Math.max(fitHeight, fitWidth);
-  const position = center.clone()
-    .addScaledVector(front, Math.sin(TILT) * distance)
-    .add(new THREE.Vector3(0, Math.cos(TILT) * distance, 0));
-  return { position, target: center.clone() };
+  const width = window.innerWidth;
+  const height = Math.max(1, window.innerHeight);
+  const clear = Math.max(height - HEADER_ROOM - BAR_ROOM - EDGE * 2, height * MIN_SHARE);
+  // Screen pixels per metre of album.
+  const scale = Math.min((width - EDGE * 2) / frame.width, clear / frame.height);
+  const distance = height / (2 * Math.tan(THREE.MathUtils.degToRad(READ_FOV) / 2) * scale);
+  const up = front.clone().negate();
+  // Slide along the page so the album sits midway between the header and the page bar.
+  const target = center.clone().addScaledVector(up, (HEADER_ROOM - BAR_ROOM) / 2 / scale);
+  const position = target.clone();
+  position.y += distance;
+  return { position, target, up };
 }
 
 function describe(pageNum) {
@@ -120,6 +149,8 @@ export function openAlbum() {
   startCameraFlight(pose.position, pose.target, FLY_IN, {
     fov: READ_FOV,
     handBack: false,
+    turn: true,
+    up: pose.up,
     onDone: () => {
       if (state === 'opening') state = 'open';
     },
@@ -132,6 +163,7 @@ export function openAlbum() {
  */
 export function closeAlbum({ fly = true } = {}) {
   if (state === 'closed') return;
+  closeAlbumPhoto();
   const hadFocus = albumUi.contains(document.activeElement);
   setAlbumOpen(false);
   pointer = null;
@@ -147,7 +179,7 @@ export function closeAlbum({ fly = true } = {}) {
   state = 'closing';
   flyCameraBack(returnPose, FLY_OUT, () => {
     if (state === 'closing') state = 'closed';
-  });
+  }, { turn: true });
 }
 
 /** Turn to the next (+1) or previous (-1) spread. */
@@ -181,8 +213,10 @@ function rayAt(event) {
 export function albumPointerDown(event) {
   if (state !== 'open' || pointer) return;
   if (event.pointerType === 'mouse' && event.button !== 0) return;
-  if (!grabAlbumPage(rayAt(event))) return;
-  pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, time: performance.now() };
+  const ray = rayAt(event);
+  const photo = albumPhotoUnder(ray);
+  if (!grabAlbumPage(ray)) return;
+  pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp, photo };
   renderer.domElement.setPointerCapture(event.pointerId);
   renderer.domElement.style.cursor = 'grabbing';
 }
@@ -194,16 +228,81 @@ export function albumPointerMove(event) {
     if (pointer.id === event.pointerId) dragAlbumPage(ray);
     return;
   }
-  renderer.domElement.style.cursor = albumPageUnder(ray) ? 'grab' : 'default';
+  renderer.domElement.style.cursor = albumPhotoUnder(ray) ? 'zoom-in' : albumPageUnder(ray) ? 'grab' : 'default';
 }
 
-export function albumPointerUp(event) {
+/** The pointer let go, or (`cancelled`) the browser took it away: then nothing was tapped. */
+export function albumPointerUp(event, { cancelled = false } = {}) {
   if (!pointer || pointer.id !== event.pointerId) return;
-  const moved = Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y);
-  const wasTap = moved < 7 && performance.now() - pointer.time < 320;
+  const still = !cancelled && Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y) < TAP_TRAVEL;
+  // When the pointer moved, not when the frame got round to it: a slow frame is not a long press.
+  const held = event.timeStamp - pointer.time;
+  const { photo } = pointer;
   pointer = null;
-  releaseAlbumPage(wasTap);
   renderer.domElement.style.cursor = 'grab';
+  // A tap on a photo shows it large and leaves the page where it lies.
+  if (still && held < PHOTO_TAP_MS && photo && showAlbumPhoto(photo)) {
+    releaseAlbumPage(false);
+    return;
+  }
+  releaseAlbumPage(still && held < TAP_MS);
+}
+
+// ---- A photo shown large -------------------------------------------------------------------
+
+/** True while a photo is shown large over the album: it then takes the keys and the pointer. */
+export function isAlbumPhotoShown() {
+  return shownPhoto > 0;
+}
+
+/**
+ * Show the photo of page `pageNum` large, with its caption. Returns false when that page has
+ * no picture to show (none, still loading, or it failed).
+ */
+function showAlbumPhoto(pageNum) {
+  const item = ALBUM_ITEMS[pageNum - 1];
+  const url = albumPhotoUrl(item);
+  if (!url) return false;
+  shownPhoto = pageNum;
+  photoShownAt = performance.now();
+  albumPhoto.classList.remove('is-loaded', 'is-failed');
+  albumPhotoStatus.textContent = 'Đang tải ảnh…';
+  albumPhotoCaption.textContent = item.description ? `“${item.description}”` : '';
+  albumPhotoImage.alt = item.description || `Ảnh kỷ niệm trang ${pageNum}`;
+  albumPhotoImage.src = url;
+  albumPhoto.hidden = false;
+  albumPhotoClose.focus({ preventScroll: true });
+  // The page only holds a small copy; the full picture comes back from the browser's cache.
+  albumPhotoImage.decode().then(
+    () => {
+      if (shownPhoto !== pageNum) return;
+      albumPhotoStatus.textContent = '';
+      albumPhoto.classList.add('is-loaded');
+    },
+    () => {
+      if (shownPhoto !== pageNum) return;
+      albumPhotoStatus.textContent = 'Không tải được ảnh này.';
+      albumPhoto.classList.add('is-failed');
+    },
+  );
+  return true;
+}
+
+/** Put the large photo away and go back to the pages. */
+export function closeAlbumPhoto() {
+  if (!shownPhoto) return;
+  shownPhoto = 0;
+  if (albumPhoto.contains(document.activeElement)) document.activeElement.blur();
+  albumPhoto.hidden = true;
+  albumPhotoImage.removeAttribute('src');
+  albumPhotoStatus.textContent = '';
+}
+
+/** A click on the overlay: anywhere but on the picture itself puts it away. */
+export function albumPhotoClick(event) {
+  if (event.target === albumPhotoImage) return;
+  if (performance.now() - photoShownAt < PHOTO_GUARD_MS) return;
+  closeAlbumPhoto();
 }
 
 /** Called on resize: keep the open album framed. */
@@ -214,7 +313,7 @@ export function refreshAlbumView() {
   controls.target.copy(pose.target);
   camera.fov = READ_FOV;
   camera.updateProjectionMatrix();
-  camera.lookAt(pose.target);
+  camera.quaternion.copy(lookQuaternion(pose.position, pose.target, pose.up));
 }
 
 /** Per-frame, from animate(), after the camera has been moved. */

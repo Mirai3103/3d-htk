@@ -19,13 +19,16 @@ export function cameraReturnPose() {
     : { walk: false, position: camera.position.clone(), target: controls.target.clone() };
 }
 
-/** Fly the camera back to a pose from cameraReturnPose(). */
-export function flyCameraBack(pose, seconds, onDone) {
+/**
+ * Fly the camera back to a pose from cameraReturnPose(). `turn` (see startCameraFlight) is for
+ * a view that looked straight down.
+ */
+export function flyCameraBack(pose, seconds, onDone, { turn = false } = {}) {
   if (pose.walk) {
     const eyes = walkCameraPose();
-    startCameraFlight(eyes.position, eyes.target, seconds, { fov: eyes.fov, handBack: false, onDone });
+    startCameraFlight(eyes.position, eyes.target, seconds, { fov: eyes.fov, handBack: false, onDone, turn });
   } else {
-    startCameraFlight(pose.position, pose.target, seconds, { onDone });
+    startCameraFlight(pose.position, pose.target, seconds, { onDone, turn });
   }
 }
 

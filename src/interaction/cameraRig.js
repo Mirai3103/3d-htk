@@ -8,6 +8,7 @@ import { camera, controls } from '../core/engine.js';
 
 let isFlying = false;
 let cameraFlight = null;
+const lookMatrix = new THREE.Matrix4();
 
 const overviewDirection = new THREE.Vector3(0.17, 0.70, 0.69).normalize();
 export const overviewTarget = new THREE.Vector3(24, 2.0, -2.0);
@@ -92,8 +93,21 @@ export function flyToBuilding(data) {
  * `handBack: false` when another mode (walking) drives the camera afterwards, and `onDone`
  * to be told when the flight lands. A newer flight simply replaces a running one.
  */
+/**
+ * Orientation of a camera at `position` looking at `target`, with `up` toward the top of the
+ * picture. Looking straight down needs an `up` of its own: the world's is parallel to the view.
+ */
+export function lookQuaternion(position, target, up = camera.up) {
+  return new THREE.Quaternion().setFromRotationMatrix(lookMatrix.lookAt(position, target, up));
+}
+
+/**
+ * Ease the camera to a pose. By default it keeps looking at the moving target; with `turn` it
+ * turns steadily from its current orientation to the final one instead, which is what a flight
+ * to or from a straight-down view needs (`up` then names the top of that final picture).
+ */
 export function startCameraFlight(toPosition, toTarget, duration = 1.35, options = {}) {
-  const { fov = responsiveFov(), handBack = true, onDone = null } = options;
+  const { fov = responsiveFov(), handBack = true, onDone = null, turn = false, up = camera.up } = options;
   isFlying = true;
   controls.enabled = false;
   cameraFlight = {
@@ -101,6 +115,8 @@ export function startCameraFlight(toPosition, toTarget, duration = 1.35, options
     fromTarget: controls.target.clone(),
     toPosition: toPosition.clone(),
     toTarget: toTarget.clone(),
+    fromQuaternion: turn ? camera.quaternion.clone() : null,
+    toQuaternion: turn ? lookQuaternion(toPosition, toTarget, up) : null,
     fromFov: camera.fov,
     toFov: fov,
     handBack,
@@ -119,7 +135,11 @@ export function updateCameraFlight() {
     : 1 - Math.pow(-2 * linear + 2, 3) / 2;
   camera.position.lerpVectors(cameraFlight.fromPosition, cameraFlight.toPosition, eased);
   controls.target.lerpVectors(cameraFlight.fromTarget, cameraFlight.toTarget, eased);
-  camera.lookAt(controls.target);
+  if (cameraFlight.toQuaternion) {
+    camera.quaternion.slerpQuaternions(cameraFlight.fromQuaternion, cameraFlight.toQuaternion, eased);
+  } else {
+    camera.lookAt(controls.target);
+  }
   if (cameraFlight.fromFov !== cameraFlight.toFov) {
     camera.fov = THREE.MathUtils.lerp(cameraFlight.fromFov, cameraFlight.toFov, eased);
     camera.updateProjectionMatrix();

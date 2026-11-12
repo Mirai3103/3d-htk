@@ -28,6 +28,14 @@ const CARD_PAD = 26;
 const PHOTO_W = CARD_W - CARD_PAD * 2;
 const PHOTO_H = CARD_H - CARD_PAD - 54;
 
+/** The photo card's place on a page, as fractions of the page: x from its left, y from its top. */
+export const ALBUM_PHOTO_CARD = {
+  x: CARD_X / PAGE_GRID_W,
+  y: CARD_Y / PAGE_GRID_H,
+  width: CARD_W / PAGE_GRID_W,
+  height: CARD_H / PAGE_GRID_H,
+};
+
 function finish(canvas) {
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -343,7 +351,10 @@ function paintPage(ctx, pageNum, isLeftPage, item, photo, state) {
 
 const MAX_DOWNLOADS = 4; // at a time, in page order, so the first spreads arrive first
 
-/** link → { photo: undefined while loading | a drawable | null when it failed, ready: Promise }. */
+/**
+ * link → { photo: undefined while loading | a drawable | null when it failed, ready: Promise,
+ * url: the address the full-size picture came from (the link itself, or the proxy's) }.
+ */
 const photos = new Map();
 const waiting = [];
 let downloading = 0;
@@ -404,10 +415,11 @@ function startDownloads() {
 function photoEntry(link) {
   let entry = photos.get(link);
   if (!entry) {
-    entry = { photo: undefined, ready: null };
+    entry = { photo: undefined, ready: null, url: null };
     entry.ready = new Promise((resolve) => {
       waiting.push(async () => {
         const image = await fetchImage(link);
+        entry.url = image ? image.src : null;
         entry.photo = image ? await shrinkPhoto(image) : null;
         resolve(entry.photo);
       });
@@ -428,6 +440,15 @@ export function preloadAlbumPhotos() {
 /** Resolves once the photo of `item` has arrived or failed; at once for a page without one. */
 export function albumPhotoReady(item) {
   return item?.imageLink ? photoEntry(item.imageLink).ready : Promise.resolve();
+}
+
+/**
+ * Address of the full-size picture of `item`, to show it larger than its page; null while it
+ * is still loading, when it failed, or for a page without one. The page only keeps a scaled
+ * down copy, so the large view asks for this address again (the browser has it cached).
+ */
+export function albumPhotoUrl(item) {
+  return item?.imageLink ? photoEntry(item.imageLink).url : null;
 }
 
 /**

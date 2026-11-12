@@ -14,6 +14,7 @@ import { damp } from '../core/math.js';
 import { ALBUM_ITEMS } from '../data/album.js';
 import { SIGN_MATERIALS } from '../materials/registry.js';
 import {
+  ALBUM_PHOTO_CARD,
   albumCoverTex,
   albumEndpaperTex,
   albumFarewellTex,
@@ -366,6 +367,25 @@ function pagePoint(ray) {
 export function albumPageUnder(ray) {
   const point = pagePoint(ray);
   return Boolean(point) && Math.abs(point.x) <= PAGE_W + 0.1 && Math.abs(point.y) <= PAGE_H / 2 + 0.1;
+}
+
+/**
+ * Number (1-based) of the page whose photo card the ray points at, or 0: only for a page that
+ * is lying flat and has a picture.
+ */
+export function albumPhotoUnder(ray) {
+  if (!wantOpen || coverT < 1 || !albumPageUnder(ray)) return 0;
+  const turned = turnedCount();
+  const onRight = hit.x >= 0;
+  const sheet = onRight ? sheets[turned] : sheets[turned - 1];
+  if (!sheet || Math.abs(sheet.t - (onRight ? 0 : 1)) > 0.02) return 0;
+  const pageNum = onRight ? turned * 2 + 1 : turned * 2;
+  if (!ALBUM_ITEMS[pageNum - 1]?.imageLink) return 0;
+  // Across the page from its left edge, and down it from its top edge, as painted.
+  const u = (onRight ? hit.x : hit.x + PAGE_W) / PAGE_W - ALBUM_PHOTO_CARD.x;
+  const v = 0.5 - hit.y / PAGE_H - ALBUM_PHOTO_CARD.y;
+  const inside = u >= 0 && u <= ALBUM_PHOTO_CARD.width && v >= 0 && v <= ALBUM_PHOTO_CARD.height;
+  return inside ? pageNum : 0;
 }
 
 /** Take hold of the top sheet on the side the ray points at. Returns whether one was grabbed. */

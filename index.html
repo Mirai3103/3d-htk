@@ -128,8 +128,19 @@
         <span>Đóng</span>
       </button>
     </div>
-    <p class="album-hint" aria-hidden="true">Kéo hoặc chạm vào trang để lật<span class="album-hint-keys"> · <strong>← →</strong> · <strong>Esc</strong> để đóng</span></p>
+    <p class="album-hint" aria-hidden="true">Kéo để lật trang · Chạm vào ảnh để xem lớn<span class="album-hint-keys"> · <strong>← →</strong> · <strong>Esc</strong> để đóng</span></p>
     <p class="npc-bubble-live" id="album-live" lang="vi" aria-live="polite"></p>
+  </div>
+
+  <div class="album-photo" id="album-photo" role="dialog" aria-modal="true" aria-label="Ảnh kỷ niệm" hidden>
+    <figure class="album-photo-figure">
+      <img id="album-photo-image" alt="" crossorigin="anonymous" decoding="async" draggable="false">
+      <figcaption id="album-photo-caption" lang="vi"></figcaption>
+    </figure>
+    <p class="album-photo-status" id="album-photo-status" role="status"></p>
+    <button class="album-photo-close" id="album-photo-close" type="button" aria-label="Đóng ảnh">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m3.5 3.5 9 9M12.5 3.5l-9 9"/></svg>
+    </button>
   </div>
 
   <div class="video-frame" id="video-frame" hidden>

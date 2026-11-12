@@ -5,6 +5,8 @@
 import {
   albumClose,
   albumNext,
+  albumPhoto,
+  albumPhotoClose,
   albumPrev,
   albumPrompt,
   introEl,
@@ -19,12 +21,15 @@ import {
 } from '../core/dom.js';
 import { camera, controls, renderer, targetPixelRatio } from '../core/engine.js';
 import {
+  albumPhotoClick,
   albumPointerDown,
   albumPointerMove,
   albumPointerUp,
   closeAlbum,
+  closeAlbumPhoto,
   isAlbumActive,
   isAlbumInReach,
+  isAlbumPhotoShown,
   openAlbum,
   refreshAlbumView,
   turnAlbumPage,
@@ -144,7 +149,7 @@ export function initInput() {
   renderer.domElement.addEventListener('pointercancel', (event) => {
     activePointers.delete(event.pointerId);
     pointerDown = null;
-    albumPointerUp(event);
+    albumPointerUp(event, { cancelled: true });
   });
 
   renderer.domElement.addEventListener('pointerleave', () => {
@@ -168,6 +173,7 @@ export function initInput() {
   albumPrev.addEventListener('click', () => turnAlbumPage(-1));
   albumNext.addEventListener('click', () => turnAlbumPage(1));
   albumClose.addEventListener('click', () => closeAlbum());
+  albumPhoto.addEventListener('click', albumPhotoClick);
 
   initVideoView();
   videoPrompt.addEventListener('click', openVideo);
@@ -195,6 +201,15 @@ export function initInput() {
     }
     // Reading the album: arrows turn pages, Esc closes it, everything else waits.
     if (isAlbumActive()) {
+      // A photo shown large: Esc puts it away, and focus stays on its close button.
+      if (isAlbumPhotoShown()) {
+        if (event.key === 'Escape') closeAlbumPhoto();
+        else if (event.key === 'Tab') {
+          albumPhotoClose.focus();
+          event.preventDefault();
+        }
+        return;
+      }
       if (event.key === 'Escape') closeAlbum();
       else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
         // A focused page button already turns on Enter/Space; arrows work from anywhere.

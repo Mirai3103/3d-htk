@@ -129,3 +129,117 @@
 @media (hover: none) and (pointer: coarse) {
   .album-hint-keys { display: none; }
 }
+
+/* A photo shown large (a tap on a page's photo): a dark sheet over the whole view with the
+   full-size picture as a print and its caption below. A click outside the picture, the ×
+   or Esc puts it away. */
+.album-photo {
+  position: absolute;
+  z-index: 30;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(6, 15, 11, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: zoom-out;
+  animation: album-photo-in 0.22s ease both;
+}
+
+.album-photo[hidden] { display: none; }
+
+@keyframes album-photo-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.album-photo-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  margin: 0;
+}
+
+.album-photo img {
+  display: block;
+  max-width: min(100%, 1500px);
+  max-height: calc(100vh - 176px);
+  max-height: calc(100dvh - 176px);
+  border: clamp(4px, 0.7vw, 9px) solid #fbf7ef;
+  border-radius: 3px;
+  background: #fbf7ef;
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.5);
+  cursor: default;
+  opacity: 0;
+  transform: scale(0.97);
+  transition: opacity 0.28s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.album-photo figcaption {
+  max-width: min(100%, 62ch);
+  color: rgba(248, 238, 211, 0.94);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(14px, 1.5vw, 18px);
+  font-style: italic;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+  opacity: 0;
+  transition: opacity 0.28s 0.08s ease;
+}
+
+.album-photo.is-loaded img { opacity: 1; transform: none; }
+.album-photo.is-loaded figcaption { opacity: 1; }
+.album-photo.is-failed .album-photo-figure { display: none; }
+
+.album-photo-status {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(8, 21, 15, 0.6);
+  color: rgba(248, 238, 211, 0.9);
+  font-size: 12px;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.album-photo-status:empty { display: none; }
+
+.album-photo-close {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(252, 237, 197, 0.24);
+  border-radius: 50%;
+  background: rgba(8, 21, 15, 0.72);
+  color: #f8eed3;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.album-photo-close svg { width: 15px; height: 15px; }
+.album-photo-close:hover { background: rgba(241, 201, 107, 0.28); }
+
+/* A very short window (a phone on its side): the picture takes the height, no caption. */
+@media (max-height: 520px) {
+  .album-photo { padding: 10px; }
+  .album-photo figcaption { display: none; }
+  .album-photo img {
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+  }
+}

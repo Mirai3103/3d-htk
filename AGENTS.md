@@ -146,8 +146,8 @@ campus/                     one file per place on the site; each exports build*(
   album.js                  the souvenir album on its table (real meshes: cover, curling sheets)
   memoryScreen.js           the memory-video screen: batched stand + its self-lit picture mesh
 interaction/
-  cameraRig.js              overview framing, flyTo*/startCameraFlight, buildingView, constrainCamera,
-                            isCameraFlying
+  cameraRig.js              overview framing, flyTo*/startCameraFlight, buildingView, lookQuaternion,
+                            constrainCamera, isCameraFlying
   intro.js                  the opening shot: startIntro, skipIntro, updateIntro, isIntroPlaying
   walk.js                   first-person walk mode: enter/exitWalk, isWalking, updateWalk(dt)
   picking.js                pick proxies (buildings, teacher, album, video screen), findPickAtEvent
@@ -273,9 +273,9 @@ with the wish board beside it (right), photo frame, bunting tied to the trunk. I
 
 A closed photo album lies on the souvenir table of the Teachers' Day corner. Clicking it (orbit
 views, once the camera is near), its "Open the album" prompt, or **E** next to it in walk mode
-flies the camera over the table and opens it; pages turn by dragging or tapping a page, the
-‹ › buttons or the arrow keys; Esc / Close turns everything back and returns the camera to
-where it was (orbit pose or the walker's eyes).
+flies the camera over the table and opens it; pages turn by dragging a page, tapping it outside
+its photo, the ‹ › buttons or the arrow keys; a tap on a photo shows it large; Esc / Close turns
+everything back and returns the camera to where it was (orbit pose or the walker's eyes).
 
 - **Content is data:** the cover wording (`ALBUM`: title, dedication, farewell) is in
   `data/album.js`; the pages are `album_items` in the Supabase row (see "Runtime content"),
@@ -293,12 +293,23 @@ where it was (orbit pose or the walker's eyes).
   camera (`animate()` skips the orbit controls and `updateWalk`), `#app` has the class
   `is-reading`, and `input.js` routes pointer and keys to it. Anything that sends the camera
   elsewhere (Overview, Walk, selecting a building) must call `closeAlbum({ fly: false })` first.
+- The reading view looks **straight down**, square on the pages (`albumView.js#readingPose`): the
+  album is scaled to fit between the header and the page bar (`HEADER_ROOM`, `BAR_ROOM`, in px).
+  `lookAt` has no defined roll in that direction, so the flights in and out pass `turn: true` to
+  `startCameraFlight` (the orientation is slerped to the final one; `up` names the top of the
+  picture) instead of looking at the moving target.
 - Photos are preloaded: `boot()` calls `preloadAlbumPhotos()` (`textures/album.js`) first thing,
   which downloads every `imageLink` (4 at a time, in page order) and scales each down to its
   window on the page. `campus/album.js#warmPages` then paints and uploads the pages one per idle
   moment, each once its photo is in, so opening the album waits for nothing; opening earlier
   paints the rest at once and late photos are painted in when they arrive. Every visitor
   therefore downloads the whole album, opened or not: keep the photos small (see "Media storage").
+- A tap on a page's photo card (`campus/album.js#albumPhotoUnder`, from `ALBUM_PHOTO_CARD` in
+  `textures/album.js`) opens the `#album-photo` overlay (`albumView.js#showAlbumPhoto`): the
+  full, uncropped picture with its caption, closed by a click outside the picture, the × or Esc
+  (Esc then closes only the photo). The page keeps a scaled-down copy only, so the overlay's
+  `<img>` asks for `albumPhotoUrl(item)` again and gets it from the browser cache. A drag that
+  starts on a photo still turns the page; a photo that has not loaded turns the page on a tap.
 - The page materials are in `SIGN_MATERIALS`, so the pages stay readable at night.
 
 ## The memory video
