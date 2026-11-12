@@ -34,7 +34,7 @@ export function setHoveredBuilding(id, fromLabel = false) {
   refreshOutline();
 }
 
-export function refreshOutline() {
+function refreshOutline() {
   if (!hoverOutline) return;
   const active = hoveredBuilding;
   if (!active) {

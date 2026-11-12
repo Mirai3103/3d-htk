@@ -1,5 +1,5 @@
 /**
- * Ceremony stage with green awning, flag pole and the animated flag.
+ * Ceremony stage with green awning, a flagpole on its tiled roof and the animated flag.
  */
 
 import * as THREE from 'three';
@@ -107,13 +107,12 @@ export function buildCeremonyStage() {
     glow.scale.set(2.0, 2.0, 1);
   }
 
-  // The flagpole and a lightweight flag mesh that ripples in the breeze.
-  b.cylinder('stoneLight', 0.5, 0.28, 3, 0.14, -8);
-  b.solidCircle(0.5, 3, -8);
-  b.cylinder('trim', 0.34, 0.2, 3, 0.1, -8);
-  b.cylinder('metalLight', 0.075, 9.8, 3, 5.05, -8);
-  b.sphere('gold', 0.13, 3, 10.05, -8);
-  b.box('gold', 0.035, 0.9, 0.035, 3, 8.75, -8.06);
+  // The flagpole stands on the pavilion's tiled ridge, with a lightweight flag that ripples
+  // in the breeze.
+  b.cylinder('trim', 0.19, 0.24, 3, 4.62, -17.5);
+  b.cylinder('metalLight', 0.075, 6.125, 3, 7.6625, -17.5);
+  b.sphere('gold', 0.13, 3, 10.825, -17.5);
+  b.box('gold', 0.035, 0.9, 0.035, 3, 9.525, -17.56);
   const flagGeometry = new THREE.PlaneGeometry(2.75, 1.8, 22, 12);
   flagGeometry.translate(1.375, 0, 0);
   flagBasePositions = flagGeometry.attributes.position.array.slice();
@@ -123,24 +122,10 @@ export function buildCeremonyStage() {
     toneMapped: true,
   });
   flagMesh = new THREE.Mesh(flagGeometry, flagMaterial);
-  flagMesh.position.set(3, 8.82, -8);
+  flagMesh.position.set(3, 9.575, -17.5);
   flagMesh.userData.width = 2.75;
   flagMesh.frustumCulled = false;
   scene.add(flagMesh);
-
-  // Two more flags flank the pavilion, bringing the courtyard to life.
-  for (const [fx, fz] of [[-0.6, -16.3], [6.6, -16.3]]) {
-    b.cylinder('metalLight', 0.035, 3.4, fx, 1.7 + 0.6, fz);
-    b.solidCircle(0.06, fx, fz);
-    const smallFlagGeo = new THREE.PlaneGeometry(1.35, 0.82, 8, 5);
-    const smallFlagMat = new THREE.MeshStandardMaterial({
-      map: flagTex, side: THREE.DoubleSide, roughness: 0.9, metalness: 0,
-    });
-    const smallFlag = new THREE.Mesh(smallFlagGeo, smallFlagMat);
-    smallFlag.position.set(fx + 0.02, 3.62, fz);
-    smallFlag.rotation.y = -0.12;
-    scene.add(smallFlag);
-  }
 }
 
 /** Per-frame: gentle wind through the ceremonial flag, dimmed at night / in rain. */

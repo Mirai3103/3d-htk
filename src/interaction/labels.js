@@ -8,7 +8,7 @@ import { labelsLayer, labelsToggle } from '../core/dom.js';
 import { camera } from '../core/engine.js';
 import { BUILDING_ORDER, BUILDINGS } from '../data/buildings.js';
 import { getHoveredBuilding, setHoveredBuilding } from './hover.js';
-import { selectBuilding } from './panel.js';
+import { selectBuilding } from './selection.js';
 
 let labelsVisible = true;
 

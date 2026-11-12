@@ -4,10 +4,8 @@
 }
 
 @media (max-width: 900px) {
-  :root { --panel-width: 340px; }
   .brand h1 { font-size: 17px; }
   .brand-sub { font-size: 9px; }
-  .info-panel { top: 92px; right: 16px; }
 }
 
 @media (max-width: 720px) {
@@ -55,26 +53,6 @@
   }
   .utility-btn span { display: none; }
   .utility-btn svg { width: 15px; height: 15px; }
-
-  .info-panel {
-    top: auto;
-    left: 10px;
-    right: 10px;
-    bottom: max(10px, env(safe-area-inset-bottom));
-    width: auto;
-    max-height: min(58dvh, 520px);
-    padding: 20px 20px 16px;
-    border-radius: 20px;
-    transform: translateY(calc(100% + 26px)) scale(0.99);
-  }
-
-  .info-panel.is-open { transform: translateY(0) scale(1); }
-
-  .panel-name { font-size: 27px; margin-top: 12px; }
-  .panel-rule { margin: 15px 0 14px; }
-  .panel-function { margin-top: 17px; }
-  .stat-value { font-size: 21px; }
-  .back-button { min-height: 41px; }
 
   .hint {
     left: 12px;

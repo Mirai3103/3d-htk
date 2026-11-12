@@ -14,7 +14,6 @@ import { BUILDING_ORDER, BUILDINGS } from '../data/buildings.js';
 import { floorHeightAt, resolveSolids } from '../geometry/colliders.js';
 import { flyToOverview, startCameraFlight } from './cameraRig.js';
 import { setHoveredBuilding } from './hover.js';
-import { closePanel } from './panel.js';
 
 // A secondary-school pupil: eyes about 1.45 m up, shoulders about 0.7 m wide.
 const EYE_HEIGHT = 1.45;
@@ -94,7 +93,6 @@ function releaseKeys() {
 export function enterWalk() {
   if (mode !== 'off') return;
   mode = 'entering';
-  closePanel({ fly: false });
   setHoveredBuilding(null);
   releaseKeys();
   pos.x = START.x;

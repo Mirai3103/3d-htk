@@ -101,26 +101,27 @@ export const adminSignTex = signTexture((ctx, w, h) => {
   ctx.fillText('TIÊN HỌC LỄ · HẬU HỌC VĂN', w / 2, h * 0.82);
 }, 2048, 250);
 
-export const bannerTex = signTexture((ctx, w, h) => {
-  const bg = ctx.createLinearGradient(0, 0, 0, h);
-  bg.addColorStop(0, '#173f69');
-  bg.addColorStop(1, '#0d2e50');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = '#d8b361';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(7, 7, w - 14, h - 14);
-  ctx.fillStyle = '#f4dd9d';
-  ctx.textAlign = 'center';
-  ctx.font = '800 55px "Segoe UI", Arial, sans-serif';
-  ctx.fillText('TIÊN HỌC LỄ  ·  HẬU HỌC VĂN', w / 2, h * 0.66);
-  ctx.textAlign = 'left';
-  ctx.font = '600 20px "Segoe UI", Arial, sans-serif';
-  ctx.fillStyle = 'rgba(242, 222, 160, 0.58)';
-  ctx.fillText('THCS HUỲNH THÚC KHÁNG', 38, h * 0.72);
-  ctx.textAlign = 'right';
-  ctx.fillText('NGHĨA HÀNH · QUẢNG NGÃI', w - 38, h * 0.72);
-}, 2048, 128);
+/** A navy slogan board: gold rule and the wording, nothing else. */
+function makeSloganTex(slogan, width, height) {
+  return signTexture((ctx, w, h) => {
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, '#173f69');
+    bg.addColorStop(1, '#0d2e50');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#d8b361';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(7, 7, w - 14, h - 14);
+    ctx.fillStyle = '#f4dd9d';
+    ctx.textAlign = 'center';
+    ctx.font = `800 ${Math.round(h * 0.43)}px "Segoe UI", Arial, sans-serif`;
+    ctx.fillText(slogan, w / 2, h * 0.72);
+  }, width, height);
+}
+
+export const bannerTex = makeSloganTex('TIÊN HỌC LỄ  ·  HẬU HỌC VĂN', 2048, 128);
+// Shorter board on the administration block, painted 8:1 to match its plaque.
+export const sloganTex = makeSloganTex('THI ĐUA DẠY TỐT  ·  HỌC TỐT', 1024, 128);
 
 export const stageBackdropTex = signTexture((ctx, w, h) => {
   const g = ctx.createLinearGradient(0, 0, 0, h);

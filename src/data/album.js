@@ -1,16 +1,15 @@
 /**
- * The souvenir album on the Teachers' Day table: its cover wording and its pages.
- * Edit the album here.
+ * The souvenir album on the Teachers' Day table: its cover wording and its page list.
+ * Edit the cover here. The PAGES are the `album_items` column of the Supabase `content` row
+ * (edit them in `admin.html`), so the list changes without a rebuild; this file supplies the
+ * cover and the fallback.
  *
- * Each entry of ALBUM_ITEMS is ONE page: a photo on top, a caption underneath. Pages are
- * shown in order, two per sheet (front and back), so an odd count leaves the last page blank.
- *
- *   imageLink    a picture URL. Remote pictures must allow cross-origin use; when they do not,
- *                the album retries through the wsrv.nl image proxy, and paints a placeholder if
- *                that fails too (offline). To ship a picture inside the build instead, import
- *                it:  import classPhoto from '../assets/class-9a.jpg';  imageLink: classPhoto
- *   description  the caption, in Vietnamese. About four lines fit; longer text is cut with "…".
+ * Each page entry: imageLink (a picture URL — cross-origin hosts are retried through wsrv.nl,
+ * then a painted placeholder is shown; import a file from src/ to bundle it) and description
+ * (the caption, in Vietnamese, about four lines fit). Two pages share a sheet, so an odd count
+ * leaves the last page blank.
  */
+import { CONTENT } from './remote.js';
 
 export const ALBUM = {
   title: 'ALBUM KỶ NIỆM',
@@ -22,46 +21,12 @@ export const ALBUM = {
   farewell: 'Cảm ơn thầy cô đã cùng chúng em viết nên những trang kỷ niệm này.',
 };
 
-// Mock data for now: random placeholder pictures, replaced on every visit.
-export const ALBUM_ITEMS = [
-  {
-    imageLink: 'https://placewaifu.com/image/600/450',
-    description: 'Trang mở đầu cuốn nhật ký hành trình — nơi lưu giữ những khoảnh khắc rực rỡ và đáng nhớ nhất của tuổi trẻ.',
-  },
-  {
-    imageLink: 'https://placewaifu.com/image/604/452',
-    description: 'Kỷ niệm buổi chiều lộng gió bên hiên nhà — khoảnh khắc bình yên cùng những câu chuyện không hồi kết.',
-  },
-  {
-    imageLink: 'https://placewaifu.com/image/608/454',
-    description: 'Chuyến đi xa đầu năm cùng cả nhóm, nắng vàng dịu nhẹ và tiếng cười vang suốt dọc đường đi.',
-  },
-  {
-    imageLink: 'https://placewaifu.com/image/612/456',
-    description: 'Góc phố quen mỗi độ thu về, lá rơi khẽ trên vai và tách trà ấm nóng giữa tiết trời se lạnh.',
-  },
-  {
-    imageLink: 'https://placewaifu.com/image/616/458',
-    description: 'Bức ảnh chụp vội dưới ánh hoàng hôn tím biếc, lưu lại nụ cười trong trẻo sau một ngày dài khám phá.',
-  },
-  {
-    imageLink: 'https://placewaifu.com/image/620/460',
-    description: 'Ngày hội mùa hè rực rỡ sắc màu, pháo hoa nở rộ trên bầu trời đêm và những lời ước nguyện chân thành.',
-  },
-  {
-    imageLink: 'https://placewaifu.com/image/624/462',
-    description: 'Buổi sáng bình minh nơi thị trấn sương mù, không khí trong lành khiến lòng người nhẹ tênh.',
-  },
-  {
-    imageLink: 'https://placewaifu.com/image/628/464',
-    description: 'Một chiều mưa bất chợt trú dưới mái hiên cổ kính, lắng nghe tiếng mưa rơi đều trên nền đá cuội.',
-  },
-  {
-    imageLink: 'https://placewaifu.com/image/632/466',
-    description: 'Bữa tiệc nhỏ ấm cúng bên ánh đèn vàng, nơi mọi khoảng cách đều tan biến trong niềm vui hội ngộ.',
-  },
-  {
-    imageLink: 'https://placewaifu.com/image/636/468',
-    description: 'Khép lại một chương kỷ niệm thật đẹp — hẹn gặp lại ở những hành trình mới đầy ắp tiếng cười phía trước.',
-  },
-];
+/**
+ * Pages from the Supabase row, or none when it cannot be read — the book then opens with blank
+ * pages instead of breaking.
+ */
+export const ALBUM_ITEMS = Array.isArray(CONTENT.albumItems)
+  ? CONTENT.albumItems.filter(
+    (item) => item && typeof item.imageLink === 'string' && typeof item.description === 'string',
+  )
+  : [];

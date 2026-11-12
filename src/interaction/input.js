@@ -7,14 +7,11 @@ import {
   albumNext,
   albumPrev,
   albumPrompt,
-  infoPanel,
   labelsToggle,
   npcBubbleClose,
   npcBubbleNext,
   npcPrompt,
   overviewBtn,
-  panelBack,
-  panelClose,
   videoClose,
   videoPrompt,
   walkToggle,
@@ -32,12 +29,12 @@ import {
   refreshAlbumView,
   turnAlbumPage,
 } from './albumView.js';
-import { overviewTarget, updateResponsiveFov, viewportOverview } from './cameraRig.js';
+import { flyToOverview, overviewTarget, updateResponsiveFov, viewportOverview } from './cameraRig.js';
 import { closeDialogue, isTalking, isTeacherInReach, talkToTeacher } from './dialogue.js';
 import { findPickAtEvent } from './picking.js';
 import { getHoveredBuilding, setHoveredBuilding, setOutlineResolution } from './hover.js';
 import { applyLabelNames, measureLabels, toggleLabels, updateLabels } from './labels.js';
-import { closePanel, selectBuilding } from './panel.js';
+import { selectBuilding } from './selection.js';
 import {
   closeVideo,
   initVideoView,
@@ -62,7 +59,6 @@ const activePointers = new Set();
 
 /** Start, or carry on, the conversation with the teacher. */
 function speakWithTeacher() {
-  closePanel({ fly: false });
   talkToTeacher();
 }
 
@@ -185,11 +181,8 @@ export function initInput() {
     closeAlbum({ fly: false });
     closeVideo({ fly: false });
     if (isWalking()) exitWalk();
-    else closePanel({ fly: true });
+    else flyToOverview();
   });
-
-  panelClose.addEventListener('click', () => closePanel({ fly: true }));
-  panelBack.addEventListener('click', () => closePanel({ fly: true }));
 
   document.querySelectorAll('.weather-btn').forEach((button) => {
     button.addEventListener('click', () => setWeather(button.dataset.weather));
@@ -213,7 +206,6 @@ export function initInput() {
     if (event.key === 'Escape') {
       if (isTalking()) closeDialogue();
       else if (isWalking()) exitWalk();
-      else if (infoPanel.classList.contains('is-open')) closePanel({ fly: true });
       else setHoveredBuilding(null);
       return;
     }

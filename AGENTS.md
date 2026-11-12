@@ -3,8 +3,9 @@
 Procedural low-poly 3D model of a Vietnamese secondary school, built with **Three.js + Vite**.
 Everything (geometry, textures, signs) is generated in code: there are **no image/model assets
 and no CDN**. `bun run build` produces **one self-contained file: `dist/index.html`**
-(via `vite-plugin-singlefile`), plus a copy of `public/` beside it — today only the memory
-video, `dist/videos/` (see "The memory video").
+(via `vite-plugin-singlefile`), plus a copy of `public/` beside it: the memory video
+(`dist/videos/`). The album pages and video URL are not in the bundle: they are read from Supabase
+at runtime (see "Runtime content (Supabase)").
 
 ## Commands (package manager: **bun**)
 
@@ -21,6 +22,68 @@ When in doubt, open `bun run dev` (or `dist/index.html`) and check the console.
 
 Do not edit `index.backup.donttouch.html` (original single-file version, kept for reference) or
 `vite-project-template/`.
+
+## Content admin page
+
+`admin.html` (repo root, static, **not an entry of the build**) edits the album's page list and the
+memory video URL. It talks to Supabase directly: `bun run dev` → `http://localhost:5173/admin.html`,
+or the standalone deployment **https://hoai-nam-manage.vercel.app**.
+
+- **Login:** Supabase Auth email/password. The form takes a bare name and maps it to
+  `<name>@htk.local` (a full email works too), so the admin account is `ngohuuhoainam` ↔
+  `ngohuuhoainam@htk.local`. The session (access + refresh token) lives in `localStorage`, the
+  access token is refreshed on expiry, and "Đăng xuất" ends it. More accounts: Supabase Dashboard →
+  Authentication → Users.
+- Reading needs no login (the row is public); "Lưu lên Supabase" is disabled until signed in, and
+  RLS rejects writes from anyone else. Each album row and the video card also have a file picker
+  that uploads to the `media` bucket and fills the URL field (see "Media storage").
+- Redeploying it is just the one file:
+
+  ```bash
+  d=$(mktemp -d) && cp admin.html "$d/index.html" &&
+    (cd "$d" && bunx vercel deploy --prod --yes --project hoai-nam-manage)
+  ```
+
+## Media storage (Supabase Storage)
+
+Uploaded photos and videos live in the public bucket **`media`** of the same project; the admin page
+uploads with the signed-in user's token and stores the resulting public URL in the content row
+(`album_items[].imageLink` / `video_src`). Typing an external URL by hand still works.
+
+- Paths: `album/<uuid>.<ext>` and `video/<uuid>.<ext>`; the public URL is
+  `https://<ref>.supabase.co/storage/v1/object/public/media/<path>` (CORS is open, so the album's
+  `new Image()` load and the `<video>` element both take it directly).
+- Policies on `storage.objects`: `select` for everyone, `insert`/`update`/`delete` for
+  `authenticated` only. Bucket limit: 25 MB per file, `image/*`, `video/mp4`, `video/webm`,
+  `video/quicktime`.
+- Removing a page or changing the video does **not** delete the file; the bucket keeps growing.
+  Clean it in Dashboard → Storage when needed.
+- Free tier: 1 GB stored, 5 GB egress/month — long videos are better hosted elsewhere (YouTube
+  links do not work; the element needs a direct file URL).
+
+## Runtime content (Supabase)
+
+The album's pages and the video file live in the `htk-3d-data` project (ref
+`lldztclylmjtqjrltwgi`), table `public.content` — the single row `id = 1`:
+
+| column | use |
+|---|---|
+| `album_items` | `jsonb` array of `{ imageLink, description }`: the album's pages, replaces the baked list |
+| `video_src` | the memory video: a `public/` relative path or a full `https://` file URL |
+| `updated_at` | stamped by the write path |
+
+- `src/data/remote.js` reads it once at startup (PostgREST `GET /rest/v1/content?id=eq.1`, publishable
+  key, 5 s timeout, `AbortSignal.timeout?.`) before the data modules build their values. It is not a
+  general data layer: everything else stays baked in `src/data/*.js`.
+- RLS: `select` is open to `anon`; `update` is allowed only to `authenticated` (a signed-in admin).
+  The site ships the publishable key and can only read; `admin.html` writes with the user's access
+  token. A `before update` trigger (`touch_content`) stamps `updated_at`.
+- The admin project maps its plain name to a `@htk.local` email; those accounts are created in
+  Supabase Auth (alongside `ngohuuhoainam@htk.local`, the current one), not in code.
+- Any failure (offline, blocked request, bad row, timeout) → the baked defaults: an empty album and
+  `DEFAULTS.src` video, so the scene never blocks on content.
+- Entries are validated (`imageLink` and `description` must be strings) before use; both the row and
+  the RPC input are user-supplied, so never trust the shape.
 
 ## World conventions
 
@@ -39,7 +102,7 @@ Every file starts with a doc comment saying what it owns. Dependencies flow down
 main.js                     boot() + animate() render loop. Per-frame updates are called here.
 core/
   math.js                   TAU, HALF_PI, seededRandom, damp
-  dom.js                    references to static DOM in index.html (loader, panel, buttons…)
+  dom.js                    references to static DOM in index.html (loader, buttons…)
   engine.js                 renderer, scene, camera, OrbitControls, raycaster, clock, targetPixelRatio
 textures/                   canvas-painted textures (no image files)
   canvas.js                 makeCanvas, canvasTexture, signTexture, fitText, drawStar, drawHeart, rgba
@@ -62,10 +125,11 @@ scene/
   weather.js                WEATHERS presets, setWeather(name), updateWeather(dt), currentWeather
   puddles.js                createPuddles(), puddleMeshes
 data/
+  remote.js                 CONTENT: the Supabase content row, fetched once at startup (album pages, video src)
   buildings.js              BUILDINGS directory (text, bounds, label anchor, camera view), BUILDING_ORDER
   teacher.js                TEACHER: the courtyard teacher's look, position and speech lines
-  album.js                  ALBUM (cover wording) + ALBUM_ITEMS (one { imageLink, description } per page)
-  video.js                  MEMORY_VIDEO: the memory video's file and the screen's title card wording
+  album.js                  ALBUM (cover wording); ALBUM_ITEMS from CONTENT (one { imageLink, description } per page)
+  video.js                  MEMORY_VIDEO: the memory video's file (CONTENT.video.src) and title card wording
 kit/                        reusable parts; every function takes a Builder `b` first
   architecture.js           windows, doors, railings, gable/hip roofs, porch, sagging awning
   vegetation.js             addTree, addPalm, addPottedPlant, addFlowerCluster, addOrientedCone
@@ -89,16 +153,16 @@ interaction/
   videoView.js              watching the memory video: "watch" prompt, camera in/out, <video> overlay
   hover.js                  hovered state + outline box (getHoveredBuilding, setHoveredBuilding)
   labels.js                 HTML labels projected from 3D, toggleLabels
-  panel.js                  selectBuilding(id), closePanel()
+  selection.js              selectBuilding(id): close open views, fly to a building
   input.js                  initInput(): every DOM/pointer/keyboard/resize listener
 styles/
   index.css                 @imports the parts below — ORDER MATTERS, responsive.css last
-  base.css brand.css controls.css labels.css panel.css hint.css walk.css dialogue.css album.css
+  base.css brand.css controls.css labels.css hint.css walk.css dialogue.css album.css
   video.css loader.css
   responsive.css
 ```
 
-`index.html` holds only the static markup (header, weather buttons, info panel, loader) plus a
+`index.html` holds only the static markup (header, weather buttons, hints, loader) plus a
 tiny classic error-guard script. IDs/classes used by JS are referenced through `core/dom.js`.
 
 ## How geometry works (read before adding scenery)
@@ -189,9 +253,10 @@ flies the camera over the table and opens it; pages turn by dragging or tapping 
 ‹ › buttons or the arrow keys; Esc / Close turns everything back and returns the camera to
 where it was (orbit pose or the walker's eyes).
 
-- **Content is data:** edit `ALBUM` (cover, dedication, farewell) and `ALBUM_ITEMS` in
-  `data/album.js`. One entry = one page (photo + caption); two pages per sheet, so the number of
-  sheets follows the list. The current entries are mock data.
+- **Content is data:** the cover wording (`ALBUM`: title, dedication, farewell) is in
+  `data/album.js`; the pages are `album_items` in the Supabase row (see "Runtime content"),
+  refreshed at runtime and editable through `admin.html`. One entry = one page (photo + caption);
+  two pages per sheet, so the number of sheets follows the list. The current entries are mock data.
 - Page pictures are the one sanctioned exception to "no external URLs": `imageLink` is loaded at
   runtime, first directly, then through the `wsrv.nl` image proxy (for hosts without CORS), and a
   painted placeholder is shown when both fail (offline). Import a local file in `data/album.js`
@@ -214,12 +279,14 @@ Clicking it (orbit views, once the camera is near), its "Watch the video" prompt
 front of it in walk mode flies the camera square in front of the screen and plays the video on
 it; Space pauses, Esc / Close stops it and returns the camera to where it was.
 
-- **Content is data:** edit `MEMORY_VIDEO` in `data/video.js` (`src`, and the title card's
-  wording). The file lives in `public/videos/`: Vite copies `public/` into `dist/` untouched, so
-  `src` is a path relative to `index.html` and **`dist/videos/` must be deployed with
-  `dist/index.html`**. A full `https://` address works too (second sanctioned exception to "no
-  external URLs"). The current file is mock footage. Never `import` a video from `src/`: the
-  single-file build would inline it as base64.
+- **Content is data:** the title card wording (`title`, `subtitle`, `invite`) is in
+  `data/video.js`; the file (`src`) comes from `video_src` in the Supabase row (see "Runtime
+  content") with `data/video.js`'s `DEFAULTS.src` as fallback. The video lives in `public/videos/`:
+  Vite copies `public/` into `dist/` untouched, so `src` is a path relative to `index.html` and
+  **`dist/videos/` must be deployed with `dist/index.html`**. A full
+  `https://` address works too (second sanctioned exception to "no external URLs"). The current
+  file is mock footage. Never `import` a video from `src/`: the single-file build would inline it
+  as base64.
 - The video is a plain HTML `<video controls>` (`#video-frame`), not a texture, so it also plays
   from hosts without CORS and from a build opened straight from disk. `videoView.js` puts the
   camera on the screen's normal — the picture then projects to an exact rectangle — and lays
@@ -241,11 +308,12 @@ If weather must change it (e.g. wet look), also add it to `wetMaterials` there, 
 **Add a new structure** → create `campus/myThing.js` exporting `buildMyThing()`, use kit helpers,
 then call it from `buildCampus()` in `campus/index.js`. Keep it inside the lot unless it is background.
 
-**Make it selectable (info panel + label + hover outline)** → add an entry to `BUILDINGS` and its id to
+**Make it selectable (label + hover outline + camera view)** → add an entry to `BUILDINGS` and its id to
 `BUILDING_ORDER` in `data/buildings.js` (`bounds` = pick box centre/size, `label` = 3D anchor,
-`view` = camera position/target used by `flyToBuilding`). Picking, labels and panel pick it up
-automatically. For phones, add a `mobileScales` entry in `cameraRig.js#flyToBuilding`, or give the
-entry its own `mobileView` when it is too low to show above the panel.
+`view` = camera position/target used by `flyToBuilding`). Picking and labels pick it up
+automatically: a click just flies the camera there, nothing else opens. For phones, add a
+`mobileScales` entry in `cameraRig.js#flyToBuilding`, or give the entry its own `mobileView`
+when the default view does not frame it well on a narrow screen.
 
 **Add a weather preset** → `WEATHERS` in `scene/weather.js` (all keys of `COLOR_KEYS`/`NUM_KEYS`
 are required), an env texture in `textures/sky.js` `ENV_TEXTURES`, and a `.weather-btn` with
@@ -264,8 +332,8 @@ are required), an env texture in `textures/sky.js` `ENV_TEXTURES`, and a `.weath
   `toggleLabels()`). Assigning to an imported binding is an error (`no-import-assign`).
 - Module side effects run at import time (e.g. `engine.js` creates the renderer, `library.js`
   creates materials, `lights.js` adds lights). Keep heavy work inside functions called from `boot()`.
-- `interaction/panel.js ↔ labels.js ↔ hover.js` import each other; that is fine only because they
-  touch each other's exports inside functions, never at module top level. Keep it that way.
+- `interaction/labels.js ↔ hover.js` import each other; that is fine only because they touch each
+  other's exports inside functions, never at module top level. Keep it that way.
 - `camera.fov` and `camera.near` differ between the orbit views and walk mode. Camera flights carry
   the FOV (`startCameraFlight(..., { fov })`); do not set it elsewhere while a flight is running.
 - Shadows are static: `renderer.shadowMap.autoUpdate = false`. If you add/move shadow casters after
@@ -273,6 +341,6 @@ are required), an env texture in `textures/sky.js` `ENV_TEXTURES`, and a `.weath
 - Import three.js as `import * as THREE from 'three'`; addons from `three/addons/...` (pinned 0.186.0).
 - Keep it single-file friendly: no runtime `fetch`, no external URLs. Small assets imported from
   `src/` get inlined by the build; avoid large binaries (the HTML is ~800 kB, mostly three.js).
-  The only exceptions are the album's page photos (see "The souvenir album") and the memory
-  video, which is a separate file by design (see "The memory video").
+  The only exceptions are the album's page photos (see "The souvenir album"), the memory video
+  (see "The memory video") and the Supabase content row (see "Runtime content").
 - All UI text is Vietnamese; on-scene signage is Vietnamese too (with diacritics) — keep both as they are.

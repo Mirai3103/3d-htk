@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quản trị nội dung · 3D THCS Huỳnh Thúc Kháng</title>
+<!--
+  Trang quản trị nội dung cho web 3D: sửa danh sách ảnh của album và URL video, lưu thẳng lên
+  Supabase (project htk-3d-data, bảng `content`). Website 3D đọc đúng bảng đó lúc chạy.
+  Đăng nhập bằng Supabase Auth (email/password); RLS chỉ cho user đã đăng nhập ghi.
+  Tài khoản dạng "tên" được ghép thành <tên>@htk.local — gõ thẳng email cũng được.
+-->
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --line:#2a2f3a; --fg:#e6e9ef; --muted:#9aa3b2;
+    --accent:#4c8dff; --danger:#ff5c5c; --ok:#3ecf8e;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  header h1{font-size:17px;margin:0}
+  header p{margin:0;color:var(--muted);font-size:13px}
+  .head-actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  #username{width:160px;margin:0}
+  #password{width:180px;margin:0}
+  main{display:grid;gap:16px;padding:16px;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start}
+  @media (max-width:960px){main{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+  h2{font-size:13px;margin:0 0 10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  .muted{color:var(--muted);font-weight:400}
+  label{display:block;font-size:13px;color:var(--muted);margin:6px 0}
+  input,textarea{display:block;width:100%;margin-top:4px;background:#0d1015;border:1px solid var(--line);color:var(--fg);border-radius:7px;padding:8px 10px;font:inherit}
+  textarea{resize:vertical;min-height:52px}
+  input:focus,textarea:focus{outline:1px solid var(--accent);border-color:var(--accent)}
+  button{background:#232833;color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:6px 11px;font:inherit;cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  button:disabled{opacity:.55;cursor:default}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.danger{color:var(--danger)}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .item{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:12px;padding:10px;border:1px solid var(--line);border-radius:9px;margin-bottom:10px}
+  @media (max-width:560px){.item{grid-template-columns:80px minmax(0,1fr) auto}}
+  .thumb{width:110px;height:82px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:#0d1015}
+  @media (max-width:560px){.thumb{width:80px;height:60px}}
+  .thumb.bad{opacity:.35}
+  .ops{display:flex;flex-direction:column;gap:5px}
+  .ops button{padding:2px 8px;line-height:1.4}
+  code{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;background:#0d1015;border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+  video{width:100%;margin-top:10px;border:1px solid var(--line);border-radius:8px;background:#000}
+  .note{font-size:13px;color:var(--muted);margin:0 0 10px}
+  input[type=file]{font-size:12.5px;color:var(--muted);padding:4px 0;background:transparent;border:0}
+  #status{margin:0;padding:8px 20px;font-size:13.5px;border-bottom:1px solid var(--line);background:#12151b;color:var(--muted)}
+  #status.is-ok{color:var(--ok)}
+  #status.is-err{color:var(--danger)}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Quản trị nội dung 3D</h1>
+    <p>Album ảnh + video kỷ niệm · lưu thẳng lên Supabase</p>
+  </div>
+
+  <div class="head-actions" id="auth-out">
+    <input id="username" type="text" placeholder="Tài khoản" autocomplete="username" spellcheck="false">
+    <input id="password" type="password" placeholder="Mật khẩu" autocomplete="current-password">
+    <button id="login" class="primary">Đăng nhập</button>
+  </div>
+
+  <div class="head-actions" id="auth-in" hidden>
+    <span id="who" class="muted"></span>
+    <button id="logout">Đăng xuất</button>
+  </div>
+
+  <div class="head-actions">
+    <button id="reload">Tải lại</button>
+    <button id="save" class="primary" disabled>Lưu lên Supabase</button>
+  </div>
+</header>
+
+<p id="status" role="status">Đang tải nội dung…</p>
+
+<main>
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Album kỷ niệm · <span id="count">0</span> trang</h2>
+      <button id="add">+ Thêm ảnh</button>
+    </div>
+    <p class="note">Mỗi ảnh là một trang, hai trang một tờ. Ảnh lẻ cuối cùng để trống mặt sau.</p>
+    <div id="items"></div>
+  </section>
+
+  <section class="card">
+    <h2>Video kỷ niệm</h2>
+    <label>URL video
+      <input id="video-src" type="text" spellcheck="false" placeholder="videos/film.mp4 hoặc https://…">
+    </label>
+    <label>Hoặc tải video lên (bucket công khai, tối đa 25 MB)
+      <input id="video-upload" type="file" accept="video/mp4,video/webm,video/quicktime">
+    </label>
+    <p class="note">File trong <code>public/videos/</code> dùng đường dẫn tương đối <code>videos/…</code>,
+      hoặc dán URL <code>https://…</code> đầy đủ. MP4 (H.264 + AAC) chạy được mọi nơi.</p>
+    <video id="video-preview" controls preload="none" hidden></video>
+  </section>
+</main>
+
+<script type="module">
+const $ = (s) => document.querySelector(s);
+const SESSION_KEY = 'htk-admin-session';
+const USERNAME_DOMAIN = 'htk.local'; // tài khoản "ngohuuhoainam" → ngohuuhoainam@htk.local
+
+// Cùng project/bảng với src/data/remote.js. Publishable key là khoá công khai (chỉ đọc).
+const SUPABASE_URL = 'https://lldztclylmjtqjrltwgi.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_yT3dW8SrSzwppmgfFJCcmQ_h8bF0WX-';
+
+const state = { items: [], videoSrc: '' };
+let loaded = { items: [], videoSrc: '' };
+let session = null; // { access_token, refresh_token, expires_at, email }
+
+const status = (text, kind = '') => {
+  const el = $('#status');
+  el.textContent = text;
+  el.className = kind;
+};
+
+const baseHeaders = () => ({ apikey: SUPABASE_KEY });
+const authHeaders = (token) => ({
+  apikey: SUPABASE_KEY,
+  Authorization: `Bearer ${token}`,
+});
+
+// ---------- Supabase Auth ----------
+
+const emailFor = (name) => {
+  const value = name.trim().toLowerCase();
+  return value.includes('@') ? value : `${value}@${USERNAME_DOMAIN}`;
+};
+
+function storeSession(data) {
+  session = {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: Date.now() + (data.expires_in ?? 3600) * 1000,
+    email: data.user?.email ?? session?.email ?? '',
+  };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+
+function clearSession() {
+  session = null;
+  localStorage.removeItem(SESSION_KEY);
+}
+
+async function login(name, password) {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { ...baseHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: emailFor(name), password }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error_description || data.msg || data.error || `HTTP ${res.status}`);
+  storeSession(data);
+  return session;
+}
+
+async function refresh() {
+  if (!session?.refresh_token) throw new Error('no session');
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+    method: 'POST',
+    headers: { ...baseHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: session.refresh_token }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error('refresh failed');
+  storeSession({ ...data, user: data.user ?? { email: session.email } });
+  return session;
+}
+
+async function token() {
+  if (!session) throw new Error('not signed in');
+  if (session.expires_at - Date.now() > 60_000) return session.access_token;
+  return (await refresh()).access_token;
+}
+
+async function logout() {
+  const current = session;
+  clearSession();
+  renderAuth();
+  if (current?.access_token) {
+    fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+      method: 'POST',
+      headers: authHeaders(current.access_token),
+    }).catch(() => {});
+  }
+}
+
+function renderAuth() {
+  const signedIn = Boolean(session);
+  $('#auth-out').hidden = signedIn;
+  $('#auth-in').hidden = !signedIn;
+  $('#save').disabled = !signedIn;
+  $('#who').textContent = session ? `Đã đăng nhập · ${session.email}` : '';
+  if (!signedIn) status('Đăng nhập để sửa nội dung (xem vẫn được).');
+}
+
+// ---------- Content ----------
+
+async function readContent() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/content?id=eq.1&select=album_items,video_src`, {
+    headers: baseHeaders(),
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const [row] = await res.json();
+  const items = Array.isArray(row?.album_items) ? row.album_items : [];
+  return {
+    items: items.map((it) => ({
+      imageLink: String(it?.imageLink ?? ''),
+      description: String(it?.description ?? ''),
+    })),
+    videoSrc: typeof row?.video_src === 'string' ? row.video_src : '',
+  };
+}
+
+async function writeContent(accessToken) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/content?id=eq.1`, {
+    method: 'PATCH',
+    headers: {
+      ...authHeaders(accessToken),
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify({ album_items: state.items, video_src: state.videoSrc }),
+  });
+  const rows = await res.json().catch(() => []);
+  if (res.status === 401) throw new Error('expired');
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!Array.isArray(rows) || rows.length === 0) throw new Error('forbidden');
+  return rows[0];
+}
+
+async function uploadFile(file, folder) {
+  if (file.size > 25 * 1024 * 1024) throw new Error('file lớn hơn 25 MB');
+  const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin';
+  const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/media/${path}`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${await token()}`,
+      'Content-Type': file.type || 'application/octet-stream',
+      'cache-control': 'public, max-age=31536000',
+    },
+    body: file,
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.message || `HTTP ${res.status}`);
+  }
+  return `${SUPABASE_URL}/storage/v1/object/public/media/${path}`;
+}
+
+async function saveContent() {
+  if (!session) {
+    status('Đăng nhập trước khi lưu.', 'is-err');
+    return;
+  }
+  const button = $('#save');
+  button.disabled = true;
+  status('Đang lưu…');
+  try {
+    let saved;
+    try {
+      saved = await writeContent(await token());
+    } catch (error) {
+      if (error.message !== 'expired') throw error;
+      saved = await writeContent((await refresh()).access_token); // token cũ → làm mới rồi thử lại
+    }
+    loaded = structuredClone(state);
+    renderAuth();
+    status(`Đã lưu lúc ${new Date(saved.updated_at).toLocaleTimeString('vi-VN')} · web 3D thấy ngay lần tải trang sau.`, 'is-ok');
+  } catch (error) {
+    if (error.message === 'forbidden') {
+      status('Tài khoản này không có quyền ghi nội dung.', 'is-err');
+    } else if (error.message === 'expired' || error.message === 'refresh failed') {
+      clearSession();
+      renderAuth();
+      status('Phiên đăng nhập đã hết hạn, đăng nhập lại.', 'is-err');
+    } else if (error.message === 'not signed in') {
+      status('Đăng nhập trước khi lưu.', 'is-err');
+    } else {
+      status('Lưu thất bại — kiểm tra mạng rồi thử lại.', 'is-err');
+    }
+  } finally {
+    button.disabled = !session;
+  }
+}
+
+// ---------- Editor ----------
+
+const changed = () => {
+  $('#count').textContent = state.items.length;
+  if (session) status('Có thay đổi chưa lưu.');
+};
+
+function showThumb(img, url) {
+  img.classList.toggle('bad', !url);
+  img.alt = url ? '' : 'chưa có ảnh';
+  img.src = url;
+}
+
+function renderList() {
+  const list = $('#items');
+  list.textContent = '';
+  state.items.forEach((it, i) => {
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.innerHTML = `
+      <img class="thumb" alt="">
+      <div>
+        <label>Liên kết ảnh <span class="muted">· trang ${i + 1}</span>
+          <input class="url" type="text" spellcheck="false" placeholder="https://… hoặc đường dẫn nội bộ">
+        </label>
+        <input class="upload" type="file" accept="image/*" title="Hoặc tải ảnh lên Supabase Storage">
+        <label>Chú thích <span class="muted">· khoảng 4 dòng</span>
+          <textarea class="desc" rows="2"></textarea>
+        </label>
+      </div>
+      <div class="ops">
+        <button class="up" title="Lên trên">↑</button>
+        <button class="down" title="Xuống dưới">↓</button>
+        <button class="del danger" title="Xoá trang">✕</button>
+      </div>`;
+
+    const img = row.querySelector('.thumb');
+    const url = row.querySelector('.url');
+    const desc = row.querySelector('.desc');
+    url.value = it.imageLink;
+    desc.value = it.description;
+
+    img.addEventListener('load', () => img.classList.remove('bad'));
+    img.addEventListener('error', () => img.classList.add('bad'));
+    url.addEventListener('input', () => { it.imageLink = url.value.trim(); changed(); });
+    url.addEventListener('change', () => showThumb(img, it.imageLink));
+
+    const upload = row.querySelector('.upload');
+    upload.addEventListener('change', async () => {
+      const file = upload.files?.[0];
+      upload.value = '';
+      if (!file) return;
+      if (!session) { status('Đăng nhập trước khi tải file lên.', 'is-err'); return; }
+      status('Đang tải ảnh lên…');
+      try {
+        const publicUrl = await uploadFile(file, 'album');
+        it.imageLink = publicUrl;
+        url.value = publicUrl;
+        showThumb(img, publicUrl);
+        changed();
+        status('Đã tải ảnh lên. Bấm "Lưu lên Supabase" để ghi vào nội dung.', 'is-ok');
+      } catch (error) {
+        status(`Tải ảnh thất bại — ${error.message}`, 'is-err');
+      }
+    });
+    desc.addEventListener('input', () => { it.description = desc.value; changed(); });
+
+    const move = (d) => {
+      const j = i + d;
+      if (j < 0 || j >= state.items.length) return;
+      state.items.splice(j, 0, state.items.splice(i, 1)[0]);
+      changed();
+      renderList();
+    };
+    row.querySelector('.up').addEventListener('click', () => move(-1));
+    row.querySelector('.down').addEventListener('click', () => move(1));
+    row.querySelector('.del').addEventListener('click', () => {
+      state.items.splice(i, 1);
+      changed();
+      renderList();
+    });
+
+    showThumb(img, it.imageLink);
+    list.append(row);
+  });
+}
+
+function previewVideo() {
+  const video = $('#video-preview');
+  video.hidden = !state.videoSrc;
+  if (state.videoSrc && video.getAttribute('src') !== state.videoSrc) video.src = state.videoSrc;
+}
+
+async function reload() {
+  status('Đang tải nội dung…');
+  try {
+    loaded = await readContent();
+  } catch {
+    status('Không đọc được Supabase (mạng bị chặn?).', 'is-err');
+    return;
+  }
+  state.items = structuredClone(loaded.items);
+  state.videoSrc = loaded.videoSrc;
+  $('#video-src').value = state.videoSrc;
+  renderList();
+  previewVideo();
+  $('#count').textContent = state.items.length;
+  status(session ? 'Đã tải nội dung hiện tại của web 3D.' : 'Đăng nhập để sửa nội dung (xem vẫn được).');
+}
+
+async function init() {
+  localStorage.removeItem('htk-admin-key'); // khoá ghi của bản cũ, không dùng nữa
+
+  try {
+    const stored = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+    if (stored?.access_token && stored.expires_at > Date.now()) session = stored;
+    else if (stored) session = { ...stored, expires_at: 0 }; // sẽ refresh ở lần lưu đầu
+  } catch { /* bỏ qua phiên hỏng */ }
+
+  renderAuth();
+
+  $('#login').addEventListener('click', async () => {
+    const name = $('#username').value.trim();
+    if (!name) { $('#username').focus(); return; }
+    status('Đang đăng nhập…');
+    $('#login').disabled = true;
+    try {
+      await login(name, $('#password').value);
+      $('#password').value = '';
+      renderAuth();
+      status(`Đăng nhập: ${session.email}`);
+    } catch (error) {
+      status(`Đăng nhập thất bại — ${error.message}`, 'is-err');
+    } finally {
+      $('#login').disabled = false;
+    }
+  });
+  $('#password').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#login').click(); });
+  $('#logout').addEventListener('click', logout);
+
+  $('#video-src').addEventListener('input', (e) => { state.videoSrc = e.target.value.trim(); changed(); });
+  $('#video-src').addEventListener('change', previewVideo);
+
+  $('#video-upload').addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!session) { status('Đăng nhập trước khi tải file lên.', 'is-err'); return; }
+    status('Đang tải video lên…');
+    try {
+      const publicUrl = await uploadFile(file, 'video');
+      state.videoSrc = publicUrl;
+      $('#video-src').value = publicUrl;
+      previewVideo();
+      changed();
+      status('Đã tải video lên. Bấm "Lưu lên Supabase" để ghi vào nội dung.', 'is-ok');
+    } catch (error) {
+      status(`Tải video thất bại — ${error.message}`, 'is-err');
+    }
+  });
+
+  $('#add').addEventListener('click', () => {
+    state.items.push({ imageLink: '', description: '' });
+    changed();
+    renderList();
+    $('.item:last-child .url').focus();
+  });
+
+  $('#reload').addEventListener('click', reload);
+  $('#save').addEventListener('click', saveContent);
+
+  await reload();
+}
+
+init();
+</script>
+</body>
+</html>

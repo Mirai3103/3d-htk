@@ -25,6 +25,7 @@ import {
   gateSignSmallTex,
   gateSignTex,
   sideGateSignTex,
+  sloganTex,
   stageBackdropTex,
 } from '../textures/signs.js';
 import { eventPropsTex, festiveTex, teachersDayBackdropTex } from '../textures/festive.js';
@@ -305,6 +306,7 @@ addSignMaterial('signGateSmall', gateSignSmallTex);
 addSignMaterial('signSideGate', sideGateSignTex);
 addSignMaterial('signAdmin', adminSignTex);
 addSignMaterial('signBanner', bannerTex);
+addSignMaterial('signSlogan', sloganTex);
 addSignMaterial('signStageBackdrop', stageBackdropTex);
 addSignMaterial('signPlaque', bustPlaqueTex);
 addSignMaterial('signTeachersDay', teachersDayBackdropTex);

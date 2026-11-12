@@ -61,6 +61,11 @@ export function buildAdministration() {
   b.box('gold', 8.42, 0.045, 0.06, 0, 10.66, zf + 0.09);
   b.box('gold', 8.42, 0.045, 0.06, 0, 9.58, zf + 0.09);
 
+  // "Thi đua dạy tốt, học tốt" board on the clear band between the first and second floors,
+  // matching the corridor banner of the back block.
+  b.box('trim', 6.2, 0.93, 0.1, 6.5, 4.19, zf + 0.05);
+  b.plane('signSlogan', 6.0, 0.75, 6.5, 4.19, zf + 0.105);
+
   // Ground-floor entrance and projecting porch with balcony.
   addDoorZ(b, -0.57, 0.16, zf, 1.03, 2.35, 'doorWood');
   addDoorZ(b, 0.57, 0.16, zf, 1.03, 2.35, 'doorWood');

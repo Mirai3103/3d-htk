@@ -33,7 +33,6 @@ import { isCameraFlying, startCameraFlight } from './cameraRig.js';
 import { cameraReturnPose, flyCameraBack, isCameraInReach, updatePrompt } from './closeUp.js';
 import { closeDialogue } from './dialogue.js';
 import { setHoveredBuilding } from './hover.js';
-import { closePanel } from './panel.js';
 import { isWalking, isWalkReady, releaseWalkKeys } from './walk.js';
 
 const READ_FOV = 40;
@@ -104,7 +103,6 @@ function refreshUi() {
 export function openAlbum() {
   if (state !== 'closed' || isCameraFlying()) return;
   if (isWalking() && !isWalkReady()) return;
-  closePanel({ fly: false });
   closeDialogue();
   setHoveredBuilding(null);
   releaseWalkKeys();
