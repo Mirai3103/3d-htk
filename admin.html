@@ -12,50 +12,73 @@
 -->
 <style>
   :root{
-    --bg:#0f1115; --card:#171a21; --line:#2a2f3a; --fg:#e6e9ef; --muted:#9aa3b2;
-    --accent:#4c8dff; --danger:#ff5c5c; --ok:#3ecf8e;
+    --bg:#f6f7f9; --card:#fff; --line:#dfe3ea; --fg:#1a1f29; --muted:#5b6472;
+    --accent:#2f6fe0; --accent-strong:#2a63d0; --ring:#2f6fe0;
+    --danger:#b42318; --ok:#067647; --field:#fff; --raise:#eef1f5; --raise-hover:#e0e6ef; --edge:#8b94a3;
+    color-scheme:light;
   }
   *{box-sizing:border-box}
   [hidden]{display:none!important}
-  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
-  header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;touch-action:manipulation}
+  :focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+  .skip{position:absolute;top:-48px;left:12px;z-index:50;background:var(--accent);color:#fff;padding:8px 12px;border-radius:7px;text-decoration:none;transition:top .15s}
+  .skip:focus{top:8px}
+  header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:14px 18px;align-items:flex-end;flex-wrap:wrap}
   header h1{font-size:17px;margin:0}
   header p{margin:0;color:var(--muted);font-size:13px}
-  .head-actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  #username{width:160px;margin:0}
-  #password{width:180px;margin:0}
-  main{display:grid;gap:16px;padding:16px;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start}
+  .head-actions{margin-left:auto;display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+  .field{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);margin:0}
+  .field input{margin:0}
+  #username{width:160px}
+  #password{width:180px}
+  main{display:grid;gap:16px;padding:16px;max-width:1400px;margin:0 auto;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start}
   @media (max-width:960px){main{grid-template-columns:1fr}}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0;box-shadow:0 1px 2px rgba(16,24,40,.06)}
   h2{font-size:13px;margin:0 0 10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
   .muted{color:var(--muted);font-weight:400}
   label{display:block;font-size:13px;color:var(--muted);margin:6px 0}
-  input,textarea{display:block;width:100%;margin-top:4px;background:#0d1015;border:1px solid var(--line);color:var(--fg);border-radius:7px;padding:8px 10px;font:inherit}
+  input,textarea{display:block;width:100%;margin-top:4px;background:var(--field);border:1px solid var(--edge);color:var(--fg);border-radius:7px;padding:9px 10px;font-family:inherit;font-size:16px;line-height:1.4}
   textarea{resize:vertical;min-height:52px}
-  input:focus,textarea:focus{outline:1px solid var(--accent);border-color:var(--accent)}
-  button{background:#232833;color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:6px 11px;font:inherit;cursor:pointer}
-  button:hover{border-color:var(--accent)}
-  button:disabled{opacity:.55;cursor:default}
+  ::placeholder{color:#6b7480}
+  button{background:var(--raise);color:var(--fg);border:1px solid var(--edge);border-radius:7px;padding:8px 12px;font:inherit;cursor:pointer;transition:background .15s,border-color .15s}
+  button:hover:not(:disabled){background:var(--raise-hover);border-color:var(--accent)}
+  button:active:not(:disabled){transform:translateY(1px)}
+  button:disabled{opacity:.5;cursor:not-allowed}
   button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.primary:hover:not(:disabled){background:var(--accent-strong);border-color:var(--accent-strong)}
   button.danger{color:var(--danger)}
   .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .item{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:12px;padding:10px;border:1px solid var(--line);border-radius:9px;margin-bottom:10px}
-  @media (max-width:560px){.item{grid-template-columns:80px minmax(0,1fr) auto}}
-  .thumb{width:110px;height:82px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:#0d1015}
-  @media (max-width:560px){.thumb{width:80px;height:60px}}
+  .thumb{width:110px;height:82px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--raise)}
   .thumb.bad{opacity:.35}
-  .ops{display:flex;flex-direction:column;gap:5px}
-  .ops button{padding:2px 8px;line-height:1.4}
-  code{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;background:#0d1015;border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+  .ops{display:flex;flex-direction:column;gap:6px}
+  .ops button{padding:6px;min-width:34px;min-height:34px;line-height:1;font-size:15px}
+  .empty{padding:18px;border:1px dashed var(--line);border-radius:9px;color:var(--muted);font-size:13.5px;text-align:center}
+  @media (max-width:560px){
+    .item{grid-template-columns:80px minmax(0,1fr)}
+    .thumb{width:80px;height:60px}
+    .ops{grid-column:1/-1;flex-direction:row;justify-content:flex-end}
+  }
+  code{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--raise);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
   video{width:100%;margin-top:10px;border:1px solid var(--line);border-radius:8px;background:#000}
   .note{font-size:13px;color:var(--muted);margin:0 0 10px}
-  input[type=file]{font-size:12.5px;color:var(--muted);padding:4px 0;background:transparent;border:0}
-  #status{margin:0;padding:8px 20px;font-size:13.5px;border-bottom:1px solid var(--line);background:#12151b;color:var(--muted)}
+  input[type=file]{font-size:14px;color:var(--muted);padding:6px 0;background:transparent;border:0;cursor:pointer}
+  input[type=file]::file-selector-button{background:var(--raise);color:var(--fg);border:1px solid var(--edge);border-radius:7px;padding:6px 10px;margin-right:10px;font:inherit;cursor:pointer}
+  input[type=file]::file-selector-button:hover{background:var(--raise-hover);border-color:var(--accent)}
+  #status{position:sticky;top:0;z-index:20;margin:0;padding:8px 20px;font-size:13.5px;border-bottom:1px solid var(--line);background:var(--raise);color:var(--muted)}
   #status.is-ok{color:var(--ok)}
   #status.is-err{color:var(--danger)}
+  @media (max-width:640px){
+    header{padding:14px 16px}
+    .head-actions{margin-left:0;width:100%}
+    .field{flex:1 1 130px}
+    .field input{width:100%}
+    #save{flex:1}
+  }
 </style>
 </head>
 <body>
+<a class="skip" href="#items">Bỏ qua tới danh sách ảnh</a>
 
 <header>
   <div>
@@ -63,20 +86,24 @@
     <p>Album ảnh + video kỷ niệm · lưu thẳng lên Supabase</p>
   </div>
 
-  <div class="head-actions" id="auth-out">
-    <input id="username" type="text" placeholder="Tài khoản" autocomplete="username" spellcheck="false">
-    <input id="password" type="password" placeholder="Mật khẩu" autocomplete="current-password">
-    <button id="login" class="primary">Đăng nhập</button>
-  </div>
+  <form class="head-actions" id="auth-out">
+    <label class="field">Tài khoản
+      <input id="username" type="text" placeholder="ngohuuhoainam" autocomplete="username" spellcheck="false" required>
+    </label>
+    <label class="field">Mật khẩu
+      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" required>
+    </label>
+    <button id="login" class="primary" type="submit">Đăng nhập</button>
+  </form>
 
   <div class="head-actions" id="auth-in" hidden>
     <span id="who" class="muted"></span>
-    <button id="logout">Đăng xuất</button>
+    <button id="logout" type="button">Đăng xuất</button>
   </div>
 
   <div class="head-actions">
-    <button id="reload">Tải lại</button>
-    <button id="save" class="primary" disabled>Lưu lên Supabase</button>
+    <button id="reload" type="button">Tải lại</button>
+    <button id="save" class="primary" type="button" disabled>Lưu lên Supabase</button>
   </div>
 </header>
 
@@ -86,10 +113,10 @@
   <section class="card">
     <div class="row" style="justify-content:space-between">
       <h2 style="margin:0">Album kỷ niệm · <span id="count">0</span> trang</h2>
-      <button id="add">+ Thêm ảnh</button>
+      <button id="add" type="button">+ Thêm ảnh</button>
     </div>
     <p class="note">Mỗi ảnh là một trang, hai trang một tờ. Ảnh lẻ cuối cùng để trống mặt sau.</p>
-    <div id="items"></div>
+    <div id="items" tabindex="-1"></div>
   </section>
 
   <section class="card">
@@ -118,9 +145,11 @@ const SUPABASE_KEY = 'sb_publishable_yT3dW8SrSzwppmgfFJCcmQ_h8bF0WX-';
 const state = { items: [], videoSrc: '' };
 let loaded = { items: [], videoSrc: '' };
 let session = null; // { access_token, refresh_token, expires_at, email }
+let dirty = false; // có thay đổi chưa ghi lên Supabase
 
 const status = (text, kind = '') => {
   const el = $('#status');
+  if (el.textContent === text && el.className === kind) return; // tránh đọc lại cùng một câu
   el.textContent = text;
   el.className = kind;
 };
@@ -268,7 +297,9 @@ async function saveContent() {
     return;
   }
   const button = $('#save');
+  const label = button.textContent;
   button.disabled = true;
+  button.textContent = 'Đang lưu…';
   status('Đang lưu…');
   try {
     let saved;
@@ -279,6 +310,7 @@ async function saveContent() {
       saved = await writeContent((await refresh()).access_token); // token cũ → làm mới rồi thử lại
     }
     loaded = structuredClone(state);
+    dirty = false;
     renderAuth();
     status(`Đã lưu lúc ${new Date(saved.updated_at).toLocaleTimeString('vi-VN')} · web 3D thấy ngay lần tải trang sau.`, 'is-ok');
   } catch (error) {
@@ -294,6 +326,7 @@ async function saveContent() {
       status('Lưu thất bại — kiểm tra mạng rồi thử lại.', 'is-err');
     }
   } finally {
+    button.textContent = label;
     button.disabled = !session;
   }
 }
@@ -301,37 +334,52 @@ async function saveContent() {
 // ---------- Editor ----------
 
 const changed = () => {
+  dirty = true;
   $('#count').textContent = state.items.length;
-  if (session) status('Có thay đổi chưa lưu.');
+  status(session ? 'Có thay đổi chưa lưu.' : 'Đang sửa (chưa đăng nhập) — đăng nhập để lưu lên Supabase.');
 };
 
-function showThumb(img, url) {
+// Đóng tab khi còn thay đổi chưa lưu thì trình duyệt hỏi lại.
+window.addEventListener('beforeunload', (e) => {
+  if (!dirty) return;
+  e.preventDefault();
+  e.returnValue = '';
+});
+
+function showThumb(img, url, page) {
   img.classList.toggle('bad', !url);
-  img.alt = url ? '' : 'chưa có ảnh';
-  img.src = url;
+  img.alt = url ? `Ảnh trang ${page}` : `Trang ${page} chưa có ảnh`;
+  if (url) img.src = url;
+  else img.removeAttribute('src');
 }
 
 function renderList() {
   const list = $('#items');
   list.textContent = '';
+  if (!state.items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'empty';
+    empty.textContent = 'Chưa có trang nào. Bấm “+ Thêm ảnh” để thêm trang đầu tiên.';
+    list.append(empty);
+  }
   state.items.forEach((it, i) => {
     const row = document.createElement('div');
     row.className = 'item';
     row.innerHTML = `
-      <img class="thumb" alt="">
+      <img class="thumb" alt="" loading="lazy" decoding="async">
       <div>
         <label>Liên kết ảnh <span class="muted">· trang ${i + 1}</span>
           <input class="url" type="text" spellcheck="false" placeholder="https://… hoặc đường dẫn nội bộ">
         </label>
-        <input class="upload" type="file" accept="image/*" title="Hoặc tải ảnh lên Supabase Storage">
+        <input class="upload" type="file" accept="image/*" aria-label="Tải ảnh cho trang ${i + 1}">
         <label>Chú thích <span class="muted">· khoảng 4 dòng</span>
-          <textarea class="desc" rows="2"></textarea>
+          <textarea class="desc" rows="3"></textarea>
         </label>
       </div>
       <div class="ops">
-        <button class="up" title="Lên trên">↑</button>
-        <button class="down" title="Xuống dưới">↓</button>
-        <button class="del danger" title="Xoá trang">✕</button>
+        <button class="up" type="button" title="Lên trên" aria-label="Đưa trang ${i + 1} lên trên">↑</button>
+        <button class="down" type="button" title="Xuống dưới" aria-label="Đưa trang ${i + 1} xuống dưới">↓</button>
+        <button class="del danger" type="button" title="Xoá trang" aria-label="Xoá trang ${i + 1}">✕</button>
       </div>`;
 
     const img = row.querySelector('.thumb');
@@ -340,27 +388,35 @@ function renderList() {
     url.value = it.imageLink;
     desc.value = it.description;
 
+    const up = row.querySelector('.up');
+    const down = row.querySelector('.down');
+    up.disabled = i === 0;
+    down.disabled = i === state.items.length - 1;
+
     img.addEventListener('load', () => img.classList.remove('bad'));
     img.addEventListener('error', () => img.classList.add('bad'));
     url.addEventListener('input', () => { it.imageLink = url.value.trim(); changed(); });
-    url.addEventListener('change', () => showThumb(img, it.imageLink));
+    url.addEventListener('change', () => showThumb(img, it.imageLink, i + 1));
 
     const upload = row.querySelector('.upload');
     upload.addEventListener('change', async () => {
       const file = upload.files?.[0];
-      upload.value = '';
       if (!file) return;
-      if (!session) { status('Đăng nhập trước khi tải file lên.', 'is-err'); return; }
-      status('Đang tải ảnh lên…');
+      if (!session) { status('Đăng nhập trước khi tải file lên.', 'is-err'); upload.value = ''; return; }
+      upload.disabled = true;
+      status(`Đang tải ${file.name} lên…`);
       try {
         const publicUrl = await uploadFile(file, 'album');
         it.imageLink = publicUrl;
         url.value = publicUrl;
-        showThumb(img, publicUrl);
+        showThumb(img, publicUrl, i + 1);
         changed();
         status('Đã tải ảnh lên. Bấm "Lưu lên Supabase" để ghi vào nội dung.', 'is-ok');
       } catch (error) {
         status(`Tải ảnh thất bại — ${error.message}`, 'is-err');
+      } finally {
+        upload.value = '';
+        upload.disabled = false;
       }
     });
     desc.addEventListener('input', () => { it.description = desc.value; changed(); });
@@ -371,27 +427,43 @@ function renderList() {
       state.items.splice(j, 0, state.items.splice(i, 1)[0]);
       changed();
       renderList();
+      focusRow(j);
     };
-    row.querySelector('.up').addEventListener('click', () => move(-1));
-    row.querySelector('.down').addEventListener('click', () => move(1));
+    up.addEventListener('click', () => move(-1));
+    down.addEventListener('click', () => move(1));
     row.querySelector('.del').addEventListener('click', () => {
+      if (!confirm(`Xoá trang ${i + 1} khỏi album?`)) return;
       state.items.splice(i, 1);
       changed();
       renderList();
+      focusRow(i);
     });
 
-    showThumb(img, it.imageLink);
+    showThumb(img, it.imageLink, i + 1);
     list.append(row);
   });
+}
+
+// Sau khi danh sách được dựng lại, đưa focus về đúng trang thay vì rơi về <body>.
+function focusRow(index) {
+  const row = $('#items').children[Math.min(index, state.items.length - 1)];
+  (row?.querySelector('.ops button:not([disabled])') || $('#add')).focus();
 }
 
 function previewVideo() {
   const video = $('#video-preview');
   video.hidden = !state.videoSrc;
-  if (state.videoSrc && video.getAttribute('src') !== state.videoSrc) video.src = state.videoSrc;
+  if (!state.videoSrc) {
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+    return;
+  }
+  if (video.getAttribute('src') !== state.videoSrc) video.src = state.videoSrc;
 }
 
 async function reload() {
+  if (dirty && !confirm('Tải lại sẽ bỏ các thay đổi chưa lưu. Tiếp tục?')) return;
   status('Đang tải nội dung…');
   try {
     loaded = await readContent();
@@ -405,6 +477,7 @@ async function reload() {
   renderList();
   previewVideo();
   $('#count').textContent = state.items.length;
+  dirty = false;
   status(session ? 'Đã tải nội dung hiện tại của web 3D.' : 'Đăng nhập để sửa nội dung (xem vẫn được).');
 }
 
@@ -419,34 +492,41 @@ async function init() {
 
   renderAuth();
 
-  $('#login').addEventListener('click', async () => {
+  $('#auth-out').addEventListener('submit', async (e) => {
+    e.preventDefault();
     const name = $('#username').value.trim();
     if (!name) { $('#username').focus(); return; }
+    if (!$('#password').value) { $('#password').focus(); return; }
+    const button = $('#login');
     status('Đang đăng nhập…');
-    $('#login').disabled = true;
+    button.disabled = true;
+    button.textContent = 'Đang đăng nhập…';
     try {
       await login(name, $('#password').value);
       $('#password').value = '';
       renderAuth();
-      status(`Đăng nhập: ${session.email}`);
+      status(`Đăng nhập: ${session.email}`, 'is-ok');
     } catch (error) {
       status(`Đăng nhập thất bại — ${error.message}`, 'is-err');
+      $('#password').focus();
+      $('#password').select();
     } finally {
-      $('#login').disabled = false;
+      button.disabled = false;
+      button.textContent = 'Đăng nhập';
     }
   });
-  $('#password').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#login').click(); });
   $('#logout').addEventListener('click', logout);
 
   $('#video-src').addEventListener('input', (e) => { state.videoSrc = e.target.value.trim(); changed(); });
   $('#video-src').addEventListener('change', previewVideo);
 
   $('#video-upload').addEventListener('change', async (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
+    const input = e.target;
+    const file = input.files?.[0];
     if (!file) return;
-    if (!session) { status('Đăng nhập trước khi tải file lên.', 'is-err'); return; }
-    status('Đang tải video lên…');
+    if (!session) { status('Đăng nhập trước khi tải file lên.', 'is-err'); input.value = ''; return; }
+    input.disabled = true;
+    status(`Đang tải ${file.name} lên…`);
     try {
       const publicUrl = await uploadFile(file, 'video');
       state.videoSrc = publicUrl;
@@ -456,6 +536,9 @@ async function init() {
       status('Đã tải video lên. Bấm "Lưu lên Supabase" để ghi vào nội dung.', 'is-ok');
     } catch (error) {
       status(`Tải video thất bại — ${error.message}`, 'is-err');
+    } finally {
+      input.value = '';
+      input.disabled = false;
     }
   });
 
