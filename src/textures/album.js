@@ -1,13 +1,14 @@
 /**
  * Souvenir album artwork: the leather cover, the endpaper inside it, and one canvas per page
  * (a taped-in photo over a caption). Page photos are the only pictures in the project that
- * are loaded at run time; see data/album.js.
+ * are loaded at run time; see data/album.js. They are requested as soon as the site boots
+ * (preloadAlbumPhotos), so the album opens with its pictures already in place.
  */
 
 import * as THREE from 'three';
 import { maxAnisotropy } from '../core/engine.js';
 import { seededRandom, TAU } from '../core/math.js';
-import { ALBUM } from '../data/album.js';
+import { ALBUM, ALBUM_ITEMS } from '../data/album.js';
 import { drawHeart, fitText, makeCanvas, rgba } from './canvas.js';
 
 const SANS = '"Segoe UI", Arial, sans-serif';
@@ -17,6 +18,15 @@ const SERIF = '"Times New Roman", "Liberation Serif", "DejaVu Serif", Georgia, s
 const PAGE_GRID_W = 1024;
 const PAGE_GRID_H = 1360;
 const PAGE_SCALE = 0.75;
+
+// The photo card in the upper part of a page and the picture's window inside it (grid units).
+const CARD_X = 104;
+const CARD_Y = 132;
+const CARD_W = PAGE_GRID_W - 208;
+const CARD_H = 740;
+const CARD_PAD = 26;
+const PHOTO_W = CARD_W - CARD_PAD * 2;
+const PHOTO_H = CARD_H - CARD_PAD - 54;
 
 function finish(canvas) {
   const texture = new THREE.CanvasTexture(canvas);
@@ -242,16 +252,14 @@ function paintPage(ctx, pageNum, isLeftPage, item, photo, state) {
   ctx.textAlign = 'center';
   ctx.fillText(`KỶ NIỆM #${String(pageNum).padStart(2, '0')}`, w * 0.5, 104);
 
-  // Photo card in the upper part of the page.
-  const cardX = 104;
-  const cardY = 132;
-  const cardW = w - 208;
-  const cardH = 740;
-  const pad = 26;
-  const imgX = cardX + pad;
-  const imgY = cardY + pad;
-  const imgW = cardW - pad * 2;
-  const imgH = cardH - pad - 54;
+  const cardX = CARD_X;
+  const cardY = CARD_Y;
+  const cardW = CARD_W;
+  const cardH = CARD_H;
+  const imgX = cardX + CARD_PAD;
+  const imgY = cardY + CARD_PAD;
+  const imgW = PHOTO_W;
+  const imgH = PHOTO_H;
 
   ctx.save();
   ctx.shadowColor = 'rgba(38, 26, 14, 0.18)';
@@ -331,38 +339,114 @@ function paintPage(ctx, pageNum, isLeftPage, item, photo, state) {
   ctx.restore();
 }
 
+// ---- Page photos ---------------------------------------------------------------------------
+
+const MAX_DOWNLOADS = 4; // at a time, in page order, so the first spreads arrive first
+
+/** link → { photo: undefined while loading | a drawable | null when it failed, ready: Promise }. */
+const photos = new Map();
+const waiting = [];
+let downloading = 0;
+
 /** Try the picture itself, then the same picture through a cross-origin friendly proxy. */
-function loadPhoto(link, onLoad, onFail) {
-  const attempt = (url, viaProxy) => {
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-    image.onload = () => onLoad(image);
-    image.onerror = () => {
-      const remote = /^https?:/i.test(link);
-      if (!viaProxy && remote) attempt(`https://wsrv.nl/?url=${encodeURIComponent(link)}`, true);
-      else onFail();
+function fetchImage(link) {
+  return new Promise((resolve) => {
+    const attempt = (url, viaProxy) => {
+      const image = new Image();
+      image.crossOrigin = 'anonymous';
+      image.onload = () => resolve(image);
+      image.onerror = () => {
+        const remote = /^https?:/i.test(link);
+        if (!viaProxy && remote) attempt(`https://wsrv.nl/?url=${encodeURIComponent(link)}`, true);
+        else resolve(null);
+      };
+      image.src = url;
     };
-    image.src = url;
-  };
-  attempt(link, false);
+    attempt(link, false);
+  });
+}
+
+/**
+ * Decode the picture and scale it down to its window on the page, away from the frame that
+ * will paint it: drawing a full-size camera photo for the first time can stall for a while.
+ */
+async function shrinkPhoto(image) {
+  const cover = Math.max(
+    (PHOTO_W * PAGE_SCALE) / image.naturalWidth,
+    (PHOTO_H * PAGE_SCALE) / image.naturalHeight,
+  );
+  try {
+    if (cover < 1 && window.createImageBitmap) {
+      return await createImageBitmap(image, {
+        resizeWidth: Math.max(1, Math.round(image.naturalWidth * cover)),
+        resizeHeight: Math.max(1, Math.round(image.naturalHeight * cover)),
+        resizeQuality: 'high',
+      });
+    }
+    await image.decode?.();
+  } catch {
+    // The image itself still draws.
+  }
+  return image;
+}
+
+function startDownloads() {
+  while (downloading < MAX_DOWNLOADS && waiting.length) {
+    downloading++;
+    waiting.shift()().finally(() => {
+      downloading--;
+      startDownloads();
+    });
+  }
+}
+
+/** The photo behind `link`, requested once however many times it is asked for. */
+function photoEntry(link) {
+  let entry = photos.get(link);
+  if (!entry) {
+    entry = { photo: undefined, ready: null };
+    entry.ready = new Promise((resolve) => {
+      waiting.push(async () => {
+        const image = await fetchImage(link);
+        entry.photo = image ? await shrinkPhoto(image) : null;
+        resolve(entry.photo);
+      });
+    });
+    photos.set(link, entry);
+    startDownloads();
+  }
+  return entry;
+}
+
+/** Start fetching every page photo. Call early in boot(): nothing waits for it. */
+export function preloadAlbumPhotos() {
+  for (const item of ALBUM_ITEMS) {
+    if (item.imageLink) photoEntry(item.imageLink);
+  }
+}
+
+/** Resolves once the photo of `item` has arrived or failed; at once for a page without one. */
+export function albumPhotoReady(item) {
+  return item?.imageLink ? photoEntry(item.imageLink).ready : Promise.resolve();
 }
 
 /**
  * Texture for page `pageNum` (1-based); `item` is its entry in ALBUM_ITEMS, or undefined for
- * a blank page. The photo is requested straight away and painted in when it arrives.
+ * a blank page. A photo that is already in is painted straight away; otherwise the page says
+ * it is loading and is repainted when the photo arrives.
  */
 export function createAlbumPageTexture(pageNum, isLeftPage, item) {
+  const entry = item?.imageLink ? photoEntry(item.imageLink) : null;
+  const pending = Boolean(entry) && entry.photo === undefined;
   const canvas = makeCanvas(PAGE_GRID_W * PAGE_SCALE, PAGE_GRID_H * PAGE_SCALE, (ctx) => {
-    paintPage(ctx, pageNum, isLeftPage, item, null, 'loading');
+    paintPage(ctx, pageNum, isLeftPage, item, entry?.photo ?? null, pending ? 'loading' : 'failed');
   });
   const texture = finish(canvas);
-  if (item) {
-    const repaint = (photo, state) => {
-      paintPage(canvas.getContext('2d'), pageNum, isLeftPage, item, photo, state);
+  if (pending) {
+    entry.ready.then((photo) => {
+      paintPage(canvas.getContext('2d'), pageNum, isLeftPage, item, photo, 'failed');
       texture.needsUpdate = true;
-    };
-    if (item.imageLink) loadPhoto(item.imageLink, (photo) => repaint(photo, 'loaded'), () => repaint(null, 'failed'));
-    else repaint(null, 'failed');
+    });
   }
   return texture;
 }

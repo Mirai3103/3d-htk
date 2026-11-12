@@ -58,7 +58,11 @@ export function flyToOverview() {
   startCameraFlight(view.position, view.target, 1.45);
 }
 
-export function flyToBuilding(data) {
+/**
+ * A building's own camera view for the current window: its `view`, or on a narrow screen its
+ * `mobileView` (or `view` pulled back when it has none).
+ */
+export function buildingView(data) {
   const mobile = window.innerWidth < 760;
   const originalTarget = new THREE.Vector3(...data.view.target);
   const basePosition = new THREE.Vector3(...data.view.position);
@@ -74,7 +78,12 @@ export function flyToBuilding(data) {
     target.y = Math.min(target.y, 1.35);
     position = target.clone().addScaledVector(direction, mobileScales[data.name] || 1.9);
   }
-  startCameraFlight(position, target, 1.35);
+  return { position, target };
+}
+
+export function flyToBuilding(data) {
+  const view = buildingView(data);
+  startCameraFlight(view.position, view.target, 1.35);
 }
 
 /**

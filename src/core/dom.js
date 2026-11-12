@@ -7,6 +7,7 @@ export const ROOT = document.documentElement;
 export const appEl = document.getElementById('app');
 export const loader = document.getElementById('loader');
 export const loaderStatus = document.getElementById('loader-status');
+export const introEl = document.getElementById('intro');
 export const labelsLayer = document.getElementById('labels');
 export const labelsToggle = document.getElementById('labels-toggle');
 export const overviewBtn = document.getElementById('overview-btn');

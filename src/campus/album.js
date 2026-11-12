@@ -9,7 +9,7 @@
  */
 
 import * as THREE from 'three';
-import { scene } from '../core/engine.js';
+import { renderer, scene } from '../core/engine.js';
 import { damp } from '../core/math.js';
 import { ALBUM_ITEMS } from '../data/album.js';
 import { SIGN_MATERIALS } from '../materials/registry.js';
@@ -18,6 +18,7 @@ import {
   albumEndpaperTex,
   albumFarewellTex,
   albumPaperTex,
+  albumPhotoReady,
   createAlbumPageTexture,
 } from '../textures/album.js';
 
@@ -56,7 +57,8 @@ let wantOpen = false;
 /** 0 closed … 1 open, linear in time; `openness` is its eased value. */
 let coverT = 0;
 let openness = 0;
-let pagesPainted = false;
+/** Pages that have their artwork so far, counted in reading order. */
+let paintedPages = 0;
 
 /** The sheet under the pointer while it is being dragged. */
 let dragged = null;
@@ -239,6 +241,7 @@ export function buildAlbum({ x, y, z, yaw }) {
   book.add(board, block, coverPivot, spinePivot);
   addSheets(edge);
   scene.add(root);
+  warmPages();
 
   // Generous invisible box, so the closed album is easy to click or tap.
   pickProxy = new THREE.Mesh(
@@ -269,20 +272,46 @@ export function getAlbumFrame(center, front) {
 
 // ---- Opening, turning ----------------------------------------------------------------------
 
+/** Paint the next page in reading order; `upload` also sends it to the GPU straight away. */
+function paintNextPage(upload) {
+  const sheet = sheets[paintedPages >> 1];
+  const isLeft = paintedPages % 2 === 1;
+  const pageNum = paintedPages + 1;
+  const material = isLeft ? sheet.back : sheet.front;
+  const texture = createAlbumPageTexture(pageNum, isLeft, ALBUM_ITEMS[pageNum - 1]);
+  material.map = texture;
+  material.emissiveMap = texture;
+  if (upload) renderer.initTexture(texture);
+  paintedPages++;
+}
+
+/** Whatever has not been painted yet, at once. */
 function paintPages() {
-  if (pagesPainted) return;
-  pagesPainted = true;
-  for (const sheet of sheets) {
-    const frontPage = sheet.index * 2 + 1;
-    for (const [material, pageNum, isLeft] of [[sheet.front, frontPage, false], [sheet.back, frontPage + 1, true]]) {
-      const texture = createAlbumPageTexture(pageNum, isLeft, ALBUM_ITEMS[pageNum - 1]);
-      material.map = texture;
-      material.emissiveMap = texture;
-    }
+  while (paintedPages < sheets.length * 2) paintNextPage(false);
+}
+
+function idleMoment() {
+  return new Promise((resolve) => {
+    if (window.requestIdleCallback) window.requestIdleCallback(() => resolve(), { timeout: 1200 });
+    else window.setTimeout(resolve, 80);
+  });
+}
+
+/**
+ * Get the pages ready before anyone opens the album: each one is painted and uploaded in an
+ * idle moment, once its photo is in (textures/album.js preloads them), so the first opening
+ * neither waits for the network nor stalls on painting. Opening earlier just paints the rest.
+ */
+async function warmPages() {
+  while (paintedPages < sheets.length * 2) {
+    const page = paintedPages;
+    await albumPhotoReady(ALBUM_ITEMS[page]);
+    await idleMoment();
+    if (paintedPages === page) paintNextPage(true);
   }
 }
 
-/** Open the cover, or turn every sheet back and close it. The pages are painted on first use. */
+/** Open the cover, or turn every sheet back and close it. Pages not painted yet are painted now. */
 export function setAlbumOpen(open) {
   wantOpen = open;
   dragged = null;

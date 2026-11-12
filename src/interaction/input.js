@@ -7,6 +7,7 @@ import {
   albumNext,
   albumPrev,
   albumPrompt,
+  introEl,
   labelsToggle,
   npcBubbleClose,
   npcBubbleNext,
@@ -17,7 +18,6 @@ import {
   walkToggle,
 } from '../core/dom.js';
 import { camera, controls, renderer, targetPixelRatio } from '../core/engine.js';
-import { setWeather } from '../scene/weather.js';
 import {
   albumPointerDown,
   albumPointerMove,
@@ -33,6 +33,7 @@ import { flyToOverview, overviewTarget, updateResponsiveFov, viewportOverview } 
 import { closeDialogue, isTalking, isTeacherInReach, talkToTeacher } from './dialogue.js';
 import { findPickAtEvent } from './picking.js';
 import { getHoveredBuilding, setHoveredBuilding, setOutlineResolution } from './hover.js';
+import { isIntroPlaying, skipIntro } from './intro.js';
 import { applyLabelNames, measureLabels, toggleLabels, updateLabels } from './labels.js';
 import { selectBuilding } from './selection.js';
 import {
@@ -184,11 +185,14 @@ export function initInput() {
     else flyToOverview();
   });
 
-  document.querySelectorAll('.weather-btn').forEach((button) => {
-    button.addEventListener('click', () => setWeather(button.dataset.weather));
-  });
+  // The opening shot: its overlay covers the scene, so any click or tap on it skips ahead.
+  introEl.addEventListener('click', skipIntro);
 
   document.addEventListener('keydown', (event) => {
+    if (isIntroPlaying()) {
+      if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') skipIntro();
+      return;
+    }
     // Reading the album: arrows turn pages, Esc closes it, everything else waits.
     if (isAlbumActive()) {
       if (event.key === 'Escape') closeAlbum();

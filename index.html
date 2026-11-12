@@ -7,7 +7,7 @@
 <title>THCS Huỳnh Thúc Kháng - Mô hình 3D</title>
 </head>
 <body>
-<div id="app">
+<div id="app" class="is-intro">
   <div id="stage" aria-label="Mô hình 3D tương tác Trường THCS Huỳnh Thúc Kháng"></div>
   <div class="edge-shade" aria-hidden="true"></div>
   <div id="labels" class="labels-layer" aria-label="Nhãn công trình"></div>
@@ -68,32 +68,6 @@
   </header>
 
   <div class="top-controls">
-    <section class="weather-card" aria-label="Thời tiết và ánh sáng">
-      <span class="control-kicker">Không gian</span>
-      <div class="weather-options" role="group" aria-label="Chọn thời tiết">
-        <button class="weather-btn" type="button" data-weather="sunny" aria-pressed="true" title="Nắng">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="3.7"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.55 1.55M17.85 17.85l1.55 1.55M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.55-1.55M17.85 6.15l1.55-1.55"/>
-          </svg><span>Nắng</span>
-        </button>
-        <button class="weather-btn" type="button" data-weather="cloudy" aria-pressed="false" title="Mây">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6.3 18.2h11a3.4 3.4 0 0 0 .3-6.78A5.25 5.25 0 0 0 7.4 10.7a3.8 3.8 0 0 0-1.1 7.5Z"/>
-          </svg><span>Mây</span>
-        </button>
-        <button class="weather-btn" type="button" data-weather="rain" aria-pressed="false" title="Mưa">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6.4 15.8h11.1a3.35 3.35 0 0 0 .3-6.68A5.2 5.2 0 0 0 7.5 8.3a3.75 3.75 0 0 0-1.1 7.5Z"/><path d="M8.1 19.1 7.2 21M12.2 19.1 11.3 21M16.3 19.1 15.4 21"/>
-          </svg><span>Mưa</span>
-        </button>
-        <button class="weather-btn" type="button" data-weather="night" aria-pressed="false" title="Đêm">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M20.2 15.1A8.4 8.4 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"/>
-          </svg><span>Đêm</span>
-        </button>
-      </div>
-    </section>
-
     <div class="utility-row">
       <button class="utility-btn" type="button" id="labels-toggle" aria-pressed="true" title="Hiện hoặc ẩn nhãn công trình">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -176,6 +150,21 @@
       </button>
     </div>
     <p class="album-hint" aria-hidden="true">Dùng thanh điều khiển của video<span class="album-hint-keys"> · <strong>Space</strong> để tạm dừng · <strong>Esc</strong> để đóng</span></p>
+  </div>
+
+  <div class="intro" id="intro">
+    <span class="intro-bar intro-bar-top" aria-hidden="true"></span>
+    <span class="intro-bar intro-bar-bottom" aria-hidden="true"></span>
+    <div class="intro-title" aria-hidden="true">
+      <p class="intro-kicker">Nghĩa Hành · Quảng Ngãi</p>
+      <p class="intro-name">THCS Huỳnh Thúc Kháng</p>
+      <p class="intro-occasion"><span>Chào mừng Ngày Nhà giáo Việt Nam 20 · 11</span></p>
+    </div>
+    <button class="intro-skip" id="intro-skip" type="button" aria-label="Bỏ qua đoạn mở đầu">
+      <span>Bỏ qua</span>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.6 3.4 4.4 4.6-4.4 4.6M8.6 3.4 13 8l-4.4 4.6"/></svg>
+    </button>
+    <span class="intro-veil" aria-hidden="true"></span>
   </div>
 
   <div class="loader" id="loader" role="status" aria-live="polite">

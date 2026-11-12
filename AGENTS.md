@@ -111,7 +111,8 @@ textures/                   canvas-painted textures (no image files)
   sky.js                    env maps per weather, lamp glow, moon
   festive.js                Teachers' Day: colour-swatch palette, check-in backdrop, props atlas,
                             the video screen's title card
-  album.js                  souvenir album: cover, endpapers, one painted page per ALBUM_ITEMS entry
+  album.js                  souvenir album: cover, endpapers, one painted page per ALBUM_ITEMS entry,
+                            preloadAlbumPhotos
 materials/
   registry.js               MATS map, std(), addSignMaterial(), M (direct handles), SIGN/GLOW lists
   library.js                ALL named materials (std('wall', {...}) …), wetMaterials, ensureBuildMaterials
@@ -123,6 +124,7 @@ scene/
   lights.js                 ambient/hemi/sun/fill lights, lampLights, makeLampGlow()
   rain.js                   GPU rain points
   weather.js                WEATHERS presets, setWeather(name), updateWeather(dt), currentWeather
+                            (locked on 'sunny': no weather control in the UI)
   puddles.js                createPuddles(), puddleMeshes
 data/
   remote.js                 CONTENT: the Supabase content row, fetched once at startup (album pages, video src)
@@ -144,7 +146,9 @@ campus/                     one file per place on the site; each exports build*(
   album.js                  the souvenir album on its table (real meshes: cover, curling sheets)
   memoryScreen.js           the memory-video screen: batched stand + its self-lit picture mesh
 interaction/
-  cameraRig.js              overview framing, flyTo*/startCameraFlight, constrainCamera, isCameraFlying
+  cameraRig.js              overview framing, flyTo*/startCameraFlight, buildingView, constrainCamera,
+                            isCameraFlying
+  intro.js                  the opening shot: startIntro, skipIntro, updateIntro, isIntroPlaying
   walk.js                   first-person walk mode: enter/exitWalk, isWalking, updateWalk(dt)
   picking.js                pick proxies (buildings, teacher, album, video screen), findPickAtEvent
   dialogue.js               teacher's "talk" prompt and speech bubble: talkToTeacher, closeDialogue
@@ -158,11 +162,11 @@ interaction/
 styles/
   index.css                 @imports the parts below — ORDER MATTERS, responsive.css last
   base.css brand.css controls.css labels.css hint.css walk.css dialogue.css album.css
-  video.css loader.css
+  video.css intro.css loader.css
   responsive.css
 ```
 
-`index.html` holds only the static markup (header, weather buttons, hints, loader) plus a
+`index.html` holds only the static markup (header, buttons, hints, intro overlay, loader) plus a
 tiny classic error-guard script. IDs/classes used by JS are referenced through `core/dom.js`.
 
 ## How geometry works (read before adding scenery)
@@ -190,6 +194,26 @@ b.geometry('key', anyBufferGeometry, x, y, z, rx, ry, rz, sx, sy, sz);
 - Builder output is **static**: it cannot be moved or animated after `flushBatches()`.
   Anything dynamic (the flag, lamp glows, point lights, puddles, rain) is a real `THREE.Object3D`
   added with `scene.add(...)` and updated per frame.
+
+## The opening shot
+
+When the loader lifts, `interaction/intro.js` plays one continuous camera move (about 11 s): high
+above the street, down to the main gate, over the closed gate leaves and under the name board,
+then it settles on the Teachers' Day corner's own view (`buildingView(BUILDINGS.teachersDay)`)
+and hands the camera to the orbit controls.
+
+- `#app` carries the class `is-intro` **from the markup** until the camera lands: the header,
+  buttons, labels and prompts stay hidden, `#intro` shows the letterbox bars, the title card and
+  the "Bỏ qua" chip, and covers the scene, so a click or tap anywhere (or Esc / Enter / Space)
+  skips: a short dip to black, then a cut to the final pose.
+- The flight is data: `PATH` in `intro.js` is a list of timed keys (`t`, camera `position`, `look`
+  point) joined by a cubic Hermite, so speed stays continuous through every key. The key in the
+  gate must stay inside the portal: 6 m wide, between 2.8 m (top of the leaves) and 6.1 m (beam).
+- While `isIntroPlaying()` nothing else drives the camera (`animate()` calls `updateIntro` instead
+  of the controls). It runs on real frame time, not the clamped `dt`.
+- No flight for visitors who ask for reduced motion, or with `?intro=off`: the scene opens on the
+  final pose. Dev only: `?intro=<seconds>` holds the shot at that moment (e.g. `/?intro=7.2`), to
+  check one frame of the path; `?walk=…` skips it.
 
 ## Walk mode (first person)
 
@@ -269,8 +293,13 @@ where it was (orbit pose or the walker's eyes).
   camera (`animate()` skips the orbit controls and `updateWalk`), `#app` has the class
   `is-reading`, and `input.js` routes pointer and keys to it. Anything that sends the camera
   elsewhere (Overview, Walk, selecting a building) must call `closeAlbum({ fly: false })` first.
-- Page textures are painted lazily on first open (`textures/album.js`); their materials are in
-  `SIGN_MATERIALS`, so the pages stay readable at night.
+- Photos are preloaded: `boot()` calls `preloadAlbumPhotos()` (`textures/album.js`) first thing,
+  which downloads every `imageLink` (4 at a time, in page order) and scales each down to its
+  window on the page. `campus/album.js#warmPages` then paints and uploads the pages one per idle
+  moment, each once its photo is in, so opening the album waits for nothing; opening earlier
+  paints the rest at once and late photos are painted in when they arrive. Every visitor
+  therefore downloads the whole album, opened or not: keep the photos small (see "Media storage").
+- The page materials are in `SIGN_MATERIALS`, so the pages stay readable at night.
 
 ## The memory video
 
@@ -312,12 +341,13 @@ then call it from `buildCampus()` in `campus/index.js`. Keep it inside the lot u
 `BUILDING_ORDER` in `data/buildings.js` (`bounds` = pick box centre/size, `label` = 3D anchor,
 `view` = camera position/target used by `flyToBuilding`). Picking and labels pick it up
 automatically: a click just flies the camera there, nothing else opens. For phones, add a
-`mobileScales` entry in `cameraRig.js#flyToBuilding`, or give the entry its own `mobileView`
+`mobileScales` entry in `cameraRig.js#buildingView`, or give the entry its own `mobileView`
 when the default view does not frame it well on a narrow screen.
 
-**Add a weather preset** → `WEATHERS` in `scene/weather.js` (all keys of `COLOR_KEYS`/`NUM_KEYS`
-are required), an env texture in `textures/sky.js` `ENV_TEXTURES`, and a `.weather-btn` with
-`data-weather="<name>"` in `index.html`.
+**Weather** → the site is locked on `sunny`; the weather buttons were removed on purpose and
+nothing calls `setWeather()`. The other presets (`cloudy`, `rain`, `night`) still work if a
+control is ever brought back. A new preset goes in `WEATHERS` in `scene/weather.js` (all keys of
+`COLOR_KEYS`/`NUM_KEYS` are required) with an env texture in `textures/sky.js` `ENV_TEXTURES`.
 
 **Animate something per frame** → keep the state in the module that owns the object, export an
 `updateX(t / dt)` function, and call it from `animate()` in `main.js` (see `updateFlag`).

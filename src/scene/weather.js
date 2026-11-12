@@ -1,6 +1,9 @@
 /**
  * Weather presets (sunny / cloudy / rain / night) and the per-frame interpolation that
  * drives lights, sky, fog, materials and rain.
+ *
+ * The site is locked on 'sunny': there is no weather control in the UI and nothing calls
+ * setWeather(). The other presets stay so a control can be brought back.
  */
 
 import * as THREE from 'three';
@@ -101,9 +104,6 @@ export function setWeather(name) {
   weatherName = name;
   targetWeather = buildWeatherRuntime(name);
   scene.environment = ENV_TEXTURES[targetWeather.env];
-  document.querySelectorAll('.weather-btn').forEach((button) => {
-    button.setAttribute('aria-pressed', String(button.dataset.weather === name));
-  });
   ROOT.dataset.weather = name;
 }
 
