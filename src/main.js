@@ -7,9 +7,7 @@ import { loader, loaderStatus } from './core/dom.js';
 import { camera, clock, controls, renderer, scene } from './core/engine.js';
 import { flushBatches } from './geometry/batching.js';
 import { skyGroup, skyUniforms } from './scene/sky.js';
-import { rain } from './scene/rain.js';
-import { updateWeather } from './scene/weather.js';
-import { createPuddles } from './scene/puddles.js';
+import './scene/lights.js';
 import {
   constrainCamera,
   isCameraFlying,
@@ -45,7 +43,6 @@ function animate() {
   const t = clock.getElapsed();
 
   updateCameraFlight();
-  updateWeather(dt);
   if (isIntroPlaying()) {
     // The opening shot keeps real time, so a slow device does not get it in slow motion.
     updateIntro(Math.min(frame, 0.25));
@@ -86,9 +83,7 @@ function applyDevWalkParam() {
   teleportWalker(x, z, (yawDeg * Math.PI) / 180, (pitchDeg * Math.PI) / 180);
 }
 
-// Build everything, then render once through all weather types' shader
-// programs before the loader disappears; this avoids a stutter on the first
-// weather switch.
+// Build everything, then precompile shaders before the loader disappears.
 async function boot() {
   // The album's photos and teacher voice lines download while the campus is built and the intro plays.
   preloadAlbumPhotos();
@@ -100,17 +95,13 @@ async function boot() {
   createPickProxies();
   createLabels();
   createHoverOutline();
-  createPuddles();
   initInput();
   loaderStatus.textContent = 'Pha ánh nắng chiều…';
-  const rainWasVisible = rain.visible;
-  rain.visible = true;
   try {
     await renderer.compileAsync(scene, camera);
   } catch (error) {
     console.warn('Shader precompile skipped:', error);
   }
-  rain.visible = rainWasVisible;
   renderer.shadowMap.needsUpdate = true;
   // The opening shot holds its first frame while the loader fades (interaction/intro.js).
   startIntro({ play: devWalkParam() == null });

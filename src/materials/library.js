@@ -227,7 +227,7 @@ std('lampMetal', {
   color: 0x26342a, roughness: 0.4, metalness: 0.5,
 });
 std('lampGlass', {
-  color: 0xffe3ae, roughness: 0.42, emissive: 0xffb64f, emissiveIntensity: 0,
+  color: 0xffe3ae, roughness: 0.42, emissive: 0xffb64f, emissiveIntensity: 0.16,
 }, { castShadow: false });
 std('windowDark', {
   color: 0x27444f, roughness: 0.18, metalness: 0.28,
@@ -274,10 +274,6 @@ std('bustDark', {
 std('bicycleRack', {
   color: 0x666f6c, roughness: 0.45, metalness: 0.5,
 });
-std('puddle', {
-  color: 0x7c8e95, roughness: 0.04, metalness: 0.4, transparent: true, opacity: 0,
-  envMapIntensity: 1.9, depthWrite: false,
-}, { castShadow: false, receiveShadow: false });
 // Main gate (campus/gate.js): pale-yellow render and the ochre accent lines.
 std('gateWall', {
   color: 0xf3da94, map: stuccoTex, roughness: 0.85,
@@ -325,45 +321,6 @@ M.concrete = MATS.get('concrete').material;
 M.asphalt = MATS.get('asphalt').material;
 M.asphaltBack = MATS.get('asphaltBack').material;
 M.grass = MATS.get('grass').material;
-M.puddle = MATS.get('puddle').material;
-
-export const wetMaterials = [
-  {
-    material: M.brick,
-    baseColor: new THREE.Color(0xffffff), wetColor: new THREE.Color(0xa48b84),
-    dryRoughness: 0.88, wetRoughness: 0.3, dryMetalness: 0, wetMetalness: 0.08,
-  },
-  {
-    material: M.brickLane,
-    baseColor: new THREE.Color(0xf0ddcf), wetColor: new THREE.Color(0x8e7d78),
-    dryRoughness: 0.9, wetRoughness: 0.33, dryMetalness: 0, wetMetalness: 0.07,
-  },
-  {
-    material: M.court,
-    baseColor: new THREE.Color(0xffffff), wetColor: new THREE.Color(0x98a2a4),
-    dryRoughness: 0.88, wetRoughness: 0.24, dryMetalness: 0.02, wetMetalness: 0.16,
-  },
-  {
-    material: M.concrete,
-    baseColor: new THREE.Color(0xffffff), wetColor: new THREE.Color(0xa8afb0),
-    dryRoughness: 0.9, wetRoughness: 0.34, dryMetalness: 0, wetMetalness: 0.08,
-  },
-  {
-    material: M.asphalt,
-    baseColor: new THREE.Color(0xffffff), wetColor: new THREE.Color(0x909da0),
-    dryRoughness: 0.92, wetRoughness: 0.28, dryMetalness: 0, wetMetalness: 0.1,
-  },
-  {
-    material: M.asphaltBack,
-    baseColor: new THREE.Color(0xffffff), wetColor: new THREE.Color(0x909da0),
-    dryRoughness: 0.94, wetRoughness: 0.33, dryMetalness: 0, wetMetalness: 0.08,
-  },
-  {
-    material: M.grass,
-    baseColor: new THREE.Color(0xffffff), wetColor: new THREE.Color(0xb8c0ac),
-    dryRoughness: 1.0, wetRoughness: 0.78, dryMetalness: 0, wetMetalness: 0.02,
-  },
-];
 
 export function ensureBuildMaterials() {
   if (!MATS.has('fabricAwning')) {

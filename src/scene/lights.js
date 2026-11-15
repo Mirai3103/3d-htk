@@ -1,21 +1,25 @@
 /**
- * Scene lights (ambient, hemisphere, sun with shadows, courtyard fill) and lamp glow
- * sprites.
+ * Scene lights (ambient, hemisphere, sun with shadows, courtyard fill) and sunny environment.
  */
 
 import * as THREE from 'three';
+import { ROOT } from '../core/dom.js';
 import { scene } from '../core/engine.js';
-import { glowTex } from '../textures/sky.js';
-import { GLOW_MATERIALS } from '../materials/registry.js';
+import { sunnyEnvTex } from '../textures/sky.js';
 
-export const ambient = new THREE.AmbientLight(0xffffff, 0.15);
+ROOT.dataset.weather = 'sunny';
+scene.environment = sunnyEnvTex;
+scene.environmentIntensity = 0.48;
+scene.background = new THREE.Color('#c7dfea');
+
+export const ambient = new THREE.AmbientLight('#f7f0da', 0.13);
 scene.add(ambient);
 
-export const hemi = new THREE.HemisphereLight(0xb9ddff, 0x8b7e58, 1.12);
+export const hemi = new THREE.HemisphereLight('#b9ddff', '#8b7e58', 1.02);
 hemi.position.set(0, 60, 0);
 scene.add(hemi);
 
-export const sun = new THREE.DirectionalLight(0xfff2dd, 3.15);
+export const sun = new THREE.DirectionalLight('#fff4d5', 3.35);
 sun.position.set(84, 92, 58);
 sun.target.position.set(20, 0, 0);
 sun.castShadow = true;
@@ -34,27 +38,8 @@ sun.shadow.camera.updateProjectionMatrix();
 scene.add(sun);
 scene.add(sun.target);
 
-export const courtyardFill = new THREE.DirectionalLight(0xffe6c1, 0.18);
+export const courtyardFill = new THREE.DirectionalLight('#fff4d5', 0.06 + 3.35 * 0.045);
 courtyardFill.position.set(-30, 24, 40);
 courtyardFill.target.position.set(0, 0, 0);
 scene.add(courtyardFill);
 scene.add(courtyardFill.target);
-
-export const lampLights = [];
-export const lampGlows = [];
-
-export function makeLampGlow(position) {
-  const material = new THREE.SpriteMaterial({
-    map: glowTex, color: 0xffd799, transparent: true, opacity: 0,
-    depthWrite: false, blending: THREE.AdditiveBlending,
-    fog: false,
-  });
-  const sprite = new THREE.Sprite(material);
-  sprite.position.copy(position);
-  sprite.scale.set(4.4, 4.4, 1);
-  sprite.visible = true;
-  scene.add(sprite);
-  GLOW_MATERIALS.push(material);
-  lampGlows.push(material);
-  return sprite;
-}

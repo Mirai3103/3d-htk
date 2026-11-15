@@ -13,7 +13,6 @@ import { scene } from '../core/engine.js';
 import { seededRandom, TAU } from '../core/math.js';
 import { Builder, UNIT } from '../geometry/batching.js';
 import { MATS } from '../materials/registry.js';
-import { lampLights, makeLampGlow } from '../scene/lights.js';
 import { festiveUV, propRegionUV } from '../textures/festive.js';
 import { addStudent } from '../kit/furniture.js';
 import { buildAlbum } from './album.js';
@@ -384,7 +383,6 @@ function addLantern(b, x, y, z) {
   for (const side of [-1, 1]) b.cylinder('gold', 0.08, 0.04, x, y + side * 0.165, z);
   matteRod(b, 'gold', 0.014, 0.22, x, y - 0.3, z);
   matteRod(b, 'red', 0.022, 0.05, x, y - 0.2, z);
-  makeLampGlow(new THREE.Vector3(BX + x, y, BZ + z)).scale.set(1.9, 1.9, 1);
 }
 
 function addPolesAndStrings(b) {
@@ -612,12 +610,6 @@ export function buildTeachersDayBooth() {
   pupil(-5.95, 1.7, 2.38, 17);
   pupil(6.32, 1.75, Math.PI - 0.6, 15);
   pupil(4.54, 1.21, Math.PI - 0.3, 16);
-
-  // Warm light over the carpet after dark, switched with the courtyard lamps.
-  const light = new THREE.PointLight(0xffd6a0, 0, 16, 2);
-  light.position.set(BX, 3.1, BZ + 1.9);
-  scene.add(light);
-  lampLights.push(light);
 }
 
 /** Per-frame: the helium balloons sway on their strings. */

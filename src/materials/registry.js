@@ -6,8 +6,6 @@
 import * as THREE from 'three';
 
 export const MATS = new Map();
-export const SIGN_MATERIALS = [];
-export const GLOW_MATERIALS = [];
 
 function addMaterial(key, material, options = {}) {
   material.envMapIntensity = options.envMapIntensity ?? 0.38;
@@ -40,6 +38,5 @@ export function addSignMaterial(key, texture, options = {}) {
   });
   material.envMapIntensity = 0.25;
   MATS.set(key, { material, castShadow: false, receiveShadow: false });
-  SIGN_MATERIALS.push(material);
   return material;
 }

@@ -8,10 +8,8 @@
  * leaves the opening x ∈ [-10.2, 7.1]; everything here stays inside it.
  */
 
-import * as THREE from 'three';
 import { HALF_PI } from '../core/math.js';
 import { Builder } from '../geometry/batching.js';
-import { makeLampGlow } from '../scene/lights.js';
 import { addDoorZ, addWindowZ } from '../kit/architecture.js';
 
 const GATE_Z = 30;
@@ -151,11 +149,10 @@ function buildPortal(g) {
   addFlatSlab(g, -(OUTER + 1.0), OUTER + 1.0, -1.45, 1.45, PILLAR_TOP + fasciaH, 0.2,
     ['front', 'back', 'left', 'right']);
 
-  // Two downlights under the cornice for the night scene.
+  // Two downlights under the cornice.
   for (const x of [-2.2, 2.2]) {
     g.box('metalDark', 0.26, 0.05, 0.26, x, PILLAR_TOP - 0.02, 0.95);
     g.sphere('lampGlass', 0.11, x, PILLAR_TOP - 0.08, 0.95, 1.3, 0.55, 1.3);
-    makeLampGlow(new THREE.Vector3(x, PILLAR_TOP - 0.15, GATE_Z + 0.95)).scale.set(2.4, 2.4, 1);
   }
 
   // Main gate: two leaves meeting at the centre, with hinges, latch and track wheels.

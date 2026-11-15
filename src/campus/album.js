@@ -12,7 +12,6 @@ import * as THREE from 'three';
 import { renderer, scene } from '../core/engine.js';
 import { damp } from '../core/math.js';
 import { ALBUM_ITEMS } from '../data/album.js';
-import { SIGN_MATERIALS } from '../materials/registry.js';
 import {
   ALBUM_PHOTO_CARD,
   albumCoverTex,
@@ -71,15 +70,13 @@ const hit = new THREE.Vector3();
 
 // ---- Materials -----------------------------------------------------------------------------
 
-/** Paper that still reads at night: it glows faintly with the signs (scene/weather.js). */
+/** Paper material tuned down so print and photos keep their contrast in full sun. */
 function paperMaterial(map) {
   const material = new THREE.MeshStandardMaterial({
-    map, emissiveMap: map, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.78, metalness: 0.02,
-    // Toned down so print and photos keep their contrast in full sun.
+    map, roughness: 0.78, metalness: 0.02,
     color: PAPER_TINT,
   });
   material.envMapIntensity = 0.3;
-  SIGN_MATERIALS.push(material);
   return material;
 }
 

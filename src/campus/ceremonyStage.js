@@ -6,8 +6,6 @@ import * as THREE from 'three';
 import { scene } from '../core/engine.js';
 import { flagTex } from '../textures/signs.js';
 import { siteBuilder } from '../geometry/batching.js';
-import { makeLampGlow } from '../scene/lights.js';
-import { currentWeather } from '../scene/weather.js';
 import { addHipRoof, makeSaggingAwningGeometry } from '../kit/architecture.js';
 import { addPottedPlant } from '../kit/vegetation.js';
 
@@ -99,12 +97,10 @@ export function buildCeremonyStage() {
   b.box('fabricAwning', 9.4, 0.32, 0.05, 3, awningY - 0.16, -15.56);
   b.box('gold', 9.42, 0.025, 0.06, 3, awningY - 0.37, -9.42);
 
-  // Warm stage lanterns hung from the awning frame.
+  // Stage lanterns hung from the awning frame.
   for (const x of [-1.25, 7.25]) {
     b.box('metalDark', 0.15, 0.18, 0.15, x, 3.82, -12.5);
     b.sphere('lampGlass', 0.085, x, 3.78, -12.5, 1, 1.3, 1);
-    const glow = makeLampGlow(new THREE.Vector3(x, 3.82, -12.5));
-    glow.scale.set(2.0, 2.0, 1);
   }
 
   // The flagpole stands on the pavilion's tiled ridge, with a lightweight flag that ripples
@@ -128,11 +124,9 @@ export function buildCeremonyStage() {
   scene.add(flagMesh);
 }
 
-/** Per-frame: gentle wind through the ceremonial flag, dimmed at night / in rain. */
+/** Per-frame: gentle wind through the ceremonial flag. */
 export function updateFlag(t) {
   if (!flagMesh) return;
-  const flagLight = 0.26 + 0.74 * (1 - currentWeather.night) * (1 - currentWeather.rain * 0.18);
-  flagMesh.material.color.setScalar(flagLight);
   const positions = flagMesh.geometry.getAttribute('position');
   for (let i = 0; i < flagBasePositions.length; i += 3) {
     const vertex = i / 3;

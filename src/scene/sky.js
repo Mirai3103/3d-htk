@@ -1,26 +1,24 @@
 /**
- * Sky dome shader (gradient + procedural clouds), stars and moon. The group follows the
+ * Sky dome shader (gradient + procedural clouds) for the sunny campus. The group follows the
  * camera every frame.
  */
 
 import * as THREE from 'three';
-import { seededRandom, TAU } from '../core/math.js';
 import { scene } from '../core/engine.js';
-import { moonTex } from '../textures/sky.js';
 
 export const skyGroup = new THREE.Group();
 skyGroup.name = 'sky-group';
 scene.add(skyGroup);
 
 export const skyUniforms = {
-  uTop: { value: new THREE.Color('#2e75c9') },
-  uHorizon: { value: new THREE.Color('#d7ecf8') },
-  uGround: { value: new THREE.Color('#b8c7be') },
-  uSunColor: { value: new THREE.Color('#fff4d6') },
-  uCloudLight: { value: new THREE.Color('#ffffff') },
-  uCloudDark: { value: new THREE.Color('#bccbd3') },
+  uTop: { value: new THREE.Color('#0c5fc9') },
+  uHorizon: { value: new THREE.Color('#b9e3f8') },
+  uGround: { value: new THREE.Color('#b9cbc1') },
+  uSunColor: { value: new THREE.Color('#fff4d5') },
+  uCloudLight: { value: new THREE.Color('#fffdf6') },
+  uCloudDark: { value: new THREE.Color('#b9cbd5') },
   uSunDir: { value: new THREE.Vector3(0.46, 0.68, 0.57).normalize() },
-  uCloud: { value: 0.22 },
+  uCloud: { value: 0.06 },
   uNight: { value: 0 },
   uTime: { value: 0 },
 };
@@ -119,36 +117,3 @@ const skyDome = new THREE.Mesh(new THREE.SphereGeometry(360, 40, 24), skyMateria
 skyDome.renderOrder = 900;
 skyDome.frustumCulled = false;
 skyGroup.add(skyDome);
-
-const starRng = seededRandom(402);
-const starCount = 680;
-const starPositions = new Float32Array(starCount * 3);
-for (let i = 0; i < starCount; i++) {
-  const azimuth = starRng() * TAU;
-  const elevation = Math.asin(0.08 + starRng() * 0.9);
-  const r = 338;
-  starPositions[i * 3] = Math.cos(azimuth) * Math.cos(elevation) * r;
-  starPositions[i * 3 + 1] = Math.sin(elevation) * r;
-  starPositions[i * 3 + 2] = Math.sin(azimuth) * Math.cos(elevation) * r;
-}
-const starGeometry = new THREE.BufferGeometry();
-starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-export const starMaterial = new THREE.PointsMaterial({
-  color: 0xf5ecd9, size: 1.45, sizeAttenuation: false, transparent: true,
-  opacity: 0, depthWrite: false, fog: false,
-});
-export const stars = new THREE.Points(starGeometry, starMaterial);
-stars.renderOrder = -900;
-stars.frustumCulled = false;
-skyGroup.add(stars);
-
-export const moonMaterial = new THREE.SpriteMaterial({
-  map: moonTex, color: 0xfff9e7, transparent: true, opacity: 0,
-  depthWrite: false, depthTest: true, fog: false,
-  blending: THREE.NormalBlending,
-});
-export const moon = new THREE.Sprite(moonMaterial);
-moon.position.set(-142, 45, -282);
-moon.scale.set(14, 14, 1);
-moon.renderOrder = -850;
-skyGroup.add(moon);

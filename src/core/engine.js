@@ -27,7 +27,7 @@ renderer.shadowMap.autoUpdate = false;
 stageEl.appendChild(renderer.domElement);
 
 export const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xc8dfe8, 130, 430);
+scene.fog = new THREE.Fog('#c7dfea', 135, 445);
 export const camera = new THREE.PerspectiveCamera(43, window.innerWidth / window.innerHeight, 0.35, 900);
 export const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
