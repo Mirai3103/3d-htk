@@ -20,6 +20,7 @@ import { buildCourtyardLamps } from './courtyardLamps.js';
 import { buildNeighborhood } from './neighborhood.js';
 import { buildTeacher } from './teacher.js';
 import { buildTeachersDayBooth } from './teachersDayBooth.js';
+import { buildBirds } from './birds.js';
 
 export function buildCampus() {
   ensureBuildMaterials();
@@ -55,6 +56,7 @@ export function buildCampus() {
   buildTeachersDayBooth();
   buildCourtyardLamps();
   buildTeacher();
+  buildBirds();
   buildNeighborhood();
   loaderStatus.textContent = 'Sắp đặt những chi tiết nhỏ…';
 }

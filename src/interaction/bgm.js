@@ -1,13 +1,13 @@
 /**
- * Ambient background music: loops continuously at 20% volume, starts on load or the first
+ * Ambient background music: loops continuously at 10% volume, starts on load or the first
  * user gesture (respecting browser autoplay rules), ducks gently while the teacher speaks
  * and pauses while the memory video or background tab is active.
  */
 
 import { damp } from '../core/math.js';
 
-const BASE_VOLUME = 0.2;
-const DUCK_VOLUME = 0.06;
+const BASE_VOLUME = 0.1;
+const DUCK_VOLUME = 0.03;
 
 const bgm = new Audio('audio/bgm.m4a');
 bgm.loop = true;

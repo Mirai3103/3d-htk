@@ -18,7 +18,7 @@ export const skyUniforms = {
   uCloudLight: { value: new THREE.Color('#fffdf6') },
   uCloudDark: { value: new THREE.Color('#b9cbd5') },
   uSunDir: { value: new THREE.Vector3(0.46, 0.68, 0.57).normalize() },
-  uCloud: { value: 0.06 },
+  uCloud: { value: 0.34 },
   uNight: { value: 0 },
   uTime: { value: 0 },
 };
@@ -92,7 +92,7 @@ const skyMaterial = new THREE.ShaderMaterial({
       sky += uSunColor * sunLift;
 
       vec2 cloudUv = d.xz / (abs(d.y) + 0.28);
-      cloudUv = cloudUv * 1.18 + vec2(uTime * 0.0022, uTime * 0.0008);
+      cloudUv = cloudUv * 1.18 + vec2(uTime * 0.0055, uTime * 0.0018);
       float broad = fbm(cloudUv * 1.2 + 2.8);
       float detail = vnoise(cloudUv * 3.6 - 6.2);
       float cloudNoise = broad * 0.75 + detail * 0.25;

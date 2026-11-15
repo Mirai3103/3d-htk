@@ -25,10 +25,12 @@ import { preloadTeacherAudio, updateDialogue } from './interaction/dialogue.js';
 import { isAlbumActive, updateAlbumView } from './interaction/albumView.js';
 import { isVideoActive, updateVideoView } from './interaction/videoView.js';
 import { updateFlag } from './campus/ceremonyStage.js';
+import { updateBirds } from './campus/birds.js';
 import { updateTeacher } from './campus/teacher.js';
 import { updateAlbum } from './campus/album.js';
 import { updateTeachersDayBooth } from './campus/teachersDayBooth.js';
 import { buildCampus } from './campus/index.js';
+import { updateWind } from './materials/wind.js';
 import { preloadAlbumPhotos } from './textures/album.js';
 
 function hideLoader() {
@@ -56,6 +58,8 @@ function animate() {
     constrainCamera();
   }
   updateFlag(t);
+  updateWind(t);
+  updateBirds(t);
   updateTeacher(t, dt);
   updateTeachersDayBooth(t);
   updateDialogue(dt);

@@ -30,6 +30,7 @@ import {
 } from '../textures/signs.js';
 import { eventPropsTex, festiveTex, teachersDayBackdropTex } from '../textures/festive.js';
 import { addSignMaterial, M, MATS, std } from './registry.js';
+import { applyWind } from './wind.js';
 
 std('wall', {
   color: 0xedc24f, map: stuccoTex, roughness: 0.84, metalness: 0.0,
@@ -321,6 +322,14 @@ M.concrete = MATS.get('concrete').material;
 M.asphalt = MATS.get('asphalt').material;
 M.asphaltBack = MATS.get('asphaltBack').material;
 M.grass = MATS.get('grass').material;
+
+for (const key of ['leafDeep', 'leaf', 'leafLight', 'leafWarm']) {
+  applyWind(MATS.get(key).material, 'canopy');
+}
+applyWind(MATS.get('palmLeaf').material, 'palm');
+for (const key of ['shrub', 'shrubLight', 'flowerPink', 'flowerYellow', 'flowerRed', 'flowerWhite']) {
+  applyWind(MATS.get(key).material, 'flora');
+}
 
 export function ensureBuildMaterials() {
   if (!MATS.has('fabricAwning')) {

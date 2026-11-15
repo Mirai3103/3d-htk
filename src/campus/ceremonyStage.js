@@ -128,16 +128,17 @@ export function buildCeremonyStage() {
 export function updateFlag(t) {
   if (!flagMesh) return;
   const positions = flagMesh.geometry.getAttribute('position');
+  const gust = 0.8 + 0.28 * Math.sin(t * 0.75);
   for (let i = 0; i < flagBasePositions.length; i += 3) {
     const vertex = i / 3;
     const x = flagBasePositions[i];
     const y = flagBasePositions[i + 1];
     const flagWidth = flagMesh.userData.width || 2.75;
     const span = THREE.MathUtils.clamp(x / flagWidth, 0, 1);
-    const wave = Math.sin(t * 2.3 + x * 1.7 + y * 0.55);
-    const wave2 = Math.sin(t * 3.6 + x * 2.9) * 0.32;
-    positions.setZ(vertex, (wave + wave2) * 0.085 * span);
-    positions.setY(vertex, y + Math.cos(t * 2.1 + x * 1.9) * 0.018 * span);
+    const wave = Math.sin(t * 2.7 + x * 1.85 + y * 0.65);
+    const wave2 = Math.sin(t * 4.3 + x * 3.1 - y * 0.5) * 0.36;
+    positions.setZ(vertex, (wave + wave2) * 0.125 * gust * span);
+    positions.setY(vertex, y - 0.03 * span + Math.cos(t * 2.4 + x * 2.1) * 0.028 * gust * span);
   }
   positions.needsUpdate = true;
 }
