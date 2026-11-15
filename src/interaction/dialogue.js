@@ -33,6 +33,24 @@ const EDGE_MARGIN = 10;
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const lines = TEACHER.lines.map((line) => line.normalize('NFC'));
+const audioClips = TEACHER.audio ?? [];
+const voice = new Audio();
+voice.preload = 'auto';
+
+/** Stop any currently playing voice line so lines never overlap or linger after close. */
+function stopVoice() {
+  voice.pause();
+  voice.currentTime = 0;
+}
+
+/** Play the voice clip matching `index`, if one is configured. */
+function playVoice(index) {
+  stopVoice();
+  const src = audioClips[index];
+  if (!src) return;
+  voice.src = src;
+  voice.play().catch(() => {});
+}
 
 /** Index of the line being spoken, or -1 while she is silent. */
 let lineIndex = -1;
@@ -67,6 +85,7 @@ function showLine() {
   typed = reducedMotion.matches ? line.length : 0;
   shownChars = -1;
   renderTyped();
+  playVoice(lineIndex);
 }
 
 /** Camera position for a face-to-face view in the orbit modes. */
@@ -111,6 +130,7 @@ export function talkToTeacher() {
 
 export function closeDialogue() {
   if (lineIndex < 0) return;
+  stopVoice();
   // Keep keyboard focus somewhere sensible if it was on the bubble that is about to vanish.
   const hadFocus = npcBubble.contains(document.activeElement);
   lineIndex = -1;

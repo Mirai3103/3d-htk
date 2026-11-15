@@ -20,4 +20,13 @@ export const TEACHER = {
     'Phát huy bề dày lịch sử, tập thể sư phạm nhà trường luôn đoàn kết, đổi mới,…',
     '…quyết tâm xây dựng môi trường học tập kỷ cương và chất lượng cao.',
   ],
+  // Matching TTS clips under public/, played as each line opens.
+  audio: [
+    'audio/teacher/01.mp3',
+    'audio/teacher/02.mp3',
+    'audio/teacher/03.mp3',
+    'audio/teacher/04.mp3',
+    'audio/teacher/05.mp3',
+    'audio/teacher/06.mp3',
+  ],
 };
