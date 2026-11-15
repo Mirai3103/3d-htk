@@ -23,6 +23,7 @@ import {
 import { camera, controls, renderer } from '../core/engine.js';
 import { getMemoryScreenFrame } from '../campus/memoryScreen.js';
 import { MEMORY_VIDEO } from '../data/video.js';
+import { setBgmVideoPaused } from './bgm.js';
 import { isCameraFlying, startCameraFlight } from './cameraRig.js';
 import { cameraReturnPose, flyCameraBack, isCameraInReach, updatePrompt } from './closeUp.js';
 import { closeDialogue } from './dialogue.js';
@@ -116,6 +117,7 @@ export function openVideo() {
   if (state !== 'closed' || isCameraFlying()) return;
   if (isWalking() && !isWalkReady()) return;
   closeDialogue();
+  setBgmVideoPaused(true);
   setHoveredBuilding(null);
   releaseWalkKeys();
   returnPose = cameraReturnPose();
@@ -166,6 +168,7 @@ export function closeVideo({ fly = true } = {}) {
   appEl.classList.remove('is-watching');
   if (hadFocus) document.activeElement.blur();
   renderer.domElement.style.cursor = 'grab';
+  setBgmVideoPaused(false);
   if (!fly) {
     state = 'closed';
     return;

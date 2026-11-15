@@ -20,6 +20,7 @@ import {
 import { camera } from '../core/engine.js';
 import { getTeacherAnchor, setTeacherTalking } from '../campus/teacher.js';
 import { TEACHER } from '../data/teacher.js';
+import { setBgmDucked } from './bgm.js';
 import { isCameraFlying, startCameraFlight } from './cameraRig.js';
 import { isWalking } from './walk.js';
 
@@ -166,6 +167,7 @@ export function talkToTeacher() {
     lineIndex = 0;
     npcBubbleName.textContent = TEACHER.name;
     setTeacherTalking(true);
+    setBgmDucked(true);
     showLine();
     if (!isWalking()) flyToTeacher();
     return;
@@ -192,6 +194,7 @@ export function closeDialogue() {
   npcBubble.hidden = true;
   npcBubbleLive.textContent = '';
   setTeacherTalking(false);
+  setBgmDucked(false);
   if (hadFocus) document.activeElement.blur();
 }
 

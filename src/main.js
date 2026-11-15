@@ -20,6 +20,7 @@ import { createLabels, updateLabels } from './interaction/labels.js';
 import { initInput } from './interaction/input.js';
 import { isIntroPlaying, startIntro, updateIntro } from './interaction/intro.js';
 import { isWalking, teleportWalker, updateWalk } from './interaction/walk.js';
+import { initBgm, updateBgm } from './interaction/bgm.js';
 import { preloadTeacherAudio, updateDialogue } from './interaction/dialogue.js';
 import { isAlbumActive, updateAlbumView } from './interaction/albumView.js';
 import { isVideoActive, updateVideoView } from './interaction/videoView.js';
@@ -58,6 +59,7 @@ function animate() {
   updateTeacher(t, dt);
   updateTeachersDayBooth(t);
   updateDialogue(dt);
+  updateBgm(dt);
   updateAlbum(dt);
   updateAlbumView(dt);
   updateVideoView();
@@ -96,6 +98,7 @@ async function boot() {
   createLabels();
   createHoverOutline();
   initInput();
+  initBgm();
   loaderStatus.textContent = 'Pha ánh nắng chiều…';
   try {
     await renderer.compileAsync(scene, camera);
