@@ -24,6 +24,8 @@ import { isCameraFlying, startCameraFlight } from './cameraRig.js';
 import { isWalking } from './walk.js';
 
 const CHARS_PER_SECOND = 46;
+const AUTO_NEXT_DELAY_MS = 350;
+const AUTO_CLOSE_DELAY_MS = 1200;
 // On foot she can be addressed from this far; walking further away ends the conversation.
 const WALK_REACH = 12;
 const WALK_LEAVE = 15;
@@ -34,23 +36,76 @@ const EDGE_MARGIN = 10;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const lines = TEACHER.lines.map((line) => line.normalize('NFC'));
 const audioClips = TEACHER.audio ?? [];
+const cachedAudioUrls = new Array(audioClips.length);
 const voice = new Audio();
 voice.preload = 'auto';
 
+let preloadStarted = false;
+let voiceToken = 0;
+let playingToken = 0;
+let advanceTimer = 0;
+
+/**
+ * Fetch and cache all teacher voice clips as Blob URLs in the background so lines play
+ * immediately when spoken. Skips `file://` origins where fetch() is blocked by CORS.
+ */
+export function preloadTeacherAudio() {
+  if (preloadStarted || window.location.protocol === 'file:') return;
+  preloadStarted = true;
+  audioClips.forEach((src, index) => {
+    if (!src) return;
+    fetch(src)
+      .then((res) => (res.ok ? res.blob() : null))
+      .then((blob) => {
+        if (blob) cachedAudioUrls[index] = URL.createObjectURL(blob);
+      })
+      .catch(() => {});
+  });
+}
+
+function clearAdvanceTimer() {
+  if (!advanceTimer) return;
+  window.clearTimeout(advanceTimer);
+  advanceTimer = 0;
+}
+
 /** Stop any currently playing voice line so lines never overlap or linger after close. */
 function stopVoice() {
+  voiceToken += 1;
+  clearAdvanceTimer();
   voice.pause();
   voice.currentTime = 0;
 }
 
-/** Play the voice clip matching `index`, if one is configured. */
+/** Play the voice clip matching `index`, preferring the preloaded Blob URL when ready. */
 function playVoice(index) {
   stopVoice();
-  const src = audioClips[index];
+  const src = cachedAudioUrls[index] || audioClips[index];
   if (!src) return;
+  playingToken = voiceToken;
   voice.src = src;
   voice.play().catch(() => {});
 }
+
+voice.addEventListener('ended', () => {
+  const token = playingToken;
+  if (lineIndex < 0 || token !== voiceToken) return;
+  if (typed < lines[lineIndex].length) {
+    typed = lines[lineIndex].length;
+    renderTyped();
+  }
+  const hasNext = lineIndex < lines.length - 1;
+  advanceTimer = window.setTimeout(() => {
+    advanceTimer = 0;
+    if (lineIndex < 0 || token !== voiceToken) return;
+    if (hasNext) {
+      lineIndex += 1;
+      showLine();
+    } else {
+      closeDialogue();
+    }
+  }, hasNext ? AUTO_NEXT_DELAY_MS : AUTO_CLOSE_DELAY_MS);
+});
 
 /** Index of the line being spoken, or -1 while she is silent. */
 let lineIndex = -1;

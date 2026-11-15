@@ -22,7 +22,7 @@ import { createLabels, updateLabels } from './interaction/labels.js';
 import { initInput } from './interaction/input.js';
 import { isIntroPlaying, startIntro, updateIntro } from './interaction/intro.js';
 import { isWalking, teleportWalker, updateWalk } from './interaction/walk.js';
-import { updateDialogue } from './interaction/dialogue.js';
+import { preloadTeacherAudio, updateDialogue } from './interaction/dialogue.js';
 import { isAlbumActive, updateAlbumView } from './interaction/albumView.js';
 import { isVideoActive, updateVideoView } from './interaction/videoView.js';
 import { updateFlag } from './campus/ceremonyStage.js';
@@ -90,8 +90,9 @@ function applyDevWalkParam() {
 // programs before the loader disappears; this avoids a stutter on the first
 // weather switch.
 async function boot() {
-  // The album's photos download while the campus is built and the opening shot plays.
+  // The album's photos and teacher voice lines download while the campus is built and the intro plays.
   preloadAlbumPhotos();
+  preloadTeacherAudio();
   setInitialView();
   loaderStatus.textContent = 'Trồng cây cho sân trường…';
   buildCampus();
